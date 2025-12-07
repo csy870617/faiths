@@ -15,9 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 1. 카카오톡 초기화
     try {
-        // [주의] YOUR_KAKAO_JS_KEY를 실제 키로 변경하세요
         if (!Kakao.isInitialized()) {
-            Kakao.init('YOUR_KAKAO_JS_KEY'); 
+            Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); 
         }
     } catch (e) {
         console.log('카카오 SDK 초기화 실패');
@@ -25,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ==========================================
-    // [NEW] CCM 모달(팝업) 기능
+    // CCM 모달(팝업) 기능
     // ==========================================
     const ccmBtn = document.getElementById('ccm-btn');
     const modalOverlay = document.getElementById('modal-overlay');
@@ -73,17 +72,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const shareBtn = document.getElementById('share-btn');
     if (shareBtn) {
         shareBtn.addEventListener('click', async () => {
+            
             const shareUrl = location.href;
             const shareTitle = 'FAITHS - 크리스천 성장 도구';
             const shareDesc = '말씀, 기도, 성장을 돕는 크리스천 필수 플랫폼 FAITHS에 초대합니다.';
-            const shareImage = 'https://csy870617.github.io/todaybible/img/share_thumb.jpg';
+            
+            // [수정됨] 현재 사이트 주소를 기준으로 thumbnail.png의 전체 경로를 자동 생성
+            const shareImage = new URL('thumbnail.png', window.location.href).href;
 
             if (window.Kakao && Kakao.isInitialized()) {
                 try {
                     Kakao.Share.sendDefault({
                         objectType: 'feed',
                         content: {
-                            title: shareTitle, description: shareDesc, imageUrl: shareImage, 
+                            title: shareTitle, 
+                            description: shareDesc, 
+                            imageUrl: shareImage, 
                             link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
                         },
                         buttons: [{ title: '함께 성장하기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl }}],
@@ -143,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 탭 필터링 로직 (수정됨: 공유버튼 강제 표시 제거)
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));
@@ -154,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cards.forEach(card => {
                 const cardCategory = card.getAttribute('data-category');
                 
-                // [수정] 조건문을 단순화하여 카테고리가 일치할 때만 보이게 수정
                 if (filterValue === 'all' || filterValue === cardCategory) {
                     card.style.display = 'flex'; 
                 } else {
