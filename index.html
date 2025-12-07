@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAITHS</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="style.css">
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#5f27cd">
+    <link rel="apple-touch-icon" href="icon/0.png">
+
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2txfYR9bGr4uwcTKnp8D4" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <div class="mobile-wrapper">
+        
+        <header class="hero-banner">
+            <div class="banner-content">
+                <h1>FAITHS<span class="dot">.</span></h1>
+                <p>크리스천 성장 도구 플랫폼</p>
+            </div>
+            <div class="banner-graphic">
+                <div class="light-bloom-1"></div>
+                <div class="light-bloom-2"></div>
+            </div>
+        </header>
+
+        <div class="tabs-container">
+            <button class="tab active" data-filter="all">전체</button>
+            <button class="tab" data-filter="faith">신앙</button>
+            <button class="tab" data-filter="growth">성장</button>
+            <button class="tab" data-filter="tools">도구</button>
+        </div>
+
+        <div class="notice-section">
+            <div class="notice-card">
+                <div class="notice-icon">📢</div>
+                <div class="notice-content">
+                    <h4>Upcoming Updates</h4>
+                    <p>크리스천의 성장을 돕기 위한 다양한 도구와 콘텐츠가 계속해서 제작/배포될 예정입니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="list-container">
+            
+            <div class="list-card main-feature" data-category="faith" data-link="https://csy870617.github.io/todaybible/">
+                <img src="icon/1.png" alt="하루말씀" class="app-icon-img">
+                <div class="text-box">
+                    <h3>하루말씀</h3>
+                    <p>오늘 하나님과 동행할 말씀카드</p>
+                </div>
+                <button class="btn-go">→</button>
+            </div>
+
+            <div class="list-card" data-category="faith" data-link="https://faiths.life/">
+                <img src="icon/2.png" alt="FAITH MBTI" class="app-icon-img">
+                <div class="text-box">
+                    <h3>FAITH MBTI</h3>
+                    <p>크리스천 신앙 유형 분석</p>
+                </div>
+                <button class="btn-go">→</button>
+            </div>
+
+            <div class="list-card" id="ccm-btn" data-category="faith">
+                <img src="icon/4.png" alt="CCM PLAYLIST" class="app-icon-img">
+                <div class="text-box">
+                    <h3>상황별 CCM PLAYLIST</h3>
+                    <p>내 기분과 상황에 딱 맞는 찬양 듣기</p>
+                </div>
+                <button class="btn-go">→</button>
+            </div>
+
+            <div class="list-card" data-category="growth" data-link="https://engo.life/">
+                <img src="icon/3.png" alt="ENGO 영어회화" class="app-icon-img">
+                <div class="text-box">
+                    <h3>ENGO 영어회화</h3>
+                    <p>English & go 영어회화의 시작</p>
+                </div>
+                <button class="btn-go">→</button>
+            </div>
+
+             <div class="list-card" data-category="tools" id="install-btn">
+                <img src="icon/0.png" alt="FAITHS 어플" class="app-icon-img">
+                <div class="text-box">
+                    <h3>FAITHS 어플</h3>
+                    <p>크리스천 성장 도구 플랫폼</p>
+                </div>
+                <button class="btn-go">↓</button>
+            </div>
+
+            <div class="list-card share-card" id="share-btn" data-category="tools">
+                <div class="icon-box" style="background: #FEE500; color: #3b1e1e;">💌</div> 
+                <div class="text-box">
+                    <h3>함께 성장할 친구 초대</h3>
+                    <p>이 플랫폼을 친구에게 공유하기</p>
+                </div>
+                <button class="btn-go">📤</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>오늘 마음이 어떠신가요?</h3>
+                <p>상황에 맞는 찬양을 들려드릴게요.</p>
+            </div>
+            
+            <div class="mood-grid">
+                <button class="mood-btn" data-url="https://www.youtube.com/results?search_query=%ED%9E%98%EB%93%A4%EA%B3%A0+%EC%A7%80%EC%B9%A0%EB%95%8C+%EB%93%A3%EB%8A%94+%EC%B0%AC%EC%96%91">
+                    <span class="mood-emoji">☁️</span>
+                    <span>힘들고 지칠 때</span>
+                </button>
+                
+                <button class="mood-btn" data-url="https://www.youtube.com/results?search_query=%EA%B8%B0%EB%8F%84%ED%95%A0%EB%95%8C+%EB%93%A3%EA%B8%B0+%EC%A2%8B%EC%9D%80+%EC%B0%AC%EC%96%91">
+                    <span class="mood-emoji">🙏</span>
+                    <span>깊은 기도의 시간</span>
+                </button>
+                
+                <button class="mood-btn" data-url="https://www.youtube.com/results?search_query=%EC%95%84%EC%B9%A8%EC%97%90+%EB%93%A3%EA%B8%B0+%EC%A2%8B%EC%9D%80+%EC%8B%A0%EB%82%98%EB%8A%94+%EC%B0%AC%EC%96%91">
+                    <span class="mood-emoji">☀️</span>
+                    <span>활기찬 아침</span>
+                </button>
+                
+                <button class="mood-btn" data-url="https://www.youtube.com/results?search_query=%EC%9E%A0%EC%9E%98%EB%95%8C+%EB%93%A3%EB%8A%94+%EC%9E%94%EC%9E%94%ED%95%9C+%EC%B0%AC%EC%96%91">
+                    <span class="mood-emoji">🌙</span>
+                    <span>잠들기 전 평안</span>
+                </button>
+
+                <button class="mood-btn" data-url="https://www.youtube.com/results?search_query=%EC%8B%A0%EB%82%98%EB%8A%94+CCM+%EB%85%B8%EB%8F%99%EC%9A%94">
+                    <span class="mood-emoji">🎧</span>
+                    <span>신나는 노동요</span>
+                </button>
+
+                <button class="mood-btn" data-url="https://www.youtube.com/results?search_query=best+english+worship+songs+collection">
+                    <span class="mood-emoji">🌏</span>
+                    <span>은혜로운 영어찬양</span>
+                </button>
+            </div>
+            
+            <button id="close-modal" class="modal-close-btn">닫기</button>
+        </div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
