@@ -85,43 +85,27 @@ document.addEventListener('DOMContentLoaded', () => {
         shareBtn.addEventListener('click', async () => {
             
             const shareUrl = location.href;
-            // [수정] 제목 변경
-            const shareTitle = 'FAITHS - 크리스천 성장 도구';
-            // [수정] 부제(설명) 변경
-            const shareDesc = '더 멋진 크리스천으로 함께 성장해요';
-            
-            // [수정] 썸네일 강제 갱신 (뒤에 시간을 붙여서 새 이미지로 인식시킴)
-            const shareImage = new URL('thumbnail.png?v=' + new Date().getTime(), window.location.href).href;
 
-            if (window.Kakao && Kakao.isInitialized()) {
-                try {
-                    Kakao.Share.sendDefault({
-                        objectType: 'feed',
-                        content: {
-                            title: shareTitle, 
-                            description: shareDesc, 
-                            imageUrl: shareImage, 
-                            link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
-                            imageWidth: 800, // 이미지 크기 지정 (선명하게)
-                            imageHeight: 400
-                        },
-                        buttons: [{ title: '바로가기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl }}],
-                    });
-                    return;
-                } catch (err) { console.log('카카오 공유 실패'); }
-            }
-            // 기본 공유
+            // 1순위: 브라우저 기본 공유
             if (navigator.share) {
                 try {
-                    await navigator.share({ title: shareTitle, text: shareDesc, url: shareUrl });
-                    return;
-                } catch (err) { console.log('기본 공유 취소'); }
+                    await navigator.share({
+                        // [수정] title, text 제거 -> 링크만 공유됨
+                        url: shareUrl
+                    });
+                    return; 
+                } catch (err) {
+                    console.log('기본 공유 취소 또는 실패');
+                }
             }
-            // 클립보드 복사
+
+            // 2순위: PC이거나 기본 공유 실패 시 클립보드 복사
             try {
                 await navigator.clipboard.writeText(shareUrl);
-                alert('주소가 복사되었습니다!');
-            } catch (err) { alert('공유하기를 지원하지 않는 브라우저입니다.'); }
+                alert('주소가 복사되었습니다! \n원하는 곳에 붙여넣기 하세요.');
+            } catch (err) {
+                alert('이 브라우저에서는 공유 기능을 지원하지 않습니다.');
+            }
         });
     }
 
@@ -173,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             cards.forEach(card => {
                 const cardCategory = card.getAttribute('data-category');
+                
                 if (filterValue === 'all' || filterValue === cardCategory) {
                     card.style.display = 'flex'; 
                 } else {
