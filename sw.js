@@ -1,4 +1,4 @@
-const CACHE_NAME = 'faiths-v4';
+const CACHE_NAME = 'faiths-v6';
 const urlsToCache = [
   './',
   './index.html',
