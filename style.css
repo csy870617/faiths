@@ -1,9 +1,9 @@
-/* ---- 1. 기본 설정 ---- */
+/* ---- 1. 기본 설정 (Reset & Typography) ---- */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: "Pretendard Variable", Pretendard, sans-serif;
+    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
 }
 
 body {
@@ -92,8 +92,10 @@ body {
     border: 1px solid rgba(0,0,0,0.03); border-left: 4px solid #5f27cd; width: 100%;
 }
 .notice-icon { font-size: 18px; margin-right: 12px; margin-top: 1px; }
-.notice-content h4 { font-size: 14px; font-weight: 700; color: #333; margin-bottom: 4px; }
-.notice-content p { font-size: 12px; color: #666; line-height: 1.4; margin: 0; }
+
+/* [수정됨] 글씨 크기 1px씩 증가 */
+.notice-content h4 { font-size: 15px; font-weight: 700; color: #333; margin-bottom: 4px; }
+.notice-content p { font-size: 13px; color: #666; line-height: 1.4; margin: 0; }
 
 /* ---- 5. List Cards ---- */
 .list-container {
