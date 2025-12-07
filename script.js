@@ -1,11 +1,17 @@
-// 0. 인앱 브라우저 탈출
+// 0. 인앱 브라우저 탈출 (카톡/라인 등에서 열면 '기본 브라우저'로 띄우기)
 (function() {
     const userAgent = navigator.userAgent.toLowerCase();
     const targetUrl = location.href;
+
+    // 카카오톡, 라인, 인스타그램, 페이스북 등 인앱 브라우저인지 확인
     if (userAgent.match(/kakaotalk|line|instagram|facebook/i)) {
+        
+        // 안드로이드의 경우: 특정 앱(크롬) 지정 없이 '기본 브라우저'로 열기 (package 삭제됨)
         if (userAgent.match(/android/i)) {
-            location.href = 'intent://' + targetUrl.replace(/https?:\/\//i, '') + '#Intent;scheme=https;package=com.android.chrome;end';
-        } else if (userAgent.match(/iphone|ipad|ipod/i)) {
+            location.href = 'intent://' + targetUrl.replace(/https?:\/\//i, '') + '#Intent;scheme=https;end';
+        } 
+        // 아이폰의 경우 (아이폰은 강제 탈출이 어려워 유지)
+        else if (userAgent.match(/iphone|ipad|ipod/i)) {
             console.log('아이폰 인앱 브라우저 감지');
         }
     }
@@ -77,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const shareTitle = 'FAITHS - 크리스천 성장 도구';
             const shareDesc = '말씀, 기도, 성장을 돕는 크리스천 필수 플랫폼 FAITHS에 초대합니다.';
             
-            // [수정됨] 현재 사이트 주소를 기준으로 thumbnail.png의 전체 경로를 자동 생성
+            // 썸네일 경로 자동 생성
             const shareImage = new URL('thumbnail.png', window.location.href).href;
 
             if (window.Kakao && Kakao.isInitialized()) {
