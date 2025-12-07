@@ -1,22 +1,3 @@
-// 0. 인앱 브라우저 탈출 (카톡/라인 등에서 열면 '기본 브라우저'로 띄우기)
-(function() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const targetUrl = location.href;
-
-    // 카카오톡, 라인, 인스타그램, 페이스북 등 인앱 브라우저인지 확인
-    if (userAgent.match(/kakaotalk|line|instagram|facebook/i)) {
-        
-        // 안드로이드의 경우: 특정 앱(크롬) 지정 없이 '기본 브라우저'로 열기 (package 삭제됨)
-        if (userAgent.match(/android/i)) {
-            location.href = 'intent://' + targetUrl.replace(/https?:\/\//i, '') + '#Intent;scheme=https;end';
-        } 
-        // 아이폰의 경우 (아이폰은 강제 탈출이 어려워 유지)
-        else if (userAgent.match(/iphone|ipad|ipod/i)) {
-            console.log('아이폰 인앱 브라우저 감지');
-        }
-    }
-})();
-
 document.addEventListener('DOMContentLoaded', () => {
     
     // 1. 카카오톡 초기화
@@ -26,6 +7,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } catch (e) {
         console.log('카카오 SDK 초기화 실패');
+    }
+
+    // ============================================================
+    // [핵심] 링크 열기 헬퍼 함수 (인앱브라우저 탈출 로직 포함)
+    // ============================================================
+    function openExternalLink(url) {
+        const userAgent = navigator.userAgent.toLowerCase();
+        
+        // 안드로이드이면서 카톡/라인/인스타/페이스북 등 인앱브라우저인 경우
+        if (userAgent.match(/android/i) && userAgent.match(/kakaotalk|line|instagram|facebook|wv/i)) {
+            
+            // 'https://' 를 제거한 주소
+            const rawUrl = url.replace(/^https?:\/\//i, '');
+            
+            // 안드로이드 Intent 스킴을 사용하여 기본 브라우저 강제 호출
+            // package 지정을 삭제하여 사용자가 설정한 기본 브라우저가 뜨게 함
+            const intentUrl = `intent://${rawUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+            
+            window.location.href = intentUrl;
+        } 
+        // 아이폰이거나 일반 브라우저인 경우
+        else {
+            window.open(url, '_blank');
+        }
     }
 
 
@@ -61,11 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 모달 내부 버튼 클릭 시
     moodBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const url = btn.getAttribute('data-url');
             if (url) {
-                window.open(url, '_blank');
+                openExternalLink(url); // [변경] 헬퍼 함수 사용
                 closeModal();
             }
         });
@@ -81,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const shareUrl = location.href;
             const shareTitle = 'FAITHS - 크리스천 성장 도구';
-            const shareDesc = '말씀, 기도, 성장을 돕는 크리스천 필수 플랫폼 FAITHS에 초대합니다.';
+            const shareDesc = '더 멋진 크리스천으로 함께 성장해요.';
             
             // 썸네일 경로 자동 생성
             const shareImage = new URL('thumbnail.png', window.location.href).href;
@@ -149,7 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         card.addEventListener('click', () => {
             const link = card.getAttribute('data-link');
-            if (link) window.open(link, '_blank');
+            if (link) {
+                openExternalLink(link); // [변경] 헬퍼 함수 사용
+            }
         });
     });
 
