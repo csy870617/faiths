@@ -82,11 +82,41 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 
 
 /* =========================================
-   편집 모드 & 드래그 스타일
+   [수정됨] 편집 모드 & 드래그 스타일
    ========================================= */
-.edit-mode .list-card { border: 2px dashed #b0b0b0; background: #fdfdfd; cursor: grab; animation: wiggle 0.3s infinite alternate; }
-.sortable-ghost { opacity: 0.3; background: #e0e0e0; border: 2px solid #5f27cd; }
-.sortable-drag { opacity: 1; transform: scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.edit-mode .list-card {
+    background: #fff;
+    cursor: grab;
+    /* 테두리를 은은하게 */
+    border: 1px solid #ddd;
+    box-shadow: none;
+}
+
+/* 드래그하려고 눌렀을 때 (Chosen) */
+.sortable-chosen {
+    background: #f8f9fa;
+}
+
+/* 드래그 중인 녀석 (Drag) */
+.sortable-drag {
+    background: white;
+    opacity: 1;
+    transform: scale(1.05); /* 살짝 커짐 */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2) !important; /* 그림자 깊게 */
+    z-index: 9999;
+    cursor: grabbing;
+    border: 1px solid var(--brand-color); /* 보라색 테두리로 강조 */
+}
+
+/* 원래 있던 자리 (Ghost) */
+.sortable-ghost {
+    opacity: 0.3;
+    background: #f0f0f0;
+    border: 2px dashed #ccc;
+    box-shadow: none;
+    transform: scale(0.98);
+}
+
 .edit-mode .btn-go { display: none; }
 .edit-eye-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid #ddd; background: white; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
 .edit-eye-btn:active { background: #eee; }
@@ -115,42 +145,28 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .guide-text { font-size: 14px; font-weight: 800; color: #5f27cd; }
 .guide-icon { font-size: 24px; }
 
-/* 설정 팝업 레이아웃 */
 .settings-body { text-align: left; margin-bottom: 24px; }
 .setting-item { margin-bottom: 20px; }
 .setting-item label { display: block; font-weight: 700; color: #333; margin-bottom: 8px; }
 .range-container { display: flex; align-items: center; gap: 10px; color: #555; padding: 0 4px; }
 input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
 
-.menu-edit-btn { width: 100%; padding: 14px; background: white; border: 2px solid var(--brand-color); color: var(--brand-color); border-radius: 16px; font-weight: 700; font-size: 15px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.2s; }
+.menu-edit-btn { width: 100%; padding: 14px; background: white; border: 2px solid var(--brand-color); color: var(--brand-color); border-radius: 16px; font-weight: 700; font-size: 15px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: none; }
 .menu-edit-btn:hover { background: #F3F0FF; }
 
-/* [수정됨] 문의하기 버튼 스타일 (가시성 개선) */
-.contact-link {
-    width: 100%; display: flex; align-items: center; gap: 10px;
-    text-decoration: none; padding: 14px 16px; border-radius: 16px;
-    /* 배경색을 연한 회색으로 변경하여 흰색 배경과 구분 */
-    background: #f1f3f5; 
-    border: none; 
-    color: #333;
-    font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s;
-}
+.contact-link { width: 100%; display: flex; align-items: center; gap: 10px; text-decoration: none; padding: 14px 16px; border-radius: 16px; background: #f1f3f5; border: none; color: #333; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s; }
 .contact-link:hover { background: #e9ecef; }
 
 .settings-action-btn { width: 100%; display: flex; align-items: center; gap: 10px; text-decoration: none; padding: 14px 16px; border-radius: 16px; border: none; cursor: pointer; font-size: 15px; transition: background-color 0.2s; }
-
-/* 앱 설치 버튼 */
 #install-app-btn { background: linear-gradient(135deg, #5f27cd 0%, #9980FA 100%); color: white; border: none; box-shadow: 0 4px 15px rgba(95, 39, 205, 0.3); }
 #install-app-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(95, 39, 205, 0.4); }
 #install-app-btn .install-btn-text h4 { color: white; margin-bottom: 3px; }
 #install-app-btn .install-btn-text p { color: rgba(255,255,255,0.9); }
-
 .install-btn-layout { padding: 12px 16px; width: 100%; display: flex; align-items: center; border-radius: 16px; cursor: pointer; text-decoration: none; }
 .install-btn-img { width: 42px; height: 42px; border-radius: 12px; margin-right: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 .install-btn-text { text-align: left; flex: 1; }
 .install-btn-text h4 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
 .install-btn-text p { font-size: 12px; font-weight: 500; }
-
 
 /* PC Responsive */
 @media (min-width: 768px) {

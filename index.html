@@ -98,16 +98,29 @@
         <div class="modal-content">
             <div class="modal-header"><h3>오늘 마음이 어떠신가요?</h3><p>상황에 맞는 찬양을 들려드릴게요.</p></div>
             <div class="mood-grid">
-                <button class="mood-btn" data-url="https://www.youtube.com/results?search_query=%ED%9E%98%EB%93%A4%EA%B3%A0+%EC%A7%80%EC%B9%A0%EB%95%8C+%EB%93%A3%EB%8A%94+%EC%B0%AC%EC%96%91"><span class="mood-emoji">☁️</span><span>힘들고 지칠 때</span></button>
-                <button class="mood-btn" data-url="https://www.youtube.com/results?search_query=%EA%B8%B0%EB%8F%84%ED%95%A0%EB%95%8C+%EB%93%A3%EA%B8%B0+%EC%A2%8B%EC%9D%80+%EC%B0%AC%EC%96%91"><span class="mood-emoji">🙏</span><span>깊은 기도의 시간</span></button>
-                <button class="mood-btn" data-url="https://www.youtube.com/results?search_query=%EC%95%84%EC%B9%A8%EC%97%90+%EB%93%A3%EA%B8%B0+%EC%A2%8B%EC%9D%80+%EC%8B%A0%EB%82%98%EB%8A%94+%EC%B0%AC%EC%96%91"><span class="mood-emoji">☀️</span><span>활기찬 아침</span></button>
-                <button class="mood-btn" data-url="https://www.youtube.com/results?search_query=%EC%9E%A0%EC%9E%98%EB%95%8C+%EB%93%A3%EB%8A%94+%EC%9E%94%EC%9E%94%ED%95%9C+%EC%B0%AC%EC%96%91"><span class="mood-emoji">🌙</span><span>잠들기 전 평안</span></button>
-                <button class="mood-btn" data-url="https://www.youtube.com/results?search_query=%EC%8B%A0%EB%82%98%EB%8A%94+CCM+%EB%85%B8%EB%8F%99%EC%9A%94"><span class="mood-emoji">🎧</span><span>신나는 노동요</span></button>
-                <button class="mood-btn" data-url="https://www.youtube.com/results?search_query=best+english+worship+songs+collection"><span class="mood-emoji">🌏</span><span>은혜로운 영어찬양</span></button>
+                <button class="mood-btn" data-key="comfort">
+                    <span class="mood-emoji">☁️</span><span>힘들고 지칠 때</span>
+                </button>
+                <button class="mood-btn" data-key="prayer">
+                    <span class="mood-emoji">🙏</span><span>깊은 기도의 시간</span>
+                </button>
+                <button class="mood-btn" data-key="morning">
+                    <span class="mood-emoji">☀️</span><span>활기찬 아침</span>
+                </button>
+                <button class="mood-btn" data-key="sleep">
+                    <span class="mood-emoji">🌙</span><span>잠들기 전 평안</span>
+                </button>
+                <button class="mood-btn" data-key="work">
+                    <span class="mood-emoji">🎧</span><span>신나는 노동요</span>
+                </button>
+                <button class="mood-btn" data-key="english">
+                    <span class="mood-emoji">🌏</span><span>은혜로운 영어찬양</span>
+                </button>
             </div>
             <button id="close-modal" class="modal-close-btn">닫기</button>
         </div>
     </div>
+
     <div id="ios-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header"><h3>아이폰 앱 설치 방법</h3><p>사파리(Safari) 브라우저 하단의<br><strong>[공유]</strong> 버튼을 눌러주세요.</p></div>
@@ -118,11 +131,8 @@
 
     <div id="settings-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>설정 (Settings)</h3>
-            </div>
+            <div class="modal-header"><h3>설정 (Settings)</h3></div>
             <div class="settings-body">
-                
                 <div class="setting-group">
                     <div class="setting-item">
                         <label>글자 크기</label>
@@ -132,16 +142,13 @@
                             <span style="font-size: 20px; font-weight:bold;">가</span>
                         </div>
                     </div>
-
                     <div class="setting-item">
                         <button id="start-edit-btn" class="menu-edit-btn">
                             <span style="font-size: 18px;">✨</span> 홈 화면 편집하기
                         </button>
                     </div>
                 </div>
-
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 24px 0;">
-
                 <div class="setting-group">
                     <div class="setting-item">
                         <button id="install-app-btn" class="settings-action-btn install-btn-layout">
@@ -152,20 +159,18 @@
                             </div>
                         </button>
                     </div>
-
                     <div class="setting-item">
                         <a href="mailto:csy0645009@gmail.com" class="settings-action-btn contact-link">
-                            <span class="emoji">📧</span>
-                            개발자에게 문의하기
+                            <span class="emoji">📧</span> 개발자에게 문의하기
                         </a>
                     </div>
                 </div>
-
             </div>
             <button id="close-settings-modal" class="modal-close-btn">닫기</button>
         </div>
     </div>
 
+    <script src="playlist.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(err => console.log(err));

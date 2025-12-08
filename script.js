@@ -13,27 +13,20 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 1. 카카오톡 초기화
-    try {
-        if (!Kakao.isInitialized()) {
-            Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); 
-        }
-    } catch (e) { console.log('카카오 SDK 초기화 실패'); }
+    try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) { console.log('카카오 SDK 초기화 실패'); }
 
-    // [헬퍼] 링크 열기 함수
     function openExternalLink(url) {
         const userAgent = navigator.userAgent.toLowerCase();
         if (userAgent.match(/android/i) && userAgent.match(/kakaotalk|line|instagram|facebook|wv/i)) {
             const rawUrl = url.replace(/^https?:\/\//i, '');
-            const intentUrl = `intent://${rawUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
-            window.location.href = intentUrl;
+            window.location.href = `intent://${rawUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
         } else {
             window.open(url, '_blank');
         }
     }
 
     // ==========================================
-    // 메뉴 순서 및 숨김 관리 (Drag & Drop)
+    // 메뉴 순서 및 숨김 관리
     // ==========================================
     const listContainer = document.getElementById('main-list');
     const startEditBtn = document.getElementById('start-edit-btn');
@@ -58,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (startEditBtn) {
         startEditBtn.addEventListener('click', () => {
-            closeModal(settingsModal); 
+            closeModal(settingsModal);
             document.body.classList.add('edit-mode');
             editDoneContainer.style.display = 'flex';
             const cards = document.querySelectorAll('.list-card');
@@ -80,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     card.appendChild(eyeBtn);
                 }
             });
-            sortable = new Sortable(listContainer, { animation: 150, ghostClass: 'sortable-ghost', dragClass: 'sortable-drag', delay: 100, delayOnTouchOnly: true });
+            sortable = new Sortable(listContainer, { animation: 350, easing: "cubic-bezier(0.25, 1, 0.5, 1)", ghostClass: 'sortable-ghost', dragClass: 'sortable-drag', delay: 150, delayOnTouchOnly: true, swapThreshold: 0.65 });
         });
     }
 
@@ -114,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ==========================================
-    // 모달 관리 & 뒤로가기 지원
+    // 모달 관리
     // ==========================================
     const modalOverlay = document.getElementById('modal-overlay');
     const iosModal = document.getElementById('ios-modal');
@@ -161,27 +154,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (ccmBtn) ccmBtn.addEventListener('click', () => openModal(modalOverlay));
     if (closeModalBtn) closeModalBtn.addEventListener('click', () => closeWithBack(modalOverlay));
-    if (modalOverlay) modalOverlay.addEventListener('click', (e) => { 
-        if (e.target === modalOverlay) closeWithBack(modalOverlay); 
-    });
+    if (modalOverlay) modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeWithBack(modalOverlay); });
 
     if (closeIosModalBtn) closeIosModalBtn.addEventListener('click', () => closeWithBack(iosModal));
-    if (iosModal) iosModal.addEventListener('click', (e) => { 
-        if (e.target === iosModal) closeWithBack(iosModal); 
-    });
+    if (iosModal) iosModal.addEventListener('click', (e) => { if (e.target === iosModal) closeWithBack(iosModal); });
 
     if (settingsBtn) settingsBtn.addEventListener('click', () => openModal(settingsModal));
     if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', () => closeWithBack(settingsModal));
-    if (settingsModal) settingsModal.addEventListener('click', (e) => { 
-        if (e.target === settingsModal) closeWithBack(settingsModal); 
-    });
+    if (settingsModal) settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) closeWithBack(settingsModal); });
 
+    // [수정됨] CCM 버튼 클릭 시 playlist.js에서 URL 조회
     moodBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            const url = btn.getAttribute('data-url');
-            if (url) {
-                openExternalLink(url);
+            // data-key를 가져와서 CCM_LINKS 객체에서 URL 찾기
+            const key = btn.getAttribute('data-key');
+            // CCM_LINKS가 정의되어 있는지 확인 (playlist.js가 로드되어야 함)
+            if (typeof CCM_LINKS !== 'undefined' && CCM_LINKS[key]) {
+                openExternalLink(CCM_LINKS[key]);
                 closeWithBack(modalOverlay);
+            } else {
+                console.error("Link not found for key:", key);
             }
         });
     });
@@ -193,7 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
         fontSizeSlider.addEventListener('input', (e) => { const scale = e.target.value; document.documentElement.style.setProperty('--text-scale', scale); localStorage.setItem('textScale', scale); });
     }
 
-    // PWA 설치
     let deferredPrompt;
     const installAppBtn = document.getElementById('install-app-btn');
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -217,61 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
-    // ==========================================
-    // 2. 친구 초대 (공유) 기능 [수정됨: 카카오톡 1순위]
-    // ==========================================
-    const shareBtn = document.getElementById('share-btn');
-    if (shareBtn) {
-        shareBtn.addEventListener('click', async () => {
-            
-            const shareUrl = location.href;
-            const shareTitle = 'FAITHS - 크리스천 성장 도구';
-            const shareDesc = '더 멋진 크리스천으로 함께 성장해요';
-            const shareImage = new URL('thumbnail.png', window.location.href).href;
-
-            // [1순위] 카카오톡 공유 시도
-            if (window.Kakao && Kakao.isInitialized()) {
-                try {
-                    Kakao.Share.sendDefault({
-                        objectType: 'feed',
-                        content: {
-                            title: shareTitle, 
-                            description: shareDesc, 
-                            imageUrl: shareImage, 
-                            link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
-                        },
-                        buttons: [{ title: '바로가기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl }}],
-                    });
-                    // 카카오톡 실행에 성공하면 여기서 함수 종료 (다른 공유 창 안 뜨게)
-                    return; 
-                } catch (err) {
-                    console.log('카카오 공유 실패, 다음 단계로...');
-                }
-            }
-
-            // [2순위] 기본 공유 (Web Share API)
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        // 제목/내용 없이 URL만 보내면 더 깔끔하게 뜨는 경우가 많음
-                        url: shareUrl 
-                    });
-                    return;
-                } catch (err) { console.log('기본 공유 취소'); }
-            }
-
-            // [3순위] 클립보드 복사
-            try {
-                await navigator.clipboard.writeText(shareUrl);
-                alert('주소가 복사되었습니다! \n원하는 곳에 붙여넣기 하세요.');
-            } catch (err) { alert('공유하기를 지원하지 않는 브라우저입니다.'); }
-        });
-    }
-
-
-    // 메인 리스트 클릭
-    listContainer.addEventListener('click', (e) => {
+    listContainer.addEventListener('click', async (e) => {
         if (document.body.classList.contains('edit-mode')) return;
         const card = e.target.closest('.list-card');
         if (!card) return;
@@ -279,12 +216,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (card.id === 'card-ccm') {
             openModal(modalOverlay);
         } else if (card.id === 'card-share') {
-            // 위에서 정의한 shareBtn 로직을 따르지만,
-            // 동적으로 생성되거나 이벤트 버블링을 위해 여기서 트리거할 경우를 대비해
-            // shareBtn.click()을 호출하는 것이 안전함.
-            // 하지만 여기서는 card-share 자체가 shareBtn 아이디를 가지므로
-            // 위의 addEventListener('click')이 먼저 실행됨. 중복 실행 방지용 return.
-            return;
+            const shareUrl = location.href;
+            if (navigator.share) {
+                try { await navigator.share({ url: shareUrl }); } catch (err) { console.log('공유 취소'); }
+            } else {
+                try {
+                    await navigator.clipboard.writeText(shareUrl);
+                    alert('사이트 주소가 복사되었습니다!\n원하는 곳에 붙여넣기 해주세요.');
+                } catch (err) { prompt('주소를 복사하세요:', shareUrl); }
+            }
         } else {
             const link = card.getAttribute('data-link');
             if (link) openExternalLink(link);
