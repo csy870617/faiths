@@ -13,6 +13,17 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    // [NEW] 로딩 화면 처리
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+        setTimeout(() => {
+            loadingScreen.style.opacity = '0'; // 투명해짐
+            setTimeout(() => {
+                loadingScreen.style.display = 'none'; // 사라짐
+            }, 500);
+        }, 2200); // 2.2초 동안 보여줌
+    }
+
     // 1. 카카오톡 초기화
     try {
         if (!Kakao.isInitialized()) {
@@ -31,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 메뉴 순서 및 숨김 관리 (Drag & Drop)
+    // 메뉴 순서 및 숨김 관리
     // ==========================================
     const listContainer = document.getElementById('main-list');
     const startEditBtn = document.getElementById('start-edit-btn');
@@ -56,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (startEditBtn) {
         startEditBtn.addEventListener('click', () => {
-            closeWithBack(settingsModal); // 설정창 닫고
+            closeWithBack(settingsModal);
             document.body.classList.add('edit-mode');
             editDoneContainer.style.display = 'flex';
             const cards = document.querySelectorAll('.list-card');
@@ -116,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     const modalOverlay = document.getElementById('modal-overlay');
     const iosModal = document.getElementById('ios-modal');
-    // const settingsModal = ...
     const ccmBtn = document.getElementById('ccm-btn');
     const settingsBtn = document.getElementById('settings-btn');
     const closeModalBtn = document.getElementById('close-modal');
@@ -138,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.remove('show');
         setTimeout(() => { modal.style.display = 'none'; }, 300);
         currentModal = null;
-        // 뒤로가기는 굳이 강제하지 않음 (popstate에서 처리)
+        // history.back()은 하지 않음 (popstate에서 처리되거나, 닫기 버튼 로직에서 처리)
     };
 
     const closeWithBack = (modal) => {
@@ -171,9 +181,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     moodBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            const url = btn.getAttribute('data-url');
-            if (url) {
-                openExternalLink(url);
+            // playlist.js에서 URL 찾기
+            const key = btn.getAttribute('data-key');
+            if (typeof CCM_LINKS !== 'undefined' && CCM_LINKS[key]) {
+                openExternalLink(CCM_LINKS[key]);
                 closeWithBack(modalOverlay);
             }
         });
@@ -218,18 +229,14 @@ document.addEventListener('DOMContentLoaded', () => {
             openModal(modalOverlay);
         } else if (card.id === 'card-share') {
             const shareUrl = location.href;
-            const shareTitle = 'FAITHS - 크리스천 성장 도구';
-            const shareDesc = '더 멋진 크리스천으로 함께 성장해요';
-            const shareImage = new URL('thumbnail.png', window.location.href).href;
-            if (window.Kakao && Kakao.isInitialized()) {
-                Kakao.Share.sendDefault({ objectType: 'feed', content: { title: shareTitle, description: shareDesc, imageUrl: shareImage, link: { mobileWebUrl: shareUrl, webUrl: shareUrl }, }, buttons: [{ title: '바로가기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl }}] });
-                return;
-            }
             if (navigator.share) {
-                navigator.share({ url: shareUrl });
-                return;
+                try { await navigator.share({ url: shareUrl }); } catch (err) { console.log('공유 취소'); }
+            } else {
+                try {
+                    await navigator.clipboard.writeText(shareUrl);
+                    alert('사이트 주소가 복사되었습니다!\n원하는 곳에 붙여넣기 해주세요.');
+                } catch (err) { prompt('주소를 복사하세요:', shareUrl); }
             }
-            navigator.clipboard.writeText(shareUrl).then(() => alert('주소 복사됨'));
         } else {
             const link = card.getAttribute('data-link');
             if (link) openExternalLink(link);
