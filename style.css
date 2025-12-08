@@ -67,31 +67,39 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
    [수정됨] 편집 모드 & 드래그 스타일
    ========================================= */
 .edit-mode .list-card {
-    border: 2px dashed #b0b0b0; background: #fff; cursor: grab; padding-right: 50px;
+    border: 1px solid #ddd;
+    background: #fff;
+    cursor: grab;
+    padding-right: 50px;
     animation: wiggle 0.25s infinite alternate ease-in-out;
 }
 
-/* 1. 드래그 중인 아이템 (내 손에 붙은 것) */
+/* 1. 드래그 중인 아이템 (떠다니는 녀석) */
+/* [수정] 반투명하게 하여 뒷 배경이 보이게 함 */
 .sortable-fallback { 
-    opacity: 1 !important;
+    opacity: 0.9 !important; /* 90% 불투명 */
     background: #fff;
-    /* 아주 진한 그림자로 확실히 떴다는 느낌 */
-    box-shadow: 0 25px 60px rgba(0,0,0,0.4) !important;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.3) !important;
     transform: scale(1.08) !important;
     z-index: 99999;
     border-radius: 24px;
     border: 2px solid var(--brand-color) !important;
     cursor: grabbing;
-    pointer-events: none; /* 클릭 통과 */
+    pointer-events: none; 
 }
 
-/* 2. 원래 있던 자리 (Ghost) - [핵심] 완전 투명하게 */
+/* 2. 들어갈 자리 (Ghost) */
+/* [수정] 자리를 명확하게 표시 */
 .sortable-ghost {
-    opacity: 0 !important; /* 안 보이게 처리하여 이중 현상 제거 */
-    background: transparent;
-    border: 2px dashed #ddd; /* 자리는 점선으로 표시 */
-    box-shadow: none;
+    opacity: 1 !important; /* 보이게 설정 */
+    background: #F0F0F0;   /* 회색 배경 */
+    border: 2px dashed #bbb; /* 점선 테두리 */
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05); /* 안쪽 그림자 */
+    transform: scale(0.98);
+    color: transparent; /* 글씨는 안 보이게 */
 }
+/* Ghost 내부 요소 숨기기 */
+.sortable-ghost * { visibility: hidden; }
 
 @keyframes wiggle { 0% { transform: rotate(-0.5deg); } 100% { transform: rotate(0.5deg); } }
 
@@ -99,9 +107,14 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .edit-eye-btn { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: 1px solid #eee; background: #f8f9fa; font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center; z-index: 10; transition: all 0.2s; }
 .edit-eye-btn:active { background: #e0e0e0; transform: translateY(-50%) scale(0.9); }
 .list-card.hidden { display: none; }
-.list-card.hidden-item { display: flex !important; opacity: 0.5; filter: grayscale(100%); background: #f0f0f0; border-color: #ddd; animation: none; }
+.list-card.hidden-item { display: flex !important; opacity: 0.5; filter: grayscale(100%); background: #f2f2f2; border-color: #ddd; animation: none; }
 .edit-done-container { position: fixed; bottom: 30px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 2000; }
 .edit-done-btn { background: var(--brand-color); color: white; padding: 14px 40px; border-radius: 30px; font-size: 16px; font-weight: 800; border: none; box-shadow: 0 10px 30px rgba(95, 39, 205, 0.4); cursor: pointer; }
+
+/* 드래그 손잡이 */
+.drag-handle { position: absolute; right: 16px; top: 0; bottom: 0; width: 40px; display: flex; justify-content: center; align-items: center; font-size: 24px; color: #ccc; cursor: grab; z-index: 20; touch-action: none; }
+.drag-handle:active { color: var(--brand-color); }
+.edit-eye-btn { right: 60px; } /* 손잡이 때문에 위치 이동 */
 
 
 /* 모달 공통 */
@@ -112,29 +125,23 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .modal-header h3 { font-size: 20px; font-weight: 800; color: #111; margin-bottom: 8px; }
 .modal-header p { font-size: 14px; color: #666; margin-bottom: 24px; }
 .modal-close-btn { background: #111; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 14px; }
-
 .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
 .mood-btn { background: #F5F7FA; border: 1px solid #EEF0F5; border-radius: 20px; padding: 20px 10px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .mood-btn:hover { background: #E0E7FF; border-color: #5f27cd; transform: translateY(-2px); }
 .mood-emoji { font-size: 28px; }
 .mood-btn span:last-child { font-size: 13px; font-weight: 700; color: #444; }
-
 .ios-guide { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 24px; font-size: 20px; }
 .guide-text { font-size: 14px; font-weight: 800; color: #5f27cd; }
 .guide-icon { font-size: 24px; }
-
 .settings-body { text-align: left; margin-bottom: 24px; }
 .setting-item { margin-bottom: 20px; }
 .setting-item label { display: block; font-weight: 700; color: #333; margin-bottom: 8px; }
 .range-container { display: flex; align-items: center; gap: 10px; color: #555; padding: 0 4px; }
 input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
-
 .menu-edit-btn { width: 100%; padding: 14px; background: white; border: 2px solid var(--brand-color); color: var(--brand-color); border-radius: 16px; font-weight: 700; font-size: 15px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: none; }
 .menu-edit-btn:hover { background: #F3F0FF; }
-
 .contact-link { width: 100%; display: flex; align-items: center; gap: 10px; text-decoration: none; padding: 14px 16px; border-radius: 16px; background: #f1f3f5; border: none; color: #333; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s; }
 .contact-link:hover { background: #e9ecef; }
-
 .settings-action-btn { width: 100%; display: flex; align-items: center; gap: 10px; text-decoration: none; padding: 14px 16px; border-radius: 16px; border: none; cursor: pointer; font-size: 15px; transition: background-color 0.2s; }
 #install-app-btn { background: linear-gradient(135deg, #5f27cd 0%, #9980FA 100%); color: white; border: none; box-shadow: 0 4px 15px rgba(95, 39, 205, 0.3); }
 #install-app-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(95, 39, 205, 0.4); }
@@ -145,7 +152,6 @@ input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
 .install-btn-text { text-align: left; flex: 1; }
 .install-btn-text h4 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
 .install-btn-text p { font-size: 12px; font-weight: 500; }
-
 
 /* PC Responsive */
 @media (min-width: 768px) {
@@ -163,6 +169,7 @@ input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
     .text-box p { font-size: 14px; }
     .btn-go { position: absolute; bottom: 24px; right: 24px; width: 40px; height: 40px; }
     .edit-mode .list-card { animation: none; cursor: grab; padding-right: 50px; }
-    .edit-eye-btn { right: 16px; top: 24px; transform: none; }
+    .edit-eye-btn { right: 60px; top: 24px; transform: none; }
+    .drag-handle { right: 10px; cursor: grab; }
 }
 @media (min-width: 1200px) { .list-container { grid-template-columns: repeat(3, 1fr); } }

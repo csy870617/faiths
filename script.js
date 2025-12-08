@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 메뉴 순서 및 숨김 관리 (최적화된 Drag)
+    // 메뉴 순서 및 숨김 관리 (핸들 기반 Drag)
     // ==========================================
     const listContainer = document.getElementById('main-list');
     const startEditBtn = document.getElementById('start-edit-btn');
@@ -71,7 +71,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     card.classList.add('hidden-item');
                     card.classList.remove('hidden');
                 }
-                if (!card.querySelector('.edit-eye-btn')) {
+                
+                // [NEW] 손잡이 및 눈 버튼 생성
+                if (!card.querySelector('.drag-handle')) {
+                    // 드래그 손잡이 (≡)
+                    const handle = document.createElement('div');
+                    handle.className = 'drag-handle';
+                    handle.innerHTML = '≡'; // 햄버거 아이콘
+                    card.appendChild(handle);
+
+                    // 눈 아이콘
                     const eyeBtn = document.createElement('button');
                     eyeBtn.className = 'edit-eye-btn';
                     eyeBtn.innerHTML = '👁️';
@@ -84,17 +93,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // [부드러운 드래그 설정]
+            // [최적화] 핸들 기반 드래그 (즉시 반응)
             sortable = new Sortable(listContainer, { 
-                animation: 300, 
+                animation: 250, 
                 easing: "cubic-bezier(0.25, 1, 0.5, 1)", 
+                
+                handle: ".drag-handle", // [중요] 이 클래스를 잡았을 때만 드래그됨
+                
                 forceFallback: true, 
                 fallbackClass: "sortable-fallback",
                 fallbackOnBody: true,
                 ghostClass: 'sortable-ghost',
                 dragClass: 'sortable-drag',
-                delay: 200, 
-                delayOnTouchOnly: true, 
+                
+                delay: 0, // 딜레이 없음 (핸들이라 오작동 없음)
                 swapThreshold: 0.65,
                 onStart: function() {
                     if (navigator.vibrate) navigator.vibrate(50);
@@ -123,9 +135,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     card.style.display = 'flex';
                 }
+                
+                // 생성된 버튼들 제거
+                const handle = card.querySelector('.drag-handle');
+                if (handle) handle.remove();
                 const eyeBtn = card.querySelector('.edit-eye-btn');
                 if (eyeBtn) eyeBtn.remove();
             });
+            
             localStorage.setItem('menuOrder', JSON.stringify(newOrder));
             localStorage.setItem('hiddenMenus', JSON.stringify(newHidden));
             const activeTab = document.querySelector('.tab.active');
