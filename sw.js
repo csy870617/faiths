@@ -1,4 +1,4 @@
-const CACHE_NAME = 'faiths-v11';
+const CACHE_NAME = 'faiths-v12';
 const urlsToCache = [
   './',
   './index.html',
@@ -22,5 +22,4 @@ self.addEventListener('fetch', event => {
     caches.match(event.request)
       .then(response => response || fetch(event.request))
   );
-
 });

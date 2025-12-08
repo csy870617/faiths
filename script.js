@@ -13,7 +13,12 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) { console.log('카카오 SDK 초기화 실패'); }
+    // 1. 카카오톡 초기화
+    try {
+        if (!Kakao.isInitialized()) {
+            Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); 
+        }
+    } catch (e) { console.log('카카오 SDK 초기화 실패'); }
 
     function openExternalLink(url) {
         const userAgent = navigator.userAgent.toLowerCase();
@@ -26,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 메뉴 순서 및 숨김 관리
+    // 메뉴 순서 및 숨김 관리 (Drag & Drop)
     // ==========================================
     const listContainer = document.getElementById('main-list');
     const startEditBtn = document.getElementById('start-edit-btn');
@@ -51,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (startEditBtn) {
         startEditBtn.addEventListener('click', () => {
-            closeModal(settingsModal);
+            closeWithBack(settingsModal); // 설정창 닫고
             document.body.classList.add('edit-mode');
             editDoneContainer.style.display = 'flex';
             const cards = document.querySelectorAll('.list-card');
@@ -107,10 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ==========================================
-    // 모달 관리
+    // 모달 관리 & 뒤로가기 지원
     // ==========================================
     const modalOverlay = document.getElementById('modal-overlay');
     const iosModal = document.getElementById('ios-modal');
+    // const settingsModal = ...
     const ccmBtn = document.getElementById('ccm-btn');
     const settingsBtn = document.getElementById('settings-btn');
     const closeModalBtn = document.getElementById('close-modal');
@@ -132,48 +138,43 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.remove('show');
         setTimeout(() => { modal.style.display = 'none'; }, 300);
         currentModal = null;
+        // 뒤로가기는 굳이 강제하지 않음 (popstate에서 처리)
+    };
+
+    const closeWithBack = (modal) => {
         if (history.state && history.state.modalOpen) { history.back(); }
+        else { closeModal(modal); }
     };
 
     window.addEventListener('popstate', () => {
         if (currentModal) {
-            currentModal.classList.remove('show');
-            setTimeout(() => { currentModal.style.display = 'none'; }, 300);
-            currentModal = null;
+            closeModal(currentModal);
         }
     });
 
-    const closeWithBack = (modal) => {
-        if (history.state && history.state.modalOpen) { history.back(); }
-        else {
-            modal.classList.remove('show');
-            setTimeout(() => { modal.style.display = 'none'; }, 300);
-            currentModal = null;
-        }
-    };
-
     if (ccmBtn) ccmBtn.addEventListener('click', () => openModal(modalOverlay));
     if (closeModalBtn) closeModalBtn.addEventListener('click', () => closeWithBack(modalOverlay));
-    if (modalOverlay) modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeWithBack(modalOverlay); });
+    if (modalOverlay) modalOverlay.addEventListener('click', (e) => { 
+        if (e.target === modalOverlay) closeWithBack(modalOverlay); 
+    });
 
     if (closeIosModalBtn) closeIosModalBtn.addEventListener('click', () => closeWithBack(iosModal));
-    if (iosModal) iosModal.addEventListener('click', (e) => { if (e.target === iosModal) closeWithBack(iosModal); });
+    if (iosModal) iosModal.addEventListener('click', (e) => { 
+        if (e.target === iosModal) closeWithBack(iosModal); 
+    });
 
     if (settingsBtn) settingsBtn.addEventListener('click', () => openModal(settingsModal));
     if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', () => closeWithBack(settingsModal));
-    if (settingsModal) settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) closeWithBack(settingsModal); });
+    if (settingsModal) settingsModal.addEventListener('click', (e) => { 
+        if (e.target === settingsModal) closeWithBack(settingsModal); 
+    });
 
-    // [수정됨] CCM 버튼 클릭 시 playlist.js에서 URL 조회
     moodBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // data-key를 가져와서 CCM_LINKS 객체에서 URL 찾기
-            const key = btn.getAttribute('data-key');
-            // CCM_LINKS가 정의되어 있는지 확인 (playlist.js가 로드되어야 함)
-            if (typeof CCM_LINKS !== 'undefined' && CCM_LINKS[key]) {
-                openExternalLink(CCM_LINKS[key]);
+            const url = btn.getAttribute('data-url');
+            if (url) {
+                openExternalLink(url);
                 closeWithBack(modalOverlay);
-            } else {
-                console.error("Link not found for key:", key);
             }
         });
     });
@@ -217,14 +218,18 @@ document.addEventListener('DOMContentLoaded', () => {
             openModal(modalOverlay);
         } else if (card.id === 'card-share') {
             const shareUrl = location.href;
-            if (navigator.share) {
-                try { await navigator.share({ url: shareUrl }); } catch (err) { console.log('공유 취소'); }
-            } else {
-                try {
-                    await navigator.clipboard.writeText(shareUrl);
-                    alert('사이트 주소가 복사되었습니다!\n원하는 곳에 붙여넣기 해주세요.');
-                } catch (err) { prompt('주소를 복사하세요:', shareUrl); }
+            const shareTitle = 'FAITHS - 크리스천 성장 도구';
+            const shareDesc = '더 멋진 크리스천으로 함께 성장해요';
+            const shareImage = new URL('thumbnail.png', window.location.href).href;
+            if (window.Kakao && Kakao.isInitialized()) {
+                Kakao.Share.sendDefault({ objectType: 'feed', content: { title: shareTitle, description: shareDesc, imageUrl: shareImage, link: { mobileWebUrl: shareUrl, webUrl: shareUrl }, }, buttons: [{ title: '바로가기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl }}] });
+                return;
             }
+            if (navigator.share) {
+                navigator.share({ url: shareUrl });
+                return;
+            }
+            navigator.clipboard.writeText(shareUrl).then(() => alert('주소 복사됨'));
         } else {
             const link = card.getAttribute('data-link');
             if (link) openExternalLink(link);

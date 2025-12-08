@@ -82,41 +82,11 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 
 
 /* =========================================
-   [수정됨] 편집 모드 & 드래그 스타일
+   편집 모드 & 드래그 스타일
    ========================================= */
-.edit-mode .list-card {
-    background: #fff;
-    cursor: grab;
-    /* 테두리를 은은하게 */
-    border: 1px solid #ddd;
-    box-shadow: none;
-}
-
-/* 드래그하려고 눌렀을 때 (Chosen) */
-.sortable-chosen {
-    background: #f8f9fa;
-}
-
-/* 드래그 중인 녀석 (Drag) */
-.sortable-drag {
-    background: white;
-    opacity: 1;
-    transform: scale(1.05); /* 살짝 커짐 */
-    box-shadow: 0 20px 50px rgba(0,0,0,0.2) !important; /* 그림자 깊게 */
-    z-index: 9999;
-    cursor: grabbing;
-    border: 1px solid var(--brand-color); /* 보라색 테두리로 강조 */
-}
-
-/* 원래 있던 자리 (Ghost) */
-.sortable-ghost {
-    opacity: 0.3;
-    background: #f0f0f0;
-    border: 2px dashed #ccc;
-    box-shadow: none;
-    transform: scale(0.98);
-}
-
+.edit-mode .list-card { border: 2px dashed #b0b0b0; background: #fdfdfd; cursor: grab; animation: wiggle 0.3s infinite alternate; }
+.sortable-ghost { opacity: 0.3; background: #e0e0e0; border: 2px solid #5f27cd; }
+.sortable-drag { opacity: 1; transform: scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
 .edit-mode .btn-go { display: none; }
 .edit-eye-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid #ddd; background: white; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
 .edit-eye-btn:active { background: #eee; }
@@ -126,9 +96,21 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .edit-done-btn { background: var(--brand-color); color: white; padding: 14px 40px; border-radius: 30px; font-size: 16px; font-weight: 800; border: none; box-shadow: 0 10px 30px rgba(95, 39, 205, 0.4); cursor: pointer; }
 
 
-/* 모달 공통 */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 1000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
-.modal-overlay.show { opacity: 1; }
+/* [수정됨] 모달 공통 (터치 문제 해결) */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6); z-index: 1000;
+    display: none; justify-content: center; align-items: center;
+    opacity: 0; transition: opacity 0.3s ease;
+    /* 핵심: 모달이 안 보일 땐 뒤쪽 요소 터치 가능하게 함 */
+    pointer-events: none;
+}
+.modal-overlay.show {
+    opacity: 1;
+    /* 보일 땐 모달 터치 가능 */
+    pointer-events: auto;
+}
+
 .modal-content { background: white; width: 90%; max-width: 400px; border-radius: 32px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; transform: translateY(20px); transition: transform 0.3s ease; }
 .modal-overlay.show .modal-content { transform: translateY(0); }
 .modal-header h3 { font-size: 20px; font-weight: 800; color: #111; margin-bottom: 8px; }
