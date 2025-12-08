@@ -105,6 +105,16 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .modal-header p { font-size: 14px; color: #666; margin-bottom: 24px; }
 .modal-close-btn { background: #111; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 14px; }
 
+.mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.mood-btn { background: #F5F7FA; border: 1px solid #EEF0F5; border-radius: 20px; padding: 20px 10px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.mood-btn:hover { background: #E0E7FF; border-color: #5f27cd; transform: translateY(-2px); }
+.mood-emoji { font-size: 28px; }
+.mood-btn span:last-child { font-size: 13px; font-weight: 700; color: #444; }
+
+.ios-guide { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 24px; font-size: 20px; }
+.guide-text { font-size: 14px; font-weight: 800; color: #5f27cd; }
+.guide-icon { font-size: 24px; }
+
 /* 설정 팝업 레이아웃 */
 .settings-body { text-align: left; margin-bottom: 24px; }
 .setting-item { margin-bottom: 20px; }
@@ -112,38 +122,30 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .range-container { display: flex; align-items: center; gap: 10px; color: #555; padding: 0 4px; }
 input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
 
-/* 홈 화면 편집 버튼 */
-.menu-edit-btn {
-    width: 100%; padding: 14px;
-    background: white; border: 2px solid var(--brand-color); color: var(--brand-color);
-    border-radius: 16px; font-weight: 700; font-size: 15px;
-    cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
-    transition: all 0.2s;
-}
+.menu-edit-btn { width: 100%; padding: 14px; background: white; border: 2px solid var(--brand-color); color: var(--brand-color); border-radius: 16px; font-weight: 700; font-size: 15px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.2s; }
 .menu-edit-btn:hover { background: #F3F0FF; }
 
-/* [NEW] 문의하기 버튼 스타일 (깔끔하게 변경) */
+/* [수정됨] 문의하기 버튼 스타일 (가시성 개선) */
 .contact-link {
     width: 100%; display: flex; align-items: center; gap: 10px;
     text-decoration: none; padding: 14px 16px; border-radius: 16px;
-    background: white; border: 1px solid #ddd; color: #555;
+    /* 배경색을 연한 회색으로 변경하여 흰색 배경과 구분 */
+    background: #f1f3f5; 
+    border: none; 
+    color: #333;
     font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
 }
-.contact-link:hover { background: #f9f9f9; border-color: #ccc; }
+.contact-link:hover { background: #e9ecef; }
 
-/* 앱 설치 버튼 (강조) */
-#install-app-btn {
-    background: linear-gradient(135deg, #5f27cd 0%, #9980FA 100%);
-    color: white; border: none; box-shadow: 0 4px 15px rgba(95, 39, 205, 0.3);
-}
+.settings-action-btn { width: 100%; display: flex; align-items: center; gap: 10px; text-decoration: none; padding: 14px 16px; border-radius: 16px; border: none; cursor: pointer; font-size: 15px; transition: background-color 0.2s; }
+
+/* 앱 설치 버튼 */
+#install-app-btn { background: linear-gradient(135deg, #5f27cd 0%, #9980FA 100%); color: white; border: none; box-shadow: 0 4px 15px rgba(95, 39, 205, 0.3); }
 #install-app-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(95, 39, 205, 0.4); }
 #install-app-btn .install-btn-text h4 { color: white; margin-bottom: 3px; }
 #install-app-btn .install-btn-text p { color: rgba(255,255,255,0.9); }
 
-/* 설정 내 공통 버튼 레이아웃 */
-.settings-action-btn { width: 100%; display: flex; align-items: center; gap: 10px; text-decoration: none; padding: 14px 16px; border-radius: 16px; border: none; cursor: pointer; font-size: 15px; transition: background-color 0.2s; }
-.install-btn-layout { padding: 12px 16px; }
+.install-btn-layout { padding: 12px 16px; width: 100%; display: flex; align-items: center; border-radius: 16px; cursor: pointer; text-decoration: none; }
 .install-btn-img { width: 42px; height: 42px; border-radius: 12px; margin-right: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 .install-btn-text { text-align: left; flex: 1; }
 .install-btn-text h4 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
