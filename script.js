@@ -13,13 +13,13 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // [중요] 로딩 화면 처리
+    // 로딩 화면 처리
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
         setTimeout(() => {
             loadingScreen.style.opacity = '0';
             setTimeout(() => { loadingScreen.style.display = 'none'; }, 500);
-        }, 2200); 
+        }, 1500); 
     }
 
     try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) { console.log('카카오 SDK 초기화 실패'); }
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 메뉴 순서 및 숨김 관리 (부드러운 Drag & Drop)
+    // 메뉴 순서 및 숨김 관리 (최적화된 Drag)
     // ==========================================
     const listContainer = document.getElementById('main-list');
     const startEditBtn = document.getElementById('start-edit-btn');
@@ -66,47 +66,38 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const cards = document.querySelectorAll('.list-card');
             cards.forEach(card => {
-                card.style.display = 'flex'; // 편집 중엔 다 보이게
-                
-                // 이미 숨김 처리된 카드는 'hidden-item' 클래스 추가
+                card.style.display = 'flex'; 
                 if (card.classList.contains('hidden')) {
                     card.classList.add('hidden-item');
                     card.classList.remove('hidden');
                 }
-                
-                // 눈 아이콘 버튼 생성 (중복 방지)
                 if (!card.querySelector('.edit-eye-btn')) {
                     const eyeBtn = document.createElement('button');
                     eyeBtn.className = 'edit-eye-btn';
                     eyeBtn.innerHTML = '👁️';
                     eyeBtn.addEventListener('click', (e) => {
-                        e.stopPropagation(); // 클릭 시 드래그 방지
+                        e.stopPropagation();
                         card.classList.toggle('hidden-item');
-                        // 시각적 피드백
                         eyeBtn.style.opacity = card.classList.contains('hidden-item') ? '0.5' : '1';
                     });
                     card.appendChild(eyeBtn);
                 }
             });
 
-            // [핵심] 부드러운 드래그 설정
+            // [부드러운 드래그 설정]
             sortable = new Sortable(listContainer, { 
-                animation: 350,  // 이동 애니메이션 속도 (ms)
-                easing: "cubic-bezier(0.25, 1, 0.5, 1)", // 부드러운 가속도
-                
-                // [중요] forceFallback: true -> 브라우저 기본 드래그 끄고 JS로 그림 (훨씬 부드러움)
+                animation: 300, 
+                easing: "cubic-bezier(0.25, 1, 0.5, 1)", 
                 forceFallback: true, 
-                fallbackClass: "sortable-fallback", // 드래그 중인 아이템 클래스
-                
-                ghostClass: 'sortable-ghost', // 원래 자리에 남는 빈칸
-                
-                delay: 200, // 200ms 꾹 눌러야 드래그 시작 (실수 방지)
-                delayOnTouchOnly: true,
-                
-                swapThreshold: 0.65, // 65% 이상 겹쳐야 자리 바꿈 (안정적)
-                
+                fallbackClass: "sortable-fallback",
+                fallbackOnBody: true,
+                ghostClass: 'sortable-ghost',
+                dragClass: 'sortable-drag',
+                delay: 200, 
+                delayOnTouchOnly: true, 
+                swapThreshold: 0.65,
                 onStart: function() {
-                    if (navigator.vibrate) navigator.vibrate(40); // 햅틱 피드백
+                    if (navigator.vibrate) navigator.vibrate(50);
                 }
             });
         });
@@ -123,9 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const newHidden = [];
             
             cards.forEach(card => {
-                newOrder.push(card.id); // 순서 저장
-                
-                // 숨김 처리 확정
+                newOrder.push(card.id);
                 if (card.classList.contains('hidden-item')) {
                     newHidden.push(card.id);
                     card.classList.remove('hidden-item');
@@ -134,16 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     card.style.display = 'flex';
                 }
-                
-                // 눈 아이콘 제거
                 const eyeBtn = card.querySelector('.edit-eye-btn');
                 if (eyeBtn) eyeBtn.remove();
             });
-            
             localStorage.setItem('menuOrder', JSON.stringify(newOrder));
             localStorage.setItem('hiddenMenus', JSON.stringify(newHidden));
-            
-            // 현재 탭에 맞춰 다시 필터링
             const activeTab = document.querySelector('.tab.active');
             if (activeTab) activeTab.click();
         });
@@ -275,10 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (navigator.share) {
-                try {
-                    await navigator.share({ url: shareUrl });
-                    return;
-                } catch (err) { console.log('공유 취소'); }
+                try { await navigator.share({ url: shareUrl }); return; } catch (err) { console.log('공유 취소'); }
             } 
             
             try {
