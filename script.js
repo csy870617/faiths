@@ -35,118 +35,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 메뉴 순서 및 숨김 관리 (핸들 기반 Drag)
+    // [NEW] 하단 설치 배너 관리
     // ==========================================
-    const listContainer = document.getElementById('main-list');
-    const startEditBtn = document.getElementById('start-edit-btn');
-    const editDoneBtn = document.getElementById('edit-done-btn');
-    const editDoneContainer = document.getElementById('edit-done-container');
-    const settingsModal = document.getElementById('settings-modal');
-    let sortable = null;
+    const installBanner = document.getElementById('install-banner');
+    const bannerInstallBtn = document.getElementById('banner-install-btn');
+    const bannerCloseBtn = document.getElementById('banner-close-btn');
+    const bannerNeverBtn = document.getElementById('banner-never-btn');
+    let deferredPrompt;
 
-    function loadMenuState() {
-        const savedOrder = JSON.parse(localStorage.getItem('menuOrder'));
-        const savedHidden = JSON.parse(localStorage.getItem('hiddenMenus')) || [];
-        if (savedOrder) {
-            const currentCards = Array.from(listContainer.children);
-            const cardMap = {};
-            currentCards.forEach(card => cardMap[card.id] = card);
-            savedOrder.forEach(id => { if (cardMap[id]) listContainer.appendChild(cardMap[id]); });
-        }
-        const cards = document.querySelectorAll('.list-card');
-        cards.forEach(card => { if (savedHidden.includes(card.id)) card.classList.add('hidden'); });
-    }
-    loadMenuState();
+    // 배너 보이기 함수
+    const showInstallBanner = () => {
+        // 이미 '다시 보지 않기'를 눌렀다면 실행 안 함
+        if (localStorage.getItem('installBannerHidden') === 'true') return;
+        // 이미 설치된 상태라면 실행 안 함
+        if (window.matchMedia('(display-mode: standalone)').matches) return;
 
-    if (startEditBtn) {
-        startEditBtn.addEventListener('click', () => {
-            closeWithBack(settingsModal);
-            document.body.classList.add('edit-mode');
-            editDoneContainer.style.display = 'flex';
+        setTimeout(() => {
+            if(installBanner) installBanner.classList.add('show');
+        }, 3000); // 3초 뒤 등장
+    };
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        showInstallBanner(); // 안드로이드/PC는 이벤트 발생 시 배너 표시
+    });
+
+    // 아이폰 등은 이벤트 없이도 조건 체크 후 표시
+    const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isIos) showInstallBanner();
+
+    // 배너 버튼 이벤트
+    if (bannerInstallBtn) {
+        bannerInstallBtn.addEventListener('click', () => {
+            installBanner.classList.remove('show'); // 배너 닫기
             
-            const cards = document.querySelectorAll('.list-card');
-            cards.forEach(card => {
-                card.style.display = 'flex'; 
-                if (card.classList.contains('hidden')) {
-                    card.classList.add('hidden-item');
-                    card.classList.remove('hidden');
-                }
-                
-                // [NEW] 손잡이 및 눈 버튼 생성
-                if (!card.querySelector('.drag-handle')) {
-                    // 드래그 손잡이 (≡)
-                    const handle = document.createElement('div');
-                    handle.className = 'drag-handle';
-                    handle.innerHTML = '≡'; // 햄버거 아이콘
-                    card.appendChild(handle);
-
-                    // 눈 아이콘
-                    const eyeBtn = document.createElement('button');
-                    eyeBtn.className = 'edit-eye-btn';
-                    eyeBtn.innerHTML = '👁️';
-                    eyeBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        card.classList.toggle('hidden-item');
-                        eyeBtn.style.opacity = card.classList.contains('hidden-item') ? '0.5' : '1';
-                    });
-                    card.appendChild(eyeBtn);
-                }
-            });
-
-            // [최적화] 핸들 기반 드래그 (즉시 반응)
-            sortable = new Sortable(listContainer, { 
-                animation: 250, 
-                easing: "cubic-bezier(0.25, 1, 0.5, 1)", 
-                
-                handle: ".drag-handle", // [중요] 이 클래스를 잡았을 때만 드래그됨
-                
-                forceFallback: true, 
-                fallbackClass: "sortable-fallback",
-                fallbackOnBody: true,
-                ghostClass: 'sortable-ghost',
-                dragClass: 'sortable-drag',
-                
-                delay: 0, // 딜레이 없음 (핸들이라 오작동 없음)
-                swapThreshold: 0.65,
-                onStart: function() {
-                    if (navigator.vibrate) navigator.vibrate(50);
-                }
-            });
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((r) => { deferredPrompt = null; });
+            } else if (isIos) {
+                setTimeout(() => openModal(document.getElementById('ios-modal')), 300);
+            } else {
+                alert("브라우저 메뉴에서 [앱 설치]를 선택하세요.");
+            }
         });
     }
 
-    if (editDoneBtn) {
-        editDoneBtn.addEventListener('click', () => {
-            document.body.classList.remove('edit-mode');
-            editDoneContainer.style.display = 'none';
-            if (sortable) { sortable.destroy(); sortable = null; }
-            
-            const cards = document.querySelectorAll('.list-card');
-            const newOrder = [];
-            const newHidden = [];
-            
-            cards.forEach(card => {
-                newOrder.push(card.id);
-                if (card.classList.contains('hidden-item')) {
-                    newHidden.push(card.id);
-                    card.classList.remove('hidden-item');
-                    card.classList.add('hidden');
-                    card.style.display = 'none';
-                } else {
-                    card.style.display = 'flex';
-                }
-                
-                // 생성된 버튼들 제거
-                const handle = card.querySelector('.drag-handle');
-                if (handle) handle.remove();
-                const eyeBtn = card.querySelector('.edit-eye-btn');
-                if (eyeBtn) eyeBtn.remove();
-            });
-            
-            localStorage.setItem('menuOrder', JSON.stringify(newOrder));
-            localStorage.setItem('hiddenMenus', JSON.stringify(newHidden));
-            const activeTab = document.querySelector('.tab.active');
-            if (activeTab) activeTab.click();
+    if (bannerCloseBtn) {
+        bannerCloseBtn.addEventListener('click', () => {
+            installBanner.classList.remove('show'); // 이번 세션에서만 닫기
+        });
+    }
+
+    if (bannerNeverBtn) {
+        bannerNeverBtn.addEventListener('click', () => {
+            installBanner.classList.remove('show');
+            localStorage.setItem('installBannerHidden', 'true'); // 영구 숨김 설정
         });
     }
 
@@ -156,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     const modalOverlay = document.getElementById('modal-overlay');
     const iosModal = document.getElementById('ios-modal');
+    const settingsModal = document.getElementById('settings-modal');
+
     const ccmBtn = document.getElementById('ccm-btn');
     const settingsBtn = document.getElementById('settings-btn');
     const closeModalBtn = document.getElementById('close-modal');
@@ -224,12 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
         fontSizeSlider.addEventListener('input', (e) => { const scale = e.target.value; document.documentElement.style.setProperty('--text-scale', scale); localStorage.setItem('textScale', scale); });
     }
 
-    let deferredPrompt;
+    // 설정 팝업 내 설치 버튼 (수동)
     const installAppBtn = document.getElementById('install-app-btn');
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-    });
     if (installAppBtn) {
         installAppBtn.addEventListener('click', () => {
             if (deferredPrompt) {
@@ -247,8 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 메인 리스트 클릭
+    const listContainer = document.getElementById('main-list');
     listContainer.addEventListener('click', async (e) => {
-        if (document.body.classList.contains('edit-mode')) return;
         const card = e.target.closest('.list-card');
         if (!card) return;
 
