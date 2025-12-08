@@ -13,23 +13,16 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // [NEW] 로딩 화면 처리
+    // [중요] 로딩 화면 처리
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
         setTimeout(() => {
-            loadingScreen.style.opacity = '0'; // 투명해짐
-            setTimeout(() => {
-                loadingScreen.style.display = 'none'; // 사라짐
-            }, 500);
-        }, 2200); // 2.2초 동안 보여줌
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => { loadingScreen.style.display = 'none'; }, 500);
+        }, 2200); 
     }
 
-    // 1. 카카오톡 초기화
-    try {
-        if (!Kakao.isInitialized()) {
-            Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); 
-        }
-    } catch (e) { console.log('카카오 SDK 초기화 실패'); }
+    try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) { console.log('카카오 SDK 초기화 실패'); }
 
     function openExternalLink(url) {
         const userAgent = navigator.userAgent.toLowerCase();
@@ -42,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 메뉴 순서 및 숨김 관리
+    // 메뉴 순서 및 숨김 관리 (부드러운 Drag & Drop)
     // ==========================================
     const listContainer = document.getElementById('main-list');
     const startEditBtn = document.getElementById('start-edit-btn');
@@ -70,26 +63,52 @@ document.addEventListener('DOMContentLoaded', () => {
             closeWithBack(settingsModal);
             document.body.classList.add('edit-mode');
             editDoneContainer.style.display = 'flex';
+            
             const cards = document.querySelectorAll('.list-card');
             cards.forEach(card => {
-                card.style.display = 'flex';
+                card.style.display = 'flex'; // 편집 중엔 다 보이게
+                
+                // 이미 숨김 처리된 카드는 'hidden-item' 클래스 추가
                 if (card.classList.contains('hidden')) {
                     card.classList.add('hidden-item');
                     card.classList.remove('hidden');
                 }
+                
+                // 눈 아이콘 버튼 생성 (중복 방지)
                 if (!card.querySelector('.edit-eye-btn')) {
                     const eyeBtn = document.createElement('button');
                     eyeBtn.className = 'edit-eye-btn';
                     eyeBtn.innerHTML = '👁️';
                     eyeBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
+                        e.stopPropagation(); // 클릭 시 드래그 방지
                         card.classList.toggle('hidden-item');
+                        // 시각적 피드백
                         eyeBtn.style.opacity = card.classList.contains('hidden-item') ? '0.5' : '1';
                     });
                     card.appendChild(eyeBtn);
                 }
             });
-            sortable = new Sortable(listContainer, { animation: 350, easing: "cubic-bezier(0.25, 1, 0.5, 1)", ghostClass: 'sortable-ghost', dragClass: 'sortable-drag', delay: 150, delayOnTouchOnly: true, swapThreshold: 0.65 });
+
+            // [핵심] 부드러운 드래그 설정
+            sortable = new Sortable(listContainer, { 
+                animation: 350,  // 이동 애니메이션 속도 (ms)
+                easing: "cubic-bezier(0.25, 1, 0.5, 1)", // 부드러운 가속도
+                
+                // [중요] forceFallback: true -> 브라우저 기본 드래그 끄고 JS로 그림 (훨씬 부드러움)
+                forceFallback: true, 
+                fallbackClass: "sortable-fallback", // 드래그 중인 아이템 클래스
+                
+                ghostClass: 'sortable-ghost', // 원래 자리에 남는 빈칸
+                
+                delay: 200, // 200ms 꾹 눌러야 드래그 시작 (실수 방지)
+                delayOnTouchOnly: true,
+                
+                swapThreshold: 0.65, // 65% 이상 겹쳐야 자리 바꿈 (안정적)
+                
+                onStart: function() {
+                    if (navigator.vibrate) navigator.vibrate(40); // 햅틱 피드백
+                }
+            });
         });
     }
 
@@ -98,11 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.remove('edit-mode');
             editDoneContainer.style.display = 'none';
             if (sortable) { sortable.destroy(); sortable = null; }
+            
             const cards = document.querySelectorAll('.list-card');
             const newOrder = [];
             const newHidden = [];
+            
             cards.forEach(card => {
-                newOrder.push(card.id);
+                newOrder.push(card.id); // 순서 저장
+                
+                // 숨김 처리 확정
                 if (card.classList.contains('hidden-item')) {
                     newHidden.push(card.id);
                     card.classList.remove('hidden-item');
@@ -111,11 +134,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     card.style.display = 'flex';
                 }
+                
+                // 눈 아이콘 제거
                 const eyeBtn = card.querySelector('.edit-eye-btn');
                 if (eyeBtn) eyeBtn.remove();
             });
+            
             localStorage.setItem('menuOrder', JSON.stringify(newOrder));
             localStorage.setItem('hiddenMenus', JSON.stringify(newHidden));
+            
+            // 현재 탭에 맞춰 다시 필터링
             const activeTab = document.querySelector('.tab.active');
             if (activeTab) activeTab.click();
         });
@@ -148,7 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.remove('show');
         setTimeout(() => { modal.style.display = 'none'; }, 300);
         currentModal = null;
-        // history.back()은 하지 않음 (popstate에서 처리되거나, 닫기 버튼 로직에서 처리)
     };
 
     const closeWithBack = (modal) => {
@@ -181,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     moodBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // playlist.js에서 URL 찾기
             const key = btn.getAttribute('data-key');
             if (typeof CCM_LINKS !== 'undefined' && CCM_LINKS[key]) {
                 openExternalLink(CCM_LINKS[key]);
@@ -229,15 +255,38 @@ document.addEventListener('DOMContentLoaded', () => {
             openModal(modalOverlay);
         } else if (card.id === 'card-share') {
             const shareUrl = location.href;
-            if (navigator.share) {
-                try { await navigator.share({ url: shareUrl }); } catch (err) { console.log('공유 취소'); }
-            } else {
+            const shareTitle = 'FAITHS - 크리스천 성장 도구';
+            const shareDesc = '더 멋진 크리스천으로 함께 성장해요';
+            const shareImage = new URL('thumbnail.png?v=' + new Date().getTime(), window.location.href).href;
+
+            if (window.Kakao && Kakao.isInitialized()) {
                 try {
-                    await navigator.clipboard.writeText(shareUrl);
-                    alert('사이트 주소가 복사되었습니다!\n원하는 곳에 붙여넣기 해주세요.');
-                } catch (err) { prompt('주소를 복사하세요:', shareUrl); }
+                    Kakao.Share.sendDefault({
+                        objectType: 'feed',
+                        content: {
+                            title: shareTitle, description: shareDesc, imageUrl: shareImage, 
+                            link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
+                            imageWidth: 800, imageHeight: 400
+                        },
+                        buttons: [{ title: '바로가기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl }}],
+                    });
+                    return; 
+                } catch (err) { console.log('카카오 공유 실패'); }
             }
-        } else {
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({ url: shareUrl });
+                    return;
+                } catch (err) { console.log('공유 취소'); }
+            } 
+            
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+                alert('사이트 주소가 복사되었습니다!\n원하는 곳에 붙여넣기 해주세요.');
+            } catch (err) { prompt('주소를 복사하세요:', shareUrl); }
+        } 
+        else {
             const link = card.getAttribute('data-link');
             if (link) openExternalLink(link);
         }
