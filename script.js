@@ -13,6 +13,28 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    // [NEW] 강력한 서비스워커 등록 및 자동 업데이트 로직
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+            // 업데이트가 발견되면
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                    // 새 버전이 설치 완료되면
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        // [핵심] 화면을 강제로 새로고침하여 즉시 반영
+                        window.location.reload();
+                    }
+                });
+            });
+        }).catch(err => console.log('SW Fail', err));
+
+        // 컨트롤러(버전)가 바뀌면 무조건 새로고침
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            window.location.reload();
+        });
+    }
+
     // 로딩 화면 처리
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
@@ -37,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 모달 관리 & 뒤로가기
     // ==========================================
-    const modalOverlay = document.getElementById('modal-overlay'); // CCM
+    const modalOverlay = document.getElementById('modal-overlay');
     const iosModal = document.getElementById('ios-modal');
     const settingsModal = document.getElementById('settings-modal');
 
@@ -59,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentModal = null; 
     let wakeLock = null;
 
-    // Wake Lock
     const requestWakeLock = async () => {
         try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } 
         catch (err) { console.log('Wake Lock Error'); }
@@ -107,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentModal) closeModal(currentModal);
     });
 
-    // 이벤트 연결
     if (ccmBtn) ccmBtn.onclick = () => openModal(modalOverlay);
     if (closeModalBtn) closeModalBtn.onclick = () => handleCloseBtnClick(modalOverlay);
     if (modalOverlay) modalOverlay.onclick = (e) => { 
@@ -127,21 +147,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ==========================================
-    // CCM 플레이어 로직
+    // CCM 플레이어 (표준 임베드 URL 변환)
     // ==========================================
     function getYouTubeEmbedUrl(url) {
         if (!url) return null;
-        // const origin = window.location.origin; // 로컬 테스트를 위해 잠시 제거해도 됨
 
+        // 1. 재생목록 (list=)
         const listMatch = url.match(/[?&]list=([^#&?]+)/);
         if (listMatch && listMatch[1]) {
-            return `https://www.youtube.com/embed/videoseries?list=${listMatch[1]}&autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+            const listId = listMatch[1];
+            // [중요] playsinline=1은 아이폰 팝업 재생에 필수
+            return `https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1&playsinline=1&rel=0&modestbranding=1`;
         }
 
+        // 2. 단일 영상
         const videoMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/)([^#&?]*))/);
         if (videoMatch && videoMatch[1]) {
-            return `https://www.youtube.com/embed/${videoMatch[1]}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+            const videoId = videoMatch[1];
+            return `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
         }
+
         return null;
     }
 
@@ -235,7 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const shareUrl = 'https://csy870617.github.io/faiths/';
                 const shareTitle = 'FAITHS - 크리스천 성장 도구';
                 const shareDesc = '더 멋진 크리스천으로 함께 성장해요';
-                // [중요 수정] 썸네일 전체 주소 사용 (캐시 방지용 쿼리는 제거)
                 const shareImage = 'https://csy870617.github.io/faiths/thumbnail.png';
 
                 if (window.Kakao && Kakao.isInitialized()) {
