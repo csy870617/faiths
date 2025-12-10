@@ -34,7 +34,7 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .icon-btn { background: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); flex-shrink: 0; transition: all 0.2s; }
 .icon-btn.active { background: #111; color: white; }
 
-/* 공지사항 & 리스트 카드 (기존 동일) */
+/* 공지사항 & 리스트 카드 */
 .notice-section { padding-bottom: 16px; width: 100%; }
 .notice-card { background: white; border-radius: 20px; padding: 16px 20px; display: flex; align-items: flex-start; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.03); border-left: 4px solid #5f27cd; width: 100%; }
 .notice-icon { font-size: 18px; margin-right: 12px; margin-top: 1px; }
@@ -83,26 +83,22 @@ body.hide-mode .list-card.user-hidden { display: flex !important; opacity: 0.4; 
 .modal-close-btn { background: #111; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 14px; }
 .modal-close-btn.secondary { background: #eee; color: #333; margin-top: 10px; }
 
-/* [NEW] 유튜브 플레이어 스타일 */
+/* [수정됨] 플레이어 UI 스타일 */
 .player-header { margin-bottom: 16px; }
 .video-container {
     position: relative; width: 100%; padding-bottom: 56.25%; /* 16:9 비율 */
     height: 0; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 20px;
 }
 .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-
 .player-info { margin-bottom: 20px; font-size: 12px; color: #666; line-height: 1.5; }
 .player-info p { margin-bottom: 8px; }
 .copyright-notice { font-size: 11px; color: #888; letter-spacing: -0.5px; }
 
-/* CCM 모드 선택 그리드 */
 .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
 .mood-btn { background: #F5F7FA; border: 1px solid #EEF0F5; border-radius: 20px; padding: 20px 10px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .mood-btn:hover { background: #E0E7FF; border-color: #5f27cd; transform: translateY(-2px); }
 .mood-emoji { font-size: 28px; }
 .mood-btn span:last-child { font-size: 13px; font-weight: 700; color: #444; }
-
-/* 아이폰 안내 & 설정 팝업 */
 .ios-guide { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 24px; font-size: 20px; }
 .guide-text { font-size: 14px; font-weight: 800; color: #5f27cd; }
 .guide-icon { font-size: 24px; }

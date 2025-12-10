@@ -35,13 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 모달 관리 & 뒤로가기 지원
+    // 모달 관리 & 뒤로가기
     // ==========================================
-    const modalOverlay = document.getElementById('modal-overlay');
+    const modalOverlay = document.getElementById('modal-overlay'); // CCM
     const iosModal = document.getElementById('ios-modal');
     const settingsModal = document.getElementById('settings-modal');
 
-    // 내부 요소
+    // 요소들
     const ccmMenuView = document.getElementById('ccm-menu-view');
     const ccmPlayerView = document.getElementById('ccm-player-view');
     const youtubeIframe = document.getElementById('youtube-iframe');
@@ -69,26 +69,20 @@ document.addEventListener('DOMContentLoaded', () => {
         catch (err) { console.log('Wake Lock Release Error'); }
     };
 
-    // 모달 열기
     const openModal = (modal) => {
         if (!modal) return;
         currentModal = modal;
         modal.style.display = 'flex';
-        // 애니메이션을 위해 약간의 지연
         requestAnimationFrame(() => modal.classList.add('show'));
-        // 히스토리 추가
         history.pushState({ modalOpen: true }, null, ""); 
     };
 
-    // 모달 닫기 (실제 UI 동작)
     const closeModal = (modal) => {
         if (!modal) return;
         
-        // CCM 닫힘 처리
         if (modal === modalOverlay) {
             if(youtubeIframe) youtubeIframe.src = ''; 
             releaseWakeLock(); 
-            
             setTimeout(() => {
                 if(ccmPlayerView) ccmPlayerView.style.display = 'none';
                 if(ccmMenuView) ccmMenuView.style.display = 'block';
@@ -98,33 +92,23 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.remove('show');
         setTimeout(() => { 
             modal.style.display = 'none'; 
-            // 현재 열린 모달이 이것이었다면 초기화
             if (currentModal === modal) currentModal = null;
         }, 300);
     };
 
-    // [핵심 수정] 버튼 클릭 시 동작: UI 먼저 닫고 -> 히스토리 정리
     const handleCloseBtnClick = (modal) => {
-        closeModal(modal); // 1. 즉시 닫기 (반응 속도 최우선)
-        
-        // 2. 히스토리 스택 정리 (뒤로가기 꼬임 방지)
+        closeModal(modal); 
         if (history.state && history.state.modalOpen) {
             history.back();
         }
     };
 
-    // 브라우저 뒤로가기 버튼 감지
     window.addEventListener('popstate', () => {
-        if (currentModal) {
-            closeModal(currentModal);
-        }
+        if (currentModal) closeModal(currentModal);
     });
 
-    // --- 이벤트 연결 (onclick 사용으로 중복 방지) ---
-
+    // 이벤트 연결
     if (ccmBtn) ccmBtn.onclick = () => openModal(modalOverlay);
-    
-    // [수정] 닫기 버튼들에 handleCloseBtnClick 적용
     if (closeModalBtn) closeModalBtn.onclick = () => handleCloseBtnClick(modalOverlay);
     if (modalOverlay) modalOverlay.onclick = (e) => { 
         if (e.target === modalOverlay) handleCloseBtnClick(modalOverlay); 
@@ -142,40 +126,62 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // 2. CCM 플레이어 로직
+    // ==========================================
+    // CCM 플레이어 로직
+    // ==========================================
+    function getYouTubeEmbedUrl(url) {
+        if (!url) return null;
+        // const origin = window.location.origin; // 로컬 테스트를 위해 잠시 제거해도 됨
+
+        const listMatch = url.match(/[?&]list=([^#&?]+)/);
+        if (listMatch && listMatch[1]) {
+            return `https://www.youtube.com/embed/videoseries?list=${listMatch[1]}&autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+        }
+
+        const videoMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/)([^#&?]*))/);
+        if (videoMatch && videoMatch[1]) {
+            return `https://www.youtube.com/embed/${videoMatch[1]}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+        }
+        return null;
+    }
+
     moodBtns.forEach(btn => {
         btn.onclick = () => {
             const key = btn.getAttribute('data-key');
             const title = btn.querySelector('span:last-child').innerText;
 
-            if (typeof CCM_IDS !== 'undefined' && CCM_IDS[key]) {
-                const videoId = CCM_IDS[key];
-                if(youtubeIframe) youtubeIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
-                if(playerTitle) playerTitle.innerText = title;
-                
-                if(ccmMenuView) ccmMenuView.style.display = 'none';
-                if(ccmPlayerView) ccmPlayerView.style.display = 'block';
+            if (typeof CCM_PLAYLIST !== 'undefined' && CCM_PLAYLIST[key]) {
+                const embedUrl = getYouTubeEmbedUrl(CCM_PLAYLIST[key]); 
 
-                requestWakeLock();
+                if (embedUrl) {
+                    if(youtubeIframe) youtubeIframe.src = embedUrl;
+                    if(playerTitle) playerTitle.innerText = title;
+                    
+                    if(ccmMenuView) ccmMenuView.style.display = 'none';
+                    if(ccmPlayerView) ccmPlayerView.style.display = 'block';
+
+                    requestWakeLock();
+                } else {
+                    alert("지원하지 않는 주소입니다.");
+                }
+            } else {
+                alert("재생 목록이 없습니다.");
             }
         };
     });
 
-    // [다른 찬양 고르기] 버튼
     if (backToMenuBtn) {
         backToMenuBtn.onclick = () => {
             if(youtubeIframe) youtubeIframe.src = ''; 
-            
             if(ccmPlayerView) ccmPlayerView.style.display = 'none';
             if(ccmMenuView) ccmMenuView.style.display = 'block';
-            
             releaseWakeLock();
         };
     }
 
 
     // ==========================================
-    // 숨기기 모드
+    // 숨기기 모드 & 기타
     // ==========================================
     const listContainer = document.getElementById('main-list');
     const hideModeBtn = document.getElementById('hide-mode-btn'); 
@@ -229,7 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const shareUrl = 'https://csy870617.github.io/faiths/';
                 const shareTitle = 'FAITHS - 크리스천 성장 도구';
                 const shareDesc = '더 멋진 크리스천으로 함께 성장해요';
-                const shareImage = 'https://csy870617.github.io/faiths/thumbnail.png?v=' + new Date().getTime();
+                // [중요 수정] 썸네일 전체 주소 사용 (캐시 방지용 쿼리는 제거)
+                const shareImage = 'https://csy870617.github.io/faiths/thumbnail.png';
 
                 if (window.Kakao && Kakao.isInitialized()) {
                     try {
@@ -252,9 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // ==========================================
-    // 앱 설치 배너 & 기타
-    // ==========================================
     const installBanner = document.getElementById('install-banner');
     const bannerInstallBtn = document.getElementById('banner-install-btn');
     const bannerCloseBtn = document.getElementById('banner-close-btn');

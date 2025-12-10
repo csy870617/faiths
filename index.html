@@ -4,12 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FAITHS</title>
+    
+    <meta name="description" content="더 멋진 크리스천으로 함께 성장해요. 말씀, 기도, 성장을 돕는 FAITHS입니다.">
+    <meta name="keywords" content="크리스천, 말씀뽑기, 말씀카드, CCM, 기독교, 성경, MBTI, 영어공부, 무료어플">
+    <meta name="author" content="FAITHS">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="FAITHS - 크리스천 성장 도구">
+    <meta property="og:description" content="더 멋진 크리스천으로 함께 성장해요.">
+    <meta property="og:image" content="https://csy870617.github.io/faiths/thumbnail.png">
+    <meta property="og:url" content="https://csy870617.github.io/faiths/">
+    
+    <meta name="google-site-verification" content="EhqISFpzRIIw1YRrvtpfqYxOl6FZ1kDFSxpYAJY3p2c" />
+
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#5f27cd">
     <link rel="apple-touch-icon" href="icon/0.png">
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2txfYR9bGr4uwcTKnp8D4" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 </head>
 <body>
 
@@ -94,7 +108,6 @@
 
     <div id="modal-overlay" class="modal-overlay">
         <div class="modal-content">
-            
             <div id="ccm-menu-view">
                 <div class="modal-header"><h3>오늘 마음이 어떠신가요?</h3><p>상황에 맞는 찬양을 들려드릴게요.</p></div>
                 <div class="mood-grid">
@@ -107,24 +120,16 @@
                 </div>
                 <button id="close-modal" class="modal-close-btn">닫기</button>
             </div>
-
             <div id="ccm-player-view" style="display: none;">
-                <div class="player-header">
-                    <h3 id="player-title">재생 중</h3>
-                </div>
-                
+                <div class="player-header"><h3 id="player-title">재생 중</h3></div>
                 <div class="video-container">
-                    <iframe id="youtube-iframe" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    <iframe id="youtube-iframe" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
                 </div>
-
                 <div class="player-info">
-                    <p>콘텐츠는 주기적으로 업데이트 됩니다.</p>
-                    <p class="copyright-notice">이 콘텐츠는 제작자의 유튜브 채널을 통해 재생되며,<br>저작권과 모든 권리는 원 제작자에게 있습니다.</p>
+                    <p class="copyright-notice">이 콘텐츠는 제작자의 유튜브 채널을 통해 재생되며,<br>저작권과 모든 권리는 원 제작자에게 있습니다.<br>콘텐츠는 주기적으로 업데이트 됩니다.</p>
                 </div>
-
                 <button id="back-to-menu-btn" class="modal-close-btn secondary">다른 찬양 고르기</button>
             </div>
-
         </div>
     </div>
     
