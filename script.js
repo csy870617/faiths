@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 로딩 화면
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
         setTimeout(() => {
@@ -51,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // (모달, 플레이어 관련 코드 - 기존 유지)
+    // (모달 및 플레이어 로직 - 기존과 동일)
     const modalOverlay = document.getElementById('modal-overlay');
     const iosModal = document.getElementById('ios-modal');
     const settingsModal = document.getElementById('settings-modal');
@@ -138,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // (숨기기 모드, 앱설치 배너 등 생략 - 기존과 동일)
+    // (숨기기 모드, 앱설치 배너 등 생략 - 위와 동일)
     const listContainer = document.getElementById('main-list');
     const hideModeBtn = document.getElementById('hide-mode-btn'); 
     let isHideMode = false;
@@ -161,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // [중요 수정] 친구 초대 (캐시 방지 쿼리 추가)
+    // [핵심 수정] 친구 초대 (sendScrap 사용)
     // ==========================================
     if (listContainer) {
         listContainer.onclick = async (e) => {
@@ -181,28 +180,18 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (card.id === 'card-share') {
                 
                 const shareUrl = 'https://csy870617.github.io/faiths/';
-                const shareTitle = 'FAITHS - 크리스천 성장 도구';
-                const shareDesc = '더 멋진 크리스천으로 함께 성장해요';
-                
-                // [핵심] 주소 뒤에 시간을 붙여서 매번 새로운 이미지인 척하기
-                const shareImage = 'https://csy870617.github.io/faiths/thumbnail.png?v=' + new Date().getTime();
 
                 if (window.Kakao && Kakao.isInitialized()) {
                     try {
-                        Kakao.Share.sendDefault({
-                            objectType: 'feed',
-                            content: {
-                                title: shareTitle,
-                                description: shareDesc,
-                                imageUrl: shareImage,
-                                link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
-                                imageWidth: 800, 
-                                imageHeight: 400
-                            },
-                            buttons: [{ title: '바로가기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl }}],
+                        // [변경] sendDefault -> sendScrap
+                        // HTML의 meta 태그 정보를 그대로 가져와서 공유합니다.
+                        Kakao.Share.sendScrap({
+                            requestUrl: shareUrl
                         });
                         return;
-                    } catch (err) { console.log('카카오 공유 실패:', err); }
+                    } catch (err) {
+                        console.log('카카오 공유 실패:', err);
+                    }
                 }
 
                 if (navigator.share) {
