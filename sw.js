@@ -1,4 +1,4 @@
-const CACHE_NAME = 'faiths-v43'; /* 버전 업 */
+const CACHE_NAME = 'faiths-v44'; /* 버전 업 */
 
 const urlsToCache = [
   './',
@@ -15,9 +15,8 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
-  // [중요] 대기하지 않고 즉시 활성화
+  // 대기하지 않고 즉시 활성화
   self.skipWaiting();
-  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
@@ -32,9 +31,8 @@ self.addEventListener('fetch', event => {
 });
 
 self.addEventListener('activate', event => {
-  // [중요] 즉시 제어권 가져오기 (새로고침 없이 바로 적용)
+  // 즉시 제어권 가져오기
   self.clients.claim();
-  
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {

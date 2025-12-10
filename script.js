@@ -13,29 +13,24 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // [NEW] 강력한 서비스워커 등록 및 자동 업데이트 로직
+    // [NEW] 자동 업데이트 로직
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').then(reg => {
-            // 업데이트가 발견되면
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
                 newWorker.addEventListener('statechange', () => {
-                    // 새 버전이 설치 완료되면
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        // [핵심] 화면을 강제로 새로고침하여 즉시 반영
                         window.location.reload();
                     }
                 });
             });
-        }).catch(err => console.log('SW Fail', err));
-
-        // 컨트롤러(버전)가 바뀌면 무조건 새로고침
+        });
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             window.location.reload();
         });
     }
 
-    // 로딩 화면 처리
+    // 로딩 화면
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
         setTimeout(() => {
@@ -44,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1500); 
     }
 
-    try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) { console.log('카카오 SDK 초기화 실패'); }
+    try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
 
     function openExternalLink(url) {
         const userAgent = navigator.userAgent.toLowerCase();
@@ -57,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 모달 관리 & 뒤로가기
+    // 모달 관리
     // ==========================================
     const modalOverlay = document.getElementById('modal-overlay');
     const iosModal = document.getElementById('ios-modal');
@@ -81,13 +76,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentModal = null; 
     let wakeLock = null;
 
+    // Wake Lock
     const requestWakeLock = async () => {
-        try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } 
-        catch (err) { console.log('Wake Lock Error'); }
+        try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
     };
     const releaseWakeLock = async () => {
-        try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } 
-        catch (err) { console.log('Wake Lock Release Error'); }
+        try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {}
     };
 
     const openModal = (modal) => {
@@ -103,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (modal === modalOverlay) {
             if(youtubeIframe) youtubeIframe.src = ''; 
-            releaseWakeLock(); 
+            releaseWakeLock();
             setTimeout(() => {
                 if(ccmPlayerView) ccmPlayerView.style.display = 'none';
                 if(ccmMenuView) ccmMenuView.style.display = 'block';
@@ -119,9 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleCloseBtnClick = (modal) => {
         closeModal(modal); 
-        if (history.state && history.state.modalOpen) {
-            history.back();
-        }
+        if (history.state && history.state.modalOpen) history.back();
     };
 
     window.addEventListener('popstate', () => {
@@ -135,36 +127,34 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (closeIosModalBtn) closeIosModalBtn.onclick = () => handleCloseBtnClick(iosModal);
-    if (iosModal) iosModal.onclick = (e) => { 
-        if (e.target === iosModal) handleCloseBtnClick(iosModal); 
-    };
+    if (iosModal) iosModal.onclick = (e) => { if (e.target === iosModal) handleCloseBtnClick(iosModal); };
 
     if (settingsBtn) settingsBtn.onclick = () => openModal(settingsModal);
     if (closeSettingsBtn) closeSettingsBtn.onclick = () => handleCloseBtnClick(settingsModal);
-    if (settingsModal) settingsModal.onclick = (e) => { 
-        if (e.target === settingsModal) handleCloseBtnClick(settingsModal); 
-    };
+    if (settingsModal) settingsModal.onclick = (e) => { if (e.target === settingsModal) handleCloseBtnClick(settingsModal); };
 
 
     // ==========================================
-    // CCM 플레이어 (표준 임베드 URL 변환)
+    // [핵심 수정] 유튜브 플레이어 (모바일 호환성 최적화)
     // ==========================================
     function getYouTubeEmbedUrl(url) {
         if (!url) return null;
+        const origin = window.location.origin; // 현재 도메인 (보안 필수)
 
-        // 1. 재생목록 (list=)
+        // 1. 재생목록 (List)
         const listMatch = url.match(/[?&]list=([^#&?]+)/);
         if (listMatch && listMatch[1]) {
             const listId = listMatch[1];
-            // [중요] playsinline=1은 아이폰 팝업 재생에 필수
-            return `https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+            // [중요] autoplay 제거 + origin 추가
+            return `https://www.youtube.com/embed?listType=playlist&list=${listId}&playsinline=1&rel=0&modestbranding=1&origin=${origin}`;
         }
 
-        // 2. 단일 영상
+        // 2. 단일 영상 (Video)
         const videoMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/)([^#&?]*))/);
         if (videoMatch && videoMatch[1]) {
             const videoId = videoMatch[1];
-            return `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+            // [중요] autoplay 제거 + origin 추가
+            return `https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&origin=${origin}`;
         }
 
         return null;
@@ -176,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = btn.querySelector('span:last-child').innerText;
 
             if (typeof CCM_PLAYLIST !== 'undefined' && CCM_PLAYLIST[key]) {
-                const embedUrl = getYouTubeEmbedUrl(CCM_PLAYLIST[key]); 
+                const embedUrl = getYouTubeEmbedUrl(CCM_PLAYLIST[key]);
 
                 if (embedUrl) {
                     if(youtubeIframe) youtubeIframe.src = embedUrl;
@@ -187,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     requestWakeLock();
                 } else {
-                    alert("지원하지 않는 주소입니다.");
+                    alert("지원하지 않는 유튜브 주소입니다.");
                 }
             } else {
                 alert("재생 목록이 없습니다.");
@@ -206,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ==========================================
-    // 숨기기 모드 & 기타
+    // (이하 기존 코드 동일)
     // ==========================================
     const listContainer = document.getElementById('main-list');
     const hideModeBtn = document.getElementById('hide-mode-btn'); 
