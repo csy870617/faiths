@@ -10,7 +10,6 @@
     <meta name="theme-color" content="#5f27cd">
     <link rel="apple-touch-icon" href="icon/0.png">
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2txfYR9bGr4uwcTKnp8D4" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 </head>
 <body>
 
@@ -37,7 +36,10 @@
                 <button class="tab" data-filter="growth">성장</button>
                 <button class="tab" data-filter="tools">도구</button>
             </div>
-            <button id="settings-btn" class="settings-icon-btn">⚙️</button>
+            <div class="header-buttons">
+                <button id="hide-mode-btn" class="icon-btn">🙈</button>
+                <button id="settings-btn" class="icon-btn">⚙️</button>
+            </div>
         </div>
 
         <div class="notice-section">
@@ -59,6 +61,10 @@
                 <img src="icon/2.png" alt="FAITH MBTI" class="app-icon-img">
                 <div class="text-box"><h3>FAITH MBTI</h3><p>크리스천 신앙 유형 분석</p></div><button class="btn-go">→</button>
             </div>
+            <div class="list-card" id="card-choir" data-category="tools" data-link="https://csy870617.github.io/ChurchChoir/">
+                <img src="icon/5.png" alt="성가대 연습실" class="app-icon-img">
+                <div class="text-box"><h3>성가대 연습실</h3><p>우리교회 성가대를 위한 특별한 공간</p></div><button class="btn-go">→</button>
+            </div>
             <div class="list-card" id="card-ccm" data-category="faith">
                 <img src="icon/4.png" alt="CCM PLAYLIST" class="app-icon-img">
                 <div class="text-box"><h3>상황별 CCM PLAYLIST</h3><p>내 기분과 상황에 딱 맞는 찬양 듣기</p></div><button class="btn-go">→</button>
@@ -76,10 +82,7 @@
 
     <div id="install-banner" class="install-banner">
         <div class="install-content">
-            <div class="install-text">
-                <strong>앱으로 더 편하게!</strong>
-                <p>홈 화면에 설치하고 바로 접속하세요.</p>
-            </div>
+            <div class="install-text"><strong>앱으로 더 편하게!</strong><p>홈 화면에 설치하고 바로 접속하세요.</p></div>
             <button id="banner-install-btn" class="banner-btn primary">설치</button>
         </div>
         <div class="install-footer">
@@ -91,18 +94,40 @@
 
     <div id="modal-overlay" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header"><h3>오늘 마음이 어떠신가요?</h3><p>상황에 맞는 찬양을 들려드릴게요.</p></div>
-            <div class="mood-grid">
-                <button class="mood-btn" data-key="comfort"><span class="mood-emoji">☁️</span><span>힘들고 지칠 때</span></button>
-                <button class="mood-btn" data-key="prayer"><span class="mood-emoji">🙏</span><span>깊은 기도의 시간</span></button>
-                <button class="mood-btn" data-key="morning"><span class="mood-emoji">☀️</span><span>활기찬 아침</span></button>
-                <button class="mood-btn" data-key="sleep"><span class="mood-emoji">🌙</span><span>잠들기 전 평안</span></button>
-                <button class="mood-btn" data-key="work"><span class="mood-emoji">🎧</span><span>신나는 노동요</span></button>
-                <button class="mood-btn" data-key="english"><span class="mood-emoji">🌏</span><span>은혜로운 영어찬양</span></button>
+            
+            <div id="ccm-menu-view">
+                <div class="modal-header"><h3>오늘 마음이 어떠신가요?</h3><p>상황에 맞는 찬양을 들려드릴게요.</p></div>
+                <div class="mood-grid">
+                    <button class="mood-btn" data-key="comfort"><span class="mood-emoji">☁️</span><span>힘들고 지칠 때</span></button>
+                    <button class="mood-btn" data-key="prayer"><span class="mood-emoji">🙏</span><span>깊은 기도의 시간</span></button>
+                    <button class="mood-btn" data-key="morning"><span class="mood-emoji">☀️</span><span>활기찬 아침</span></button>
+                    <button class="mood-btn" data-key="sleep"><span class="mood-emoji">🌙</span><span>잠들기 전 평안</span></button>
+                    <button class="mood-btn" data-key="work"><span class="mood-emoji">🎧</span><span>신나는 노동요</span></button>
+                    <button class="mood-btn" data-key="english"><span class="mood-emoji">🌏</span><span>은혜로운 영어찬양</span></button>
+                </div>
+                <button id="close-modal" class="modal-close-btn">닫기</button>
             </div>
-            <button id="close-modal" class="modal-close-btn">닫기</button>
+
+            <div id="ccm-player-view" style="display: none;">
+                <div class="player-header">
+                    <h3 id="player-title">재생 중</h3>
+                </div>
+                
+                <div class="video-container">
+                    <iframe id="youtube-iframe" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                </div>
+
+                <div class="player-info">
+                    <p>콘텐츠는 주기적으로 업데이트 됩니다.</p>
+                    <p class="copyright-notice">이 콘텐츠는 제작자의 유튜브 채널을 통해 재생되며,<br>저작권과 모든 권리는 원 제작자에게 있습니다.</p>
+                </div>
+
+                <button id="back-to-menu-btn" class="modal-close-btn secondary">다른 찬양 고르기</button>
+            </div>
+
         </div>
     </div>
+    
     <div id="ios-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header"><h3>아이폰 앱 설치 방법</h3><p>사파리(Safari) 브라우저 하단의<br><strong>[공유]</strong> 버튼을 눌러주세요.</p></div>
@@ -110,9 +135,10 @@
             <button id="close-ios-modal" class="modal-close-btn">확인</button>
         </div>
     </div>
+    
     <div id="settings-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header"><h3>설정 (Settings)</h3></div>
+            <div class="modal-header"><h3>설정</h3></div>
             <div class="settings-body">
                 <div class="setting-group">
                     <div class="setting-item">
