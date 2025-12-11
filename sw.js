@@ -1,4 +1,4 @@
-const CACHE_NAME = 'faiths-v52'; /* 버전 업 */
+const CACHE_NAME = 'faiths-v48'; /* 버전 업 */
 
 const urlsToCache = [
   './',
@@ -6,6 +6,7 @@ const urlsToCache = [
   './style.css',
   './script.js',
   './playlist.js',
+  './manifest.json', /* [추가] 매니페스트도 캐싱 */
   './icon/0.png',
   './icon/1.png',
   './icon/2.png',
@@ -43,9 +44,4 @@ self.addEventListener('activate', event => {
       );
     })
   );
-
 });
-
-
-
-
