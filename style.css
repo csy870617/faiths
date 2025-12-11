@@ -1,7 +1,7 @@
 /* ---- 1. 기본 설정 ---- */
-:root { --text-scale: 1; --brand-color: #5f27cd; }
+:root { --text-scale: 1; --brand-color: #5f27cd; --bg-color: #F5F6F8; }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Pretendard Variable", Pretendard, sans-serif; -webkit-tap-highlight-color: transparent; }
-body { background-color: #F5F6F8; display: flex; justify-content: center; min-height: 100vh; padding: 0; margin: 0; }
+body { background-color: var(--bg-color); display: flex; justify-content: center; min-height: 100vh; padding: 0; margin: 0; }
 
 /* 로딩 화면 */
 #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #F5F6F8; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s ease-out; }
@@ -48,29 +48,17 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .btn-go { width: 34px; height: 34px; border-radius: 50%; background: #F5F7FA; border: none; color: #111; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
 .list-card:hover .btn-go { background: #111; color: white; }
 
-/* 아이콘 모드 (그리드) */
+/* 아이콘 모드 */
 .list-container.grid-view { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px 8px; padding: 10px 0 40px 0; }
 .list-container.grid-view .list-card { flex-direction: column; padding: 0; background: transparent; box-shadow: none; border: none; align-items: center; }
 .list-container.grid-view .list-card:hover { transform: translateY(-3px); box-shadow: none; }
 .list-container.grid-view .app-icon-img,
 .list-container.grid-view .icon-box { width: 60px; height: 60px; margin: 0 0 8px 0; border-radius: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 .list-container.grid-view .text-box { width: 100%; text-align: center; }
-
-/* [수정됨] 아이콘 모드 제목 스타일: 작게, 볼드 제거 */
-.list-container.grid-view .text-box h3 { 
-    font-size: 11px; 
-    font-weight: 400; /* 볼드 제거 (Normal) */
-    margin: 0; 
-    color: #333; 
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    display: block; 
-}
-
+.list-container.grid-view .text-box h3 { font-size: 11px; font-weight: 400; margin: 0; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
 .list-container.grid-view .text-box p, .list-container.grid-view .btn-go { display: none; }
 
-/* 드래그 및 숨기기 모드 */
+/* 드래그 및 숨기기 */
 .sortable-ghost { opacity: 0.4; background: #e9ecef; border: 2px dashed #ccc; box-shadow: none; }
 .sortable-drag { opacity: 1; background: white; box-shadow: 0 15px 30px rgba(0,0,0,0.2); transform: scale(1.05); z-index: 9999; }
 body.hide-mode .list-card { animation: wiggle 0.25s infinite alternate ease-in-out; }
@@ -117,6 +105,45 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box {
 .player-info { margin-bottom: 20px; font-size: 12px; color: #666; line-height: 1.5; }
 .player-info p { margin-bottom: 8px; }
 .copyright-notice { font-size: 11px; color: #888; letter-spacing: -0.5px; }
+
+/* [NEW] 플레이어 하단 버튼 디자인 */
+.player-buttons { 
+    display: flex; 
+    gap: 12px; 
+    justify-content: center; 
+    width: 100%; 
+    margin-top: 20px;
+}
+.action-btn { 
+    flex: 1; 
+    padding: 14px; 
+    border-radius: 20px; 
+    border: none; 
+    font-weight: 700; 
+    font-size: 14px; 
+    cursor: pointer; 
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+/* 셔플 버튼 (강조) */
+#shuffle-play-btn { 
+    background: var(--brand-color); 
+    color: white; 
+    box-shadow: 0 4px 12px rgba(95, 39, 205, 0.3);
+}
+#shuffle-play-btn:hover { background: #4a1eb8; transform: translateY(-2px); }
+#shuffle-play-btn:active { transform: scale(0.98); }
+
+/* 뒤로가기 버튼 (보조) */
+#back-to-menu-btn { 
+    background: #F1F3F5; 
+    color: #444; 
+    border: 1px solid #E9ECEF;
+}
+#back-to-menu-btn:hover { background: #E9ECEF; }
 
 .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
 .mood-btn { background: #F5F7FA; border: 1px solid #EEF0F5; border-radius: 20px; padding: 20px 10px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }

@@ -13,7 +13,6 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 자동 업데이트
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').then(reg => {
             reg.addEventListener('updatefound', () => {
@@ -56,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const listContainer = document.getElementById('main-list');
     let isDragging = false; 
 
-    // 저장된 순서 불러오기
     const savedOrder = JSON.parse(localStorage.getItem('menuOrder'));
     if (savedOrder) {
         const currentCards = Array.from(listContainer.children);
@@ -67,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 드래그 설정
     new Sortable(listContainer, {
         animation: 150,
         delay: 200, 
@@ -85,9 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ==========================================
-    // [핵심] 화면 모드 및 텍스트 자동 변경
-    // ==========================================
     const viewListBtn = document.getElementById('view-list');
     const viewGridBtn = document.getElementById('view-grid');
     const shareTitle = document.querySelector('#card-share .text-box h3');
@@ -97,20 +91,15 @@ document.addEventListener('DOMContentLoaded', () => {
             listContainer.classList.add('grid-view');
             viewGridBtn.classList.add('active');
             viewListBtn.classList.remove('active');
-            
-            // [NEW] 아이콘 모드일 땐 문구 변경
             if(shareTitle) shareTitle.innerText = '친구 초대';
         } else {
             listContainer.classList.remove('grid-view');
             viewListBtn.classList.add('active');
             viewGridBtn.classList.remove('active');
-            
-            // [NEW] 리스트 모드일 땐 원래대로
             if(shareTitle) shareTitle.innerText = '함께 성장할 친구 초대';
         }
         localStorage.setItem('viewMode', mode);
     };
-
     const savedViewMode = localStorage.getItem('viewMode') || 'list';
     setViewMode(savedViewMode);
     
@@ -126,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ccmPlayerView = document.getElementById('ccm-player-view');
     const youtubeIframe = document.getElementById('youtube-iframe');
     const backToMenuBtn = document.getElementById('back-to-menu-btn');
+    const shufflePlayBtn = document.getElementById('shuffle-play-btn');
     const playerTitle = document.getElementById('player-title');
     const ccmBtn = document.getElementById('ccm-btn');
     const settingsBtn = document.getElementById('settings-btn');
@@ -135,6 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const moodBtns = document.querySelectorAll('.mood-btn');
     let currentModal = null; 
     let wakeLock = null;
+    let currentCategory = null; 
+    let lastVideoUrl = null; // [NEW] 마지막 재생한 URL 저장
 
     const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
     const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
@@ -179,22 +171,56 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
+    // [NEW] 스마트 셔플 함수 (중복 방지)
+    const playRandomVideo = (category, title) => {
+        if (typeof CCM_PLAYLIST !== 'undefined' && CCM_PLAYLIST[category]) {
+            const list = CCM_PLAYLIST[category];
+            
+            // 1. 현재 재생 중인(마지막) 곡을 제외한 목록 만들기
+            let availableList = list.filter(url => url !== lastVideoUrl);
+            
+            // 만약 리스트가 1개밖에 없어서 다 제외됐다면, 원래 리스트 사용
+            if (availableList.length === 0) {
+                availableList = list;
+            }
+
+            // 2. 남은 목록 중에서 랜덤 선택
+            const randomUrl = availableList[Math.floor(Math.random() * availableList.length)];
+            
+            // 3. 마지막 곡 업데이트
+            lastVideoUrl = randomUrl;
+
+            const embedUrl = getYouTubeEmbedUrl(randomUrl);
+
+            if (embedUrl) {
+                if(youtubeIframe) youtubeIframe.src = embedUrl;
+                if(playerTitle && title) playerTitle.innerText = title;
+                
+                if(ccmMenuView) ccmMenuView.style.display = 'none';
+                if(ccmPlayerView) ccmPlayerView.style.display = 'block';
+                requestWakeLock();
+            } else { alert("지원하지 않는 주소입니다."); }
+        } else { alert("재생 목록이 없습니다."); }
+    };
+
     moodBtns.forEach(btn => {
         btn.onclick = () => {
             const key = btn.getAttribute('data-key');
             const title = btn.querySelector('span:last-child').innerText;
-            if (typeof CCM_PLAYLIST !== 'undefined' && CCM_PLAYLIST[key]) {
-                const embedUrl = getYouTubeEmbedUrl(CCM_PLAYLIST[key]); 
-                if (embedUrl) {
-                    if(youtubeIframe) youtubeIframe.src = embedUrl;
-                    if(playerTitle) playerTitle.innerText = title;
-                    if(ccmMenuView) ccmMenuView.style.display = 'none';
-                    if(ccmPlayerView) ccmPlayerView.style.display = 'block';
-                    requestWakeLock();
-                } else { alert("지원하지 않는 주소입니다."); }
-            } else { alert("재생 목록이 없습니다."); }
+            currentCategory = key;
+            lastVideoUrl = null; // 카테고리 바꾸면 기록 초기화
+            playRandomVideo(key, title);
         };
     });
+
+    if (shufflePlayBtn) {
+        shufflePlayBtn.onclick = () => {
+            if (currentCategory) {
+                // 제목은 유지한 채로 곡만 변경
+                playRandomVideo(currentCategory, null);
+            }
+        };
+    }
 
     if (backToMenuBtn) {
         backToMenuBtn.onclick = () => {
