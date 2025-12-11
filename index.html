@@ -8,27 +8,21 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#F5F6F8">
+    <link rel="apple-touch-icon" href="icon/0.png">
 
-    <meta name="description" content="더 멋진 크리스천으로 함께 성장해요. 말씀, 기도, 성장을 돕는 FAITHS입니다.">
-    <meta name="keywords" content="크리스천, 말씀뽑기, 말씀카드, CCM, 기독교, 성경, MBTI, 영어공부, 무료어플">
-    <meta name="author" content="FAITHS">
-
+    <meta name="description" content="더 멋진 크리스천으로 함께 성장해요.">
     <meta property="og:type" content="website">
     <meta property="og:title" content="FAITHS - 크리스천 성장 도구">
     <meta property="og:description" content="더 멋진 크리스천으로 함께 성장해요.">
     <meta property="og:image" content="https://csy870617.github.io/faiths/thumbnail.png">
-    <meta property="og:image:width" content="800">
-    <meta property="og:image:height" content="400">
     <meta property="og:url" content="https://csy870617.github.io/faiths/">
-    
-    <meta name="google-site-verification" content="EhqISFpzRIIw1YRrvtpfqYxOl6FZ1kDFSxpYAJY3p2c" />
 
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#5f27cd">
-    <link rel="apple-touch-icon" href="icon/0.png">
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2txfYR9bGr4uwcTKnp8D4" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 </head>
 <body>
 
@@ -85,19 +79,19 @@
                 <div class="text-box"><h3>성가대 연습실</h3><p>우리교회 성가대를 위한 특별한 공간</p></div><button class="btn-go">→</button>
             </div>
             <div class="list-card" id="card-ccm" data-category="faith">
-                <img src="icon/4.png" alt="CCM PLAYLIST" class="app-icon-img">
-                <div class="text-box"><h3>상황별 CCM PLAYLIST</h3><p>내 기분과 상황에 딱 맞는 찬양 듣기</p></div><button class="btn-go">→</button>
+                <img src="icon/4.png" alt="CCM 플리" class="app-icon-img">
+                <div class="text-box"><h3>CCM 플리</h3><p>내 기분과 상황에 딱 맞는 찬양 듣기</p></div><button class="btn-go">→</button>
             </div>
             <div class="list-card" id="card-engo" data-category="growth" data-link="https://engo.life/">
                 <img src="icon/3.png" alt="ENGO 영어회화" class="app-icon-img">
                 <div class="text-box"><h3>ENGO 영어회화</h3><p>English & go 영어회화의 시작</p></div><button class="btn-go">→</button>
             </div>
-
+            
             <div class="list-card" id="card-tuner" data-category="tools" data-link="https://csy870617.github.io/ChurchTuner/">
-                <img src="icon/6.png" alt="기타 튜너" class="app-icon-img">
+                <img src="icon/6.png" alt="Church Tuner" class="app-icon-img">
                 <div class="text-box">
-                    <h3>기타 튜너</h3>
-                    <p>Church Tuner로 악기 튜닝하기</p>
+                    <h3>Church Tuner</h3>
+                    <p>교회 악기 튜닝기</p>
                 </div>
                 <button class="btn-go">→</button>
             </div>
@@ -141,7 +135,7 @@
                     <iframe id="youtube-iframe" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
                 </div>
                 <div class="player-info">
-                    <p class="copyright-notice">이 콘텐츠는 제작자의 유튜브 채널을 통해 재생되며,<br>저작권과 모든 권리는 원 제작자에게 있습니다.<br>콘텐츠는 주기적으로 업데이트 됩니다.</p>
+                    <p class="copyright-notice">이 콘텐츠는 제작자의 유튜브 채널을 통해 재생되며,<br>저작권과 모든 권리는 원 제작자에게 있습니다.</p>
                 </div>
                 <button id="back-to-menu-btn" class="modal-close-btn secondary">다른 찬양 고르기</button>
             </div>
@@ -162,6 +156,15 @@
             <div class="settings-body">
                 <div class="setting-group">
                     <div class="setting-item">
+                        <label>화면 모드</label>
+                        <div class="view-mode-selector">
+                            <button id="view-list" class="mode-btn active">리스트</button>
+                            <button id="view-grid" class="mode-btn">아이콘</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <div class="setting-item">
                         <label>글자 크기</label>
                         <div class="range-container">
                             <span style="font-size: 14px;">가</span>
@@ -179,9 +182,7 @@
                         </button>
                     </div>
                     <div class="setting-item">
-                        <a href="mailto:csy0645009@gmail.com" class="settings-action-btn contact-link">
-                            <span class="emoji">📧</span> 개발자에게 문의하기
-                        </a>
+                        <a href="mailto:csy0645009@gmail.com" class="settings-action-btn contact-link"><span class="emoji">📧</span> 개발자에게 문의하기</a>
                     </div>
                 </div>
             </div>

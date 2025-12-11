@@ -50,7 +50,75 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // (모달 및 플레이어 로직 - 기존과 동일)
+    // ==========================================
+    // 순서 변경 (SortableJS)
+    // ==========================================
+    const listContainer = document.getElementById('main-list');
+    let isDragging = false; 
+
+    // 저장된 순서 불러오기
+    const savedOrder = JSON.parse(localStorage.getItem('menuOrder'));
+    if (savedOrder) {
+        const currentCards = Array.from(listContainer.children);
+        const cardMap = {};
+        currentCards.forEach(card => cardMap[card.id] = card);
+        savedOrder.forEach(id => {
+            if (cardMap[id]) listContainer.appendChild(cardMap[id]);
+        });
+    }
+
+    // 드래그 설정
+    new Sortable(listContainer, {
+        animation: 150,
+        delay: 200, 
+        delayOnTouchOnly: true, 
+        touchStartThreshold: 5, 
+        ghostClass: 'sortable-ghost',
+        dragClass: 'sortable-drag',
+        onStart: function() { isDragging = true; },
+        onEnd: function (evt) {
+            setTimeout(() => { isDragging = false; }, 100);
+            const order = [];
+            const cards = listContainer.querySelectorAll('.list-card');
+            cards.forEach(card => order.push(card.id));
+            localStorage.setItem('menuOrder', JSON.stringify(order));
+        }
+    });
+
+    // ==========================================
+    // [핵심] 화면 모드 및 텍스트 자동 변경
+    // ==========================================
+    const viewListBtn = document.getElementById('view-list');
+    const viewGridBtn = document.getElementById('view-grid');
+    const shareTitle = document.querySelector('#card-share .text-box h3');
+
+    const setViewMode = (mode) => {
+        if (mode === 'grid') {
+            listContainer.classList.add('grid-view');
+            viewGridBtn.classList.add('active');
+            viewListBtn.classList.remove('active');
+            
+            // [NEW] 아이콘 모드일 땐 문구 변경
+            if(shareTitle) shareTitle.innerText = '친구 초대';
+        } else {
+            listContainer.classList.remove('grid-view');
+            viewListBtn.classList.add('active');
+            viewGridBtn.classList.remove('active');
+            
+            // [NEW] 리스트 모드일 땐 원래대로
+            if(shareTitle) shareTitle.innerText = '함께 성장할 친구 초대';
+        }
+        localStorage.setItem('viewMode', mode);
+    };
+
+    const savedViewMode = localStorage.getItem('viewMode') || 'list';
+    setViewMode(savedViewMode);
+    
+    if (viewListBtn) viewListBtn.onclick = () => setViewMode('list');
+    if (viewGridBtn) viewGridBtn.onclick = () => setViewMode('grid');
+
+
+    // 모달 관리
     const modalOverlay = document.getElementById('modal-overlay');
     const iosModal = document.getElementById('ios-modal');
     const settingsModal = document.getElementById('settings-modal');
@@ -137,8 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // (숨기기 모드, 앱설치 배너 등 생략 - 위와 동일)
-    const listContainer = document.getElementById('main-list');
     const hideModeBtn = document.getElementById('hide-mode-btn'); 
     let isHideMode = false;
     const applyHiddenStatus = () => {
@@ -159,15 +225,18 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // ==========================================
-    // [핵심 수정] 친구 초대 (sendScrap 사용)
-    // ==========================================
     if (listContainer) {
         listContainer.onclick = async (e) => {
             const card = e.target.closest('.list-card');
             if (!card) return;
 
+            if (isDragging) return;
+
             if (isHideMode) {
+                if (card.id === 'card-share') {
+                    alert("이 메뉴는 숨길 수 없습니다.");
+                    return;
+                }
                 let hiddenList = JSON.parse(localStorage.getItem('hiddenCards')) || [];
                 if (hiddenList.includes(card.id)) { hiddenList = hiddenList.filter(id => id !== card.id); card.classList.remove('user-hidden'); } 
                 else { hiddenList.push(card.id); card.classList.add('user-hidden'); }
@@ -178,25 +247,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (card.id === 'card-ccm') {
                 openModal(modalOverlay);
             } else if (card.id === 'card-share') {
-                
                 const shareUrl = 'https://csy870617.github.io/faiths/';
-
                 if (window.Kakao && Kakao.isInitialized()) {
-                    try {
-                        // [변경] sendDefault -> sendScrap
-                        // HTML의 meta 태그 정보를 그대로 가져와서 공유합니다.
-                        Kakao.Share.sendScrap({
-                            requestUrl: shareUrl
-                        });
-                        return;
-                    } catch (err) {
-                        console.log('카카오 공유 실패:', err);
-                    }
+                    try { Kakao.Share.sendScrap({ requestUrl: shareUrl }); return; } catch (err) {}
                 }
-
-                if (navigator.share) {
-                    try { await navigator.share({ url: shareUrl }); return; } catch (err) { console.log('공유 취소'); }
-                }
+                if (navigator.share) { try { await navigator.share({ url: shareUrl }); return; } catch (err) {} }
                 try { await navigator.clipboard.writeText(shareUrl); alert('주소가 복사되었습니다!'); } catch (err) { prompt('주소:', shareUrl); }
             } else {
                 const link = card.getAttribute('data-link');
