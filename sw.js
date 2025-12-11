@@ -1,4 +1,4 @@
-const CACHE_NAME = 'faiths-v48'; /* 버전 업 */
+const CACHE_NAME = 'faiths-v50'; /* 버전 업 */
 
 const urlsToCache = [
   './',
@@ -6,13 +6,14 @@ const urlsToCache = [
   './style.css',
   './script.js',
   './playlist.js',
-  './manifest.json', /* [추가] 매니페스트도 캐싱 */
+  './manifest.json',
   './icon/0.png',
   './icon/1.png',
   './icon/2.png',
   './icon/3.png',
   './icon/4.png',
-  './icon/5.png'
+  './icon/5.png',
+  './icon/6.png'
 ];
 
 self.addEventListener('install', event => {
