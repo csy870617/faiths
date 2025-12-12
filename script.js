@@ -175,21 +175,39 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCategory = null; 
     let lastVideoUrl = null; 
 
-    // [중요 수정] 드래그 로직 (움직임 감지하여 클릭과 구분)
+    // 드래그 로직 (Offset 방식)
     let isPlayerDragging = false;
     let shiftX, shiftY;
-    let hasMoved = false; // 움직였는지 체크하는 변수
+    let dragStartTime = 0;
+    let dragStartPos = { x: 0, y: 0 }; // 초기 위치 저장
+
+    const maximizePlayer = () => {
+         modalOverlay.classList.remove('mini-mode');
+         if(maximizeOverlay) maximizeOverlay.style.display = 'none';
+         
+         // [중요] 플레이어 화면으로 복귀
+         ccmMenuView.style.display = 'none';
+         ccmPlayerView.style.display = 'block';
+
+         draggablePlayer.style.top = '';
+         draggablePlayer.style.left = '';
+         draggablePlayer.style.bottom = '20px';
+         draggablePlayer.style.right = '20px';
+    };
 
     const startPlayerDrag = (e) => {
+        // [중요] 플로팅 모드일 때만 드래그 시작
         if (!modalOverlay.classList.contains('mini-mode')) return;
         if (e.target.classList.contains('mini-btn')) return;
 
         isPlayerDragging = true;
-        hasMoved = false; // 초기화
+        dragStartTime = new Date().getTime();
 
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         
+        dragStartPos = { x: clientX, y: clientY }; // 초기 클릭 위치 저장
+
         const rect = draggablePlayer.getBoundingClientRect();
         shiftX = clientX - rect.left;
         shiftY = clientY - rect.top;
@@ -204,14 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const onPlayerDrag = (e) => {
         if (!isPlayerDragging) return;
         e.preventDefault(); 
-        
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
-        // 5px 이상 움직여야 "이동했다"고 판단
-        // (미세한 손떨림 방지)
-        // 여기서는 간단히 움직이면 무조건 hasMoved = true
-        hasMoved = true;
         
         draggablePlayer.style.left = (clientX - shiftX) + 'px';
         draggablePlayer.style.top = (clientY - shiftY) + 'px';
@@ -220,26 +232,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const endPlayerDrag = (e) => {
         if (!isPlayerDragging) return;
         isPlayerDragging = false;
+        
+        const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+        const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+        
+        // [핵심] 5px 이상 이동했으면 드래그로 처리 (확대 금지)
+        const distance = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
 
-        // [핵심] 움직이지 않았다면(=단순 클릭), 화면을 키운다
-        if (!hasMoved) {
+        if (distance < 5) {
              maximizePlayer();
         }
-    };
-    
-    // 화면 키우는 함수
-    const maximizePlayer = () => {
-         modalOverlay.classList.remove('mini-mode');
-         if(maximizeOverlay) maximizeOverlay.style.display = 'none';
-         
-         // [중요] 플레이어 화면을 확실하게 보여줌 (메뉴 화면 아님)
-         ccmMenuView.style.display = 'none';
-         ccmPlayerView.style.display = 'block';
-
-         draggablePlayer.style.top = '';
-         draggablePlayer.style.left = '';
-         draggablePlayer.style.bottom = '20px';
-         draggablePlayer.style.right = '20px';
+        // 이동했으면 아무것도 하지 않음 (CSS에 위치 고정)
     };
 
     if (draggablePlayer) {
@@ -250,7 +253,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('mouseup', endPlayerDrag);
         document.addEventListener('touchend', endPlayerDrag);
     }
-
+    // [NEW] 플로팅 모드일 때 투명 영역 터치 시 확대
+    if (maximizeOverlay) {
+        maximizeOverlay.onclick = maximizePlayer;
+    }
+    // [NEW] 닫기 버튼 오작동 방지
+    if (miniCloseBtn) {
+        miniCloseBtn.onclick = (e) => {
+            e.stopPropagation();
+            closeModal(modalOverlay);
+        };
+    }
+    // [NEW] 재생 버튼 오작동 방지
     if (miniPlayPauseBtn) {
         miniPlayPauseBtn.onclick = (e) => {
             e.stopPropagation(); 
@@ -262,12 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    if (miniCloseBtn) {
-        miniCloseBtn.onclick = (e) => {
-            e.stopPropagation();
-            closeModal(modalOverlay);
-        };
-    }
 
     const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
     const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
@@ -339,21 +347,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const idInfo = getYouTubeIdInfo(randomUrl);
 
-            // 화면 전환
             if(playerTitle && title) playerTitle.innerText = title;
             if(ccmMenuView) ccmMenuView.style.display = 'none';
             if(ccmPlayerView) ccmPlayerView.style.display = 'block';
             requestWakeLock();
 
             if (idInfo) {
-                if (player && isPlayerReady) {
+                if (player && player.loadVideoById) {
                     if (idInfo.type === 'playlist') {
                         player.loadPlaylist({list: idInfo.id, listType: 'playlist'});
                     } else {
                         player.loadVideoById(idInfo.id);
                     }
                 } else {
-                    // 준비 안 됐으면 대기
                     console.log("Player not ready. Queuing...");
                     pendingPlay = { category: category, title: title }; 
                 }
