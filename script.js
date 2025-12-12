@@ -110,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 모달 관리
     const modalOverlay = document.getElementById('modal-overlay');
+    const draggablePlayer = document.getElementById('draggable-player');
     const iosModal = document.getElementById('ios-modal');
     const settingsModal = document.getElementById('settings-modal');
     const ccmMenuView = document.getElementById('ccm-menu-view');
@@ -117,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const youtubeIframe = document.getElementById('youtube-iframe');
     const backToMenuBtn = document.getElementById('back-to-menu-btn');
     const shufflePlayBtn = document.getElementById('shuffle-play-btn');
+    const floatModeBtn = document.getElementById('float-mode-btn'); 
+    const maximizeOverlay = document.getElementById('maximize-overlay'); 
     const playerTitle = document.getElementById('player-title');
     const ccmBtn = document.getElementById('ccm-btn');
     const settingsBtn = document.getElementById('settings-btn');
@@ -128,6 +131,56 @@ document.addEventListener('DOMContentLoaded', () => {
     let wakeLock = null;
     let currentCategory = null; 
     let lastVideoUrl = null; 
+
+    // [중요 수정] 플레이어 드래그 로직 (Offset 방식)
+    let isPlayerDragging = false;
+    let shiftX, shiftY; // 마우스와 요소 왼쪽 상단 사이의 거리
+
+    const startPlayerDrag = (e) => {
+        if (!modalOverlay.classList.contains('mini-mode')) return;
+        
+        isPlayerDragging = true;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        // 현재 요소의 위치(rect)를 구해서, 클릭한 점과의 차이(shift)를 저장
+        const rect = draggablePlayer.getBoundingClientRect();
+        shiftX = clientX - rect.left;
+        shiftY = clientY - rect.top;
+
+        // 드래그 시작 시 transition 제거 & 기존 bottom/right 해제하고 top/left로 전환
+        draggablePlayer.style.transition = 'none';
+        draggablePlayer.style.bottom = 'auto';
+        draggablePlayer.style.right = 'auto';
+        draggablePlayer.style.left = rect.left + 'px';
+        draggablePlayer.style.top = rect.top + 'px';
+    };
+
+    const onPlayerDrag = (e) => {
+        if (!isPlayerDragging) return;
+        e.preventDefault(); // 스크롤 방지
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        // 새 위치 = 현재 마우스 위치 - 저장해둔 차이
+        draggablePlayer.style.left = (clientX - shiftX) + 'px';
+        draggablePlayer.style.top = (clientY - shiftY) + 'px';
+    };
+
+    const endPlayerDrag = () => {
+        isPlayerDragging = false;
+    };
+
+    // 드래그 이벤트 연결
+    if (draggablePlayer) {
+        draggablePlayer.addEventListener('mousedown', startPlayerDrag);
+        draggablePlayer.addEventListener('touchstart', startPlayerDrag, {passive: false});
+        document.addEventListener('mousemove', onPlayerDrag);
+        document.addEventListener('touchmove', onPlayerDrag, {passive: false});
+        document.addEventListener('mouseup', endPlayerDrag);
+        document.addEventListener('touchend', endPlayerDrag);
+    }
+
 
     const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
     const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
@@ -142,6 +195,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const closeModal = (modal) => {
         if (!modal) return;
+        
+        modal.classList.remove('mini-mode');
+        if (maximizeOverlay) maximizeOverlay.style.display = 'none';
+        
+        // 위치 초기화
+        if(modal === modalOverlay && draggablePlayer) {
+            draggablePlayer.style.top = '';
+            draggablePlayer.style.left = '';
+            draggablePlayer.style.bottom = '20px';
+            draggablePlayer.style.right = '20px';
+        }
+
         if (modal === modalOverlay) {
             if(youtubeIframe) youtubeIframe.src = ''; 
             releaseWakeLock();
@@ -156,7 +221,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (ccmBtn) ccmBtn.onclick = () => openModal(modalOverlay);
     if (closeModalBtn) closeModalBtn.onclick = () => handleCloseBtnClick(modalOverlay);
-    if (modalOverlay) modalOverlay.onclick = (e) => { if (e.target === modalOverlay) handleCloseBtnClick(modalOverlay); };
+    if (modalOverlay) modalOverlay.onclick = (e) => { 
+        if (!modalOverlay.classList.contains('mini-mode') && e.target === modalOverlay) {
+            handleCloseBtnClick(modalOverlay); 
+        }
+    };
     if (closeIosModalBtn) closeIosModalBtn.onclick = () => handleCloseBtnClick(iosModal);
     if (iosModal) iosModal.onclick = (e) => { if (e.target === iosModal) handleCloseBtnClick(iosModal); };
     if (settingsBtn) settingsBtn.onclick = () => openModal(settingsModal);
@@ -217,6 +286,28 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    if (floatModeBtn) {
+        floatModeBtn.onclick = () => {
+            modalOverlay.classList.add('mini-mode');
+            if (maximizeOverlay) maximizeOverlay.style.display = 'block';
+        };
+    }
+
+    if (maximizeOverlay) {
+        maximizeOverlay.onclick = () => {
+            if (!isPlayerDragging) {
+                modalOverlay.classList.remove('mini-mode');
+                maximizeOverlay.style.display = 'none';
+                if (draggablePlayer) {
+                    draggablePlayer.style.top = '';
+                    draggablePlayer.style.left = '';
+                    draggablePlayer.style.bottom = '20px';
+                    draggablePlayer.style.right = '20px';
+                }
+            }
+        };
+    }
+
     const hideModeBtn = document.getElementById('hide-mode-btn'); 
     let isHideMode = false;
     const applyHiddenStatus = () => {
@@ -245,7 +336,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isDragging) return;
 
             if (isHideMode) {
-                // [수정됨] 달란트 마켓도 숨김 방지 목록에 추가
                 if (card.id === 'card-share' || card.id === 'card-market') {
                     alert("이 메뉴는 숨길 수 없습니다.");
                     return;
