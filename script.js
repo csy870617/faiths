@@ -61,7 +61,6 @@ function onPlayerStateChange(event) {
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 자동 업데이트
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').then(reg => {
             reg.addEventListener('updatefound', () => {
@@ -88,17 +87,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
 
-    // 앱 내 브라우저 로직
+    // [수정됨] 앱 내 브라우저 로직 간소화
     const internalBrowser = document.getElementById('internal-browser');
     const browserFrame = document.getElementById('browser-frame');
-    const browserTitle = document.getElementById('browser-title');
     const browserCloseBtn = document.getElementById('browser-close-btn');
 
-    function openInternalBrowser(url, title) {
+    function openInternalBrowser(url) {
         if (internalBrowser && browserFrame) {
-            browserTitle.innerText = title || '페이지 보기';
             browserFrame.src = url;
             internalBrowser.classList.add('show');
+            // 뒤로가기 처리를 위해 히스토리 추가
             history.pushState({ browserOpen: true }, null, "");
         } else {
             window.open(url, '_blank');
@@ -106,19 +104,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeInternalBrowser() {
-        if (internalBrowser) {
+        if (internalBrowser && internalBrowser.classList.contains('show')) {
             internalBrowser.classList.remove('show');
             setTimeout(() => { 
                 if(browserFrame) browserFrame.src = ''; 
             }, 300);
+            
+            // 만약 뒤로가기로 닫는 게 아니라 버튼으로 닫았다면, 히스토리도 정리
+            if (history.state && history.state.browserOpen) {
+                history.back();
+            }
         }
     }
 
+    // 닫기 버튼 (X)
     if (browserCloseBtn) {
         browserCloseBtn.onclick = () => {
-            closeInternalBrowser();
-            if (history.state && history.state.browserOpen) {
-                history.back();
+            // 버튼으로 닫을 때는 history.back()을 호출하여 popstate 이벤트를 유도하거나 직접 닫음
+            // 여기서는 직접 닫고 history.back() 호출 (중복 방지 로직 포함)
+            if (internalBrowser.classList.contains('show')) {
+                 internalBrowser.classList.remove('show');
+                 setTimeout(() => { if(browserFrame) browserFrame.src = ''; }, 300);
+                 if (history.state && history.state.browserOpen) {
+                     history.back();
+                 }
             }
         };
     }
@@ -235,16 +244,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         isPlayerDragging = true;
         dragStartTime = new Date().getTime();
-
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
         dragStartPos = { x: clientX, y: clientY };
-
         const rect = draggablePlayer.getBoundingClientRect();
         shiftX = clientX - rect.left;
         shiftY = clientY - rect.top;
-
         draggablePlayer.style.transition = 'none';
         draggablePlayer.style.bottom = 'auto';
         draggablePlayer.style.right = 'auto';
@@ -257,7 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault(); 
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
         draggablePlayer.style.left = (clientX - shiftX) + 'px';
         draggablePlayer.style.top = (clientY - shiftY) + 'px';
     };
@@ -268,7 +272,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
         const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-        
         const distance = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
 
         if (distance < 10) {
@@ -339,26 +342,28 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { if(ccmPlayerView) ccmPlayerView.style.display = 'none'; if(ccmMenuView) ccmMenuView.style.display = 'block'; }, 300);
         }
         
-        if (modal.id === 'internal-browser') {
-            closeInternalBrowser();
-            return;
-        }
-
         modal.classList.remove('show');
         setTimeout(() => { modal.style.display = 'none'; if (currentModal === modal) currentModal = null; }, 300);
     };
 
-    const handleCloseBtnClick = (modal) => { closeModal(modal); if (history.state && (history.state.modalOpen || history.state.browserOpen)) history.back(); };
+    const handleCloseBtnClick = (modal) => { closeModal(modal); if (history.state && history.state.modalOpen) history.back(); };
     
-    // [중요 수정] 뒤로가기 시 브라우저만 닫고, 플레이어는 유지
+    // [중요] 뒤로가기(popstate) 이벤트 핸들러 수정
     window.addEventListener('popstate', () => {
+        // 1. 브라우저가 열려있으면 -> 브라우저 닫기 (플레이어는 유지)
         if (internalBrowser.classList.contains('show')) {
-            closeInternalBrowser();
-            return; // 여기서 멈춤 (플레이어는 닫지 않음)
+            internalBrowser.classList.remove('show');
+            setTimeout(() => { if(browserFrame) browserFrame.src = ''; }, 300);
+            return;
         }
         
+        // 2. 모달 닫기
         if (currentModal) {
-             closeModal(currentModal);
+            if (currentModal === modalOverlay && modalOverlay.classList.contains('mini-mode')) {
+                currentModal = null; 
+                return;
+            }
+            closeModal(currentModal);
         }
     });
 
@@ -497,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 const link = card.getAttribute('data-link');
                 const title = card.querySelector('h3') ? card.querySelector('h3').innerText : 'FAITHS';
-                if (link) openInternalBrowser(link, title);
+                if (link) openInternalBrowser(link); // 타이틀 인자 제거
             }
         };
     }
