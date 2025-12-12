@@ -17,23 +17,22 @@ let isPlayerReady = false;
 let pendingPlay = null;
 
 function onYouTubeIframeAPIReady() {
-    const origin = window.location.origin; // 현재 도메인
-    const currentUrl = window.location.href; // 전체 URL
-
+    const origin = window.location.origin; // 현재 사이트 주소 (예: https://csy870617.github.io)
+    
     player = new YT.Player('youtube-player', {
         height: '100%',
         width: '100%',
-        // [핵심 1] 표준 유튜브 호스트 강제 (로그인 정보 공유 유도)
-        host: 'https://www.youtube.com',
+        // [핵심] 로그인 정보 연동을 위한 강력한 설정
+        host: 'https://www.youtube.com', 
         playerVars: {
             'playsinline': 1,
             'rel': 0,
             'modestbranding': 1,
             'controls': 1,
-            // [핵심 2] 출처와 리퍼러를 명확히 전달
-            'origin': origin,
-            'widget_referrer': currentUrl,
-            'enablejsapi': 1
+            'origin': origin, // 출처 명시 1
+            'widget_referrer': window.location.href, // 출처 명시 2
+            'enablejsapi': 1,
+            'autoplay': 0 // 자동 재생은 API로 제어
         },
         events: {
             'onReady': onPlayerReady,
@@ -190,7 +189,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let dragStartTime = 0;
     let dragStartPos = { x: 0, y: 0 };
 
-    const maximizePlayer = () => {
+    // [중요] 화면 확대 함수
+    const maximizePlayer = (e) => {
+         // 이벤트 전파 중단 (배경 클릭으로 인식되어 닫히는 것 방지)
+         if (e) {
+             e.preventDefault();
+             e.stopPropagation();
+             e.stopImmediatePropagation(); 
+         }
+
          modalOverlay.classList.remove('mini-mode');
          if(maximizeOverlay) maximizeOverlay.style.display = 'none';
          
@@ -243,10 +250,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
         const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
         
+        // 이동 거리 계산
         const distance = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
+        
+        // 10px 미만 움직임이고 300ms 이내 터치면 => 클릭으로 간주하고 확대
+        const dragDuration = new Date().getTime() - dragStartTime;
 
-        if (distance < 5) {
-             maximizePlayer();
+        if (distance < 10 && dragDuration < 300) {
+             maximizePlayer(e);
         }
     };
 
@@ -322,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ccmBtn) ccmBtn.onclick = () => openModal(modalOverlay);
     if (closeModalBtn) closeModalBtn.onclick = () => handleCloseBtnClick(modalOverlay);
     if (modalOverlay) modalOverlay.onclick = (e) => { 
+        // [중요] 플로팅 모드가 아닐 때만 닫기 동작 수행
         if (!modalOverlay.classList.contains('mini-mode') && e.target === modalOverlay) {
             handleCloseBtnClick(modalOverlay); 
         }
