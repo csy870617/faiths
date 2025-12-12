@@ -12,8 +12,6 @@
     <meta name="theme-color" content="#F5F6F8">
     <link rel="apple-touch-icon" href="icon/0.png">
 
-    <meta name="referrer" content="no-referrer-when-downgrade">
-
     <meta name="description" content="더 멋진 크리스천으로 함께 성장해요.">
     <meta property="og:type" content="website">
     <meta property="og:title" content="FAITHS - 크리스천 성장 도구">
@@ -34,6 +32,18 @@
         <div class="loading-content">
             <img src="icon/0.png" alt="Loading Logo" class="loading-logo">
             <p class="loading-text">FAITHS</p>
+        </div>
+    </div>
+
+    <div id="internal-browser" class="internal-browser">
+        <div class="browser-header">
+            <button id="browser-close-btn" class="browser-close">
+                <span>✕</span> 닫기
+            </button>
+            <span id="browser-title">페이지 제목</span>
+            <div style="width: 50px;"></div> </div>
+        <div class="browser-content">
+            <iframe id="browser-frame" src="" frameborder="0"></iframe>
         </div>
     </div>
 
@@ -142,7 +152,6 @@
                 
                 <div class="video-container">
                     <div id="youtube-player"></div>
-                    
                     <div id="mini-controls" class="mini-controls">
                         <button id="mini-play-pause" class="mini-btn left-top">⏸</button>
                         <button id="mini-close" class="mini-btn right-top">✕</button>
