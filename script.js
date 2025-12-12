@@ -11,10 +11,10 @@
     }
 })();
 
-// [중요] 유튜브 API 변수
+// 유튜브 API 변수
 let player;
 let isPlayerReady = false;
-let pendingPlay = null; // [NEW] 대기열 변수
+let pendingPlay = null;
 
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('youtube-player', {
@@ -35,11 +35,9 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady(event) {
     isPlayerReady = true;
-    
-    // [NEW] 대기 중인 곡이 있으면 즉시 재생
     if (pendingPlay) {
         playRandomVideo(pendingPlay.category, pendingPlay.title);
-        pendingPlay = null; // 대기열 초기화
+        pendingPlay = null; 
     }
 }
 
@@ -177,17 +175,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCategory = null; 
     let lastVideoUrl = null; 
 
-    // 드래그 로직
+    // [중요 수정] 드래그 로직 (움직임 감지하여 클릭과 구분)
     let isPlayerDragging = false;
     let shiftX, shiftY;
-    let dragStartTime = 0;
+    let hasMoved = false; // 움직였는지 체크하는 변수
 
     const startPlayerDrag = (e) => {
         if (!modalOverlay.classList.contains('mini-mode')) return;
         if (e.target.classList.contains('mini-btn')) return;
 
         isPlayerDragging = true;
-        dragStartTime = new Date().getTime();
+        hasMoved = false; // 초기화
 
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -206,8 +204,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const onPlayerDrag = (e) => {
         if (!isPlayerDragging) return;
         e.preventDefault(); 
+        
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        // 5px 이상 움직여야 "이동했다"고 판단
+        // (미세한 손떨림 방지)
+        // 여기서는 간단히 움직이면 무조건 hasMoved = true
+        hasMoved = true;
         
         draggablePlayer.style.left = (clientX - shiftX) + 'px';
         draggablePlayer.style.top = (clientY - shiftY) + 'px';
@@ -217,15 +221,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isPlayerDragging) return;
         isPlayerDragging = false;
 
-        const dragDuration = new Date().getTime() - dragStartTime;
-        if (dragDuration < 200) {
-             modalOverlay.classList.remove('mini-mode');
-             if(maximizeOverlay) maximizeOverlay.style.display = 'none';
-             draggablePlayer.style.top = '';
-             draggablePlayer.style.left = '';
-             draggablePlayer.style.bottom = '20px';
-             draggablePlayer.style.right = '20px';
+        // [핵심] 움직이지 않았다면(=단순 클릭), 화면을 키운다
+        if (!hasMoved) {
+             maximizePlayer();
         }
+    };
+    
+    // 화면 키우는 함수
+    const maximizePlayer = () => {
+         modalOverlay.classList.remove('mini-mode');
+         if(maximizeOverlay) maximizeOverlay.style.display = 'none';
+         
+         // [중요] 플레이어 화면을 확실하게 보여줌 (메뉴 화면 아님)
+         ccmMenuView.style.display = 'none';
+         ccmPlayerView.style.display = 'block';
+
+         draggablePlayer.style.top = '';
+         draggablePlayer.style.left = '';
+         draggablePlayer.style.bottom = '20px';
+         draggablePlayer.style.right = '20px';
     };
 
     if (draggablePlayer) {
@@ -315,7 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
-    // [중요 수정] 플레이어 재생 함수 (스마트 대기 기능 포함)
     window.playRandomVideo = (category, title) => {
         if (typeof CCM_PLAYLIST !== 'undefined' && CCM_PLAYLIST[category]) {
             const list = CCM_PLAYLIST[category];
@@ -326,23 +339,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const idInfo = getYouTubeIdInfo(randomUrl);
 
-            // 1. 화면 전환 (사용자가 기다리지 않게)
+            // 화면 전환
             if(playerTitle && title) playerTitle.innerText = title;
             if(ccmMenuView) ccmMenuView.style.display = 'none';
             if(ccmPlayerView) ccmPlayerView.style.display = 'block';
             requestWakeLock();
 
-            // 2. 플레이어 상태 확인 및 실행
             if (idInfo) {
                 if (player && isPlayerReady) {
-                    // 준비됨: 즉시 재생
                     if (idInfo.type === 'playlist') {
                         player.loadPlaylist({list: idInfo.id, listType: 'playlist'});
                     } else {
                         player.loadVideoById(idInfo.id);
                     }
                 } else {
-                    // [핵심] 준비 안 됨: 대기열에 저장 (경고창 안 띄움)
+                    // 준비 안 됐으면 대기
                     console.log("Player not ready. Queuing...");
                     pendingPlay = { category: category, title: title }; 
                 }
