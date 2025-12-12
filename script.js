@@ -17,23 +17,21 @@ let isPlayerReady = false;
 let pendingPlay = null;
 
 function onYouTubeIframeAPIReady() {
-    // [핵심] 도메인만 깔끔하게 추출 (예: https://csy870617.github.io)
-    const originUrl = window.location.origin; 
+    const origin = window.location.origin;
     
     player = new YT.Player('youtube-player', {
         height: '100%',
         width: '100%',
-        // [중요] 표준 유튜브 호스트 사용 (쿠키 연동 필수)
         host: 'https://www.youtube.com',
         playerVars: {
-            'autoplay': 0,        // 자동 재생 끔 (모바일 정책 준수)
-            'playsinline': 1,     // 인라인 재생
-            'rel': 0,             // 관련 영상 최소화
-            'modestbranding': 1,  // 로고 최소화
-            'controls': 1,        // 컨트롤 바 표시
-            'enablejsapi': 1,     // JS 제어 허용
-            'origin': originUrl,  // [필수] 내 도메인 명시
-            'widget_referrer': originUrl // [필수] 리퍼러 명시
+            'playsinline': 1,
+            'rel': 0,
+            'modestbranding': 1,
+            'controls': 1,
+            'origin': origin,
+            'widget_referrer': window.location.href,
+            'enablejsapi': 1,
+            'autoplay': 0 
         },
         events: {
             'onReady': onPlayerReady,
@@ -44,13 +42,6 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady(event) {
     isPlayerReady = true;
-    
-    // iframe에 로그인 정보 접근 권한 강제 부여 (allowCredentials 등은 iframe 태그 속성이라 JS로 제어 한계가 있지만 시도)
-    const iframe = document.getElementById('youtube-player');
-    if(iframe) {
-        iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture;');
-    }
-
     if (pendingPlay) {
         playRandomVideo(pendingPlay.category, pendingPlay.title);
         pendingPlay = null; 
@@ -97,17 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
 
-    function openExternalLink(url) {
-        const userAgent = navigator.userAgent.toLowerCase();
-        if (userAgent.match(/android/i) && userAgent.match(/kakaotalk|line|instagram|facebook|wv/i)) {
-            const rawUrl = url.replace(/^https?:\/\//i, '');
-            window.location.href = `intent://${rawUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
-        } else {
-            window.open(url, '_blank');
-        }
-    }
-
-    // [앱 내 브라우저]
+    // 앱 내 브라우저 로직
     const internalBrowser = document.getElementById('internal-browser');
     const browserFrame = document.getElementById('browser-frame');
     const browserTitle = document.getElementById('browser-title');
@@ -224,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCategory = null; 
     let lastVideoUrl = null; 
 
-    // 드래그 로직 (Offset 방식)
+    // 드래그 로직
     let isPlayerDragging = false;
     let shiftX, shiftY;
     let dragStartTime = 0;
@@ -290,8 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const distance = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
 
-        // 10px 미만 움직임이고 300ms 이내 터치면 확대
-        if (distance < 10 && (new Date().getTime() - dragStartTime) < 300) {
+        if (distance < 10) {
              maximizePlayer(e);
         }
     };
@@ -370,9 +350,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleCloseBtnClick = (modal) => { closeModal(modal); if (history.state && (history.state.modalOpen || history.state.browserOpen)) history.back(); };
     
+    // [중요 수정] 뒤로가기 시 브라우저만 닫고, 플레이어는 유지
     window.addEventListener('popstate', () => {
-        if (currentModal) closeModal(currentModal);
-        if (internalBrowser.classList.contains('show')) closeInternalBrowser();
+        if (internalBrowser.classList.contains('show')) {
+            closeInternalBrowser();
+            return; // 여기서 멈춤 (플레이어는 닫지 않음)
+        }
+        
+        if (currentModal) {
+             closeModal(currentModal);
+        }
     });
 
     if (ccmBtn) ccmBtn.onclick = () => openModal(modalOverlay);
