@@ -12,6 +12,8 @@
     <meta name="theme-color" content="#F5F6F8">
     <link rel="apple-touch-icon" href="icon/0.png">
 
+    <meta name="referrer" content="no-referrer-when-downgrade">
+
     <meta name="description" content="더 멋진 크리스천으로 함께 성장해요.">
     <meta property="og:type" content="website">
     <meta property="og:title" content="FAITHS - 크리스천 성장 도구">
@@ -126,7 +128,6 @@
                     <button class="mood-btn" data-key="sleep"><span class="mood-emoji">🌙</span><span>잠들기 전 평안</span></button>
                     <button class="mood-btn" data-key="drive"><span class="mood-emoji">🚗</span><span>신나는 노동요 & 드라이브</span></button>
                     <button class="mood-btn" data-key="cafe"><span class="mood-emoji">☕</span><span>카페에서 듣는 찬양</span></button>
-                    
                     <button class="mood-btn" data-key="oldies"><span class="mood-emoji">📻</span><span>7080 베스트 찬양</span></button>
                     <button class="mood-btn" data-key="hymn"><span class="mood-emoji">📖</span><span>은혜의 찬송가 플리</span></button>
                 </div>
@@ -136,10 +137,12 @@
             <div id="ccm-player-view" style="display: none;">
                 <div class="player-header">
                     <h3 id="player-title">재생 중</h3>
-                    </div>
+                    <button id="float-mode-btn" class="float-icon-btn"><span>📺</span> 화면 띄우기</button>
+                </div>
                 
                 <div class="video-container">
                     <div id="youtube-player"></div>
+                    
                     <div id="mini-controls" class="mini-controls">
                         <button id="mini-play-pause" class="mini-btn left-top">⏸</button>
                         <button id="mini-close" class="mini-btn right-top">✕</button>
@@ -150,13 +153,10 @@
                 <div class="player-info">
                     <p class="copyright-notice">이 콘텐츠는 제작자의 유튜브 채널을 통해 재생되며,<br>저작권과 모든 권리는 원 제작자에게 있습니다.</p>
                 </div>
-                
                 <div class="player-buttons">
                     <button id="shuffle-play-btn" class="action-btn">🔄 다른 플리 듣기</button>
                     <button id="back-to-menu-btn" class="action-btn secondary">📂 다른 주제 고르기</button>
                 </div>
-                
-                <button id="float-mode-btn" class="float-icon-btn"><span>📺</span> 화면 띄우기</button>
             </div>
         </div>
     </div>

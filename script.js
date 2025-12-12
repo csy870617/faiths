@@ -17,14 +17,23 @@ let isPlayerReady = false;
 let pendingPlay = null;
 
 function onYouTubeIframeAPIReady() {
+    const origin = window.location.origin; // 현재 도메인
+    const currentUrl = window.location.href; // 전체 URL
+
     player = new YT.Player('youtube-player', {
         height: '100%',
         width: '100%',
+        // [핵심 1] 표준 유튜브 호스트 강제 (로그인 정보 공유 유도)
+        host: 'https://www.youtube.com',
         playerVars: {
             'playsinline': 1,
             'rel': 0,
             'modestbranding': 1,
-            'controls': 1
+            'controls': 1,
+            // [핵심 2] 출처와 리퍼러를 명확히 전달
+            'origin': origin,
+            'widget_referrer': currentUrl,
+            'enablejsapi': 1
         },
         events: {
             'onReady': onPlayerReady,
@@ -175,17 +184,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCategory = null; 
     let lastVideoUrl = null; 
 
-    // 드래그 로직 (Offset 방식)
+    // 드래그 로직
     let isPlayerDragging = false;
     let shiftX, shiftY;
     let dragStartTime = 0;
-    let dragStartPos = { x: 0, y: 0 }; // 초기 위치 저장
+    let dragStartPos = { x: 0, y: 0 };
 
     const maximizePlayer = () => {
          modalOverlay.classList.remove('mini-mode');
          if(maximizeOverlay) maximizeOverlay.style.display = 'none';
          
-         // [중요] 플레이어 화면으로 복귀
          ccmMenuView.style.display = 'none';
          ccmPlayerView.style.display = 'block';
 
@@ -196,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const startPlayerDrag = (e) => {
-        // [중요] 플로팅 모드일 때만 드래그 시작
         if (!modalOverlay.classList.contains('mini-mode')) return;
         if (e.target.classList.contains('mini-btn')) return;
 
@@ -206,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         
-        dragStartPos = { x: clientX, y: clientY }; // 초기 클릭 위치 저장
+        dragStartPos = { x: clientX, y: clientY };
 
         const rect = draggablePlayer.getBoundingClientRect();
         shiftX = clientX - rect.left;
@@ -236,13 +243,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
         const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
         
-        // [핵심] 5px 이상 이동했으면 드래그로 처리 (확대 금지)
         const distance = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
 
         if (distance < 5) {
              maximizePlayer();
         }
-        // 이동했으면 아무것도 하지 않음 (CSS에 위치 고정)
     };
 
     if (draggablePlayer) {
@@ -253,18 +258,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('mouseup', endPlayerDrag);
         document.addEventListener('touchend', endPlayerDrag);
     }
-    // [NEW] 플로팅 모드일 때 투명 영역 터치 시 확대
+
     if (maximizeOverlay) {
         maximizeOverlay.onclick = maximizePlayer;
     }
-    // [NEW] 닫기 버튼 오작동 방지
-    if (miniCloseBtn) {
-        miniCloseBtn.onclick = (e) => {
-            e.stopPropagation();
-            closeModal(modalOverlay);
-        };
-    }
-    // [NEW] 재생 버튼 오작동 방지
+
     if (miniPlayPauseBtn) {
         miniPlayPauseBtn.onclick = (e) => {
             e.stopPropagation(); 
@@ -276,6 +274,12 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    if (miniCloseBtn) {
+        miniCloseBtn.onclick = (e) => {
+            e.stopPropagation();
+            closeModal(modalOverlay);
+        };
+    }
 
     const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
     const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
@@ -353,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
             requestWakeLock();
 
             if (idInfo) {
-                if (player && player.loadVideoById) {
+                if (player && isPlayerReady) {
                     if (idInfo.type === 'playlist') {
                         player.loadPlaylist({list: idInfo.id, listType: 'playlist'});
                     } else {
