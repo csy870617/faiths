@@ -11,6 +11,49 @@
     }
 })();
 
+// [중요] 유튜브 API 변수
+let player;
+let isPlayerReady = false;
+let pendingPlay = null; // [NEW] 대기열 변수
+
+function onYouTubeIframeAPIReady() {
+    player = new YT.Player('youtube-player', {
+        height: '100%',
+        width: '100%',
+        playerVars: {
+            'playsinline': 1,
+            'rel': 0,
+            'modestbranding': 1,
+            'controls': 1
+        },
+        events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
+        }
+    });
+}
+
+function onPlayerReady(event) {
+    isPlayerReady = true;
+    
+    // [NEW] 대기 중인 곡이 있으면 즉시 재생
+    if (pendingPlay) {
+        playRandomVideo(pendingPlay.category, pendingPlay.title);
+        pendingPlay = null; // 대기열 초기화
+    }
+}
+
+function onPlayerStateChange(event) {
+    const playPauseBtn = document.getElementById('mini-play-pause');
+    if (playPauseBtn) {
+        if (event.data == YT.PlayerState.PLAYING) {
+            playPauseBtn.innerText = "⏸";
+        } else {
+            playPauseBtn.innerText = "▶";
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     
     // 자동 업데이트
@@ -38,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1500); 
     }
 
-    try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) { console.log('카카오 SDK 실패'); }
+    try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
 
     function openExternalLink(url) {
         const userAgent = navigator.userAgent.toLowerCase();
@@ -110,16 +153,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 모달 관리
     const modalOverlay = document.getElementById('modal-overlay');
-    const draggablePlayer = document.getElementById('draggable-player');
+    const draggablePlayer = document.getElementById('draggable-player'); 
     const iosModal = document.getElementById('ios-modal');
     const settingsModal = document.getElementById('settings-modal');
     const ccmMenuView = document.getElementById('ccm-menu-view');
     const ccmPlayerView = document.getElementById('ccm-player-view');
-    const youtubeIframe = document.getElementById('youtube-iframe');
     const backToMenuBtn = document.getElementById('back-to-menu-btn');
     const shufflePlayBtn = document.getElementById('shuffle-play-btn');
     const floatModeBtn = document.getElementById('float-mode-btn'); 
     const maximizeOverlay = document.getElementById('maximize-overlay'); 
+    const miniPlayPauseBtn = document.getElementById('mini-play-pause');
+    const miniCloseBtn = document.getElementById('mini-close');
+
     const playerTitle = document.getElementById('player-title');
     const ccmBtn = document.getElementById('ccm-btn');
     const settingsBtn = document.getElementById('settings-btn');
@@ -132,23 +177,25 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCategory = null; 
     let lastVideoUrl = null; 
 
-    // [중요 수정] 플레이어 드래그 로직 (Offset 방식)
+    // 드래그 로직
     let isPlayerDragging = false;
-    let shiftX, shiftY; // 마우스와 요소 왼쪽 상단 사이의 거리
+    let shiftX, shiftY;
+    let dragStartTime = 0;
 
     const startPlayerDrag = (e) => {
         if (!modalOverlay.classList.contains('mini-mode')) return;
-        
+        if (e.target.classList.contains('mini-btn')) return;
+
         isPlayerDragging = true;
+        dragStartTime = new Date().getTime();
+
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         
-        // 현재 요소의 위치(rect)를 구해서, 클릭한 점과의 차이(shift)를 저장
         const rect = draggablePlayer.getBoundingClientRect();
         shiftX = clientX - rect.left;
         shiftY = clientY - rect.top;
 
-        // 드래그 시작 시 transition 제거 & 기존 bottom/right 해제하고 top/left로 전환
         draggablePlayer.style.transition = 'none';
         draggablePlayer.style.bottom = 'auto';
         draggablePlayer.style.right = 'auto';
@@ -158,20 +205,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const onPlayerDrag = (e) => {
         if (!isPlayerDragging) return;
-        e.preventDefault(); // 스크롤 방지
+        e.preventDefault(); 
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         
-        // 새 위치 = 현재 마우스 위치 - 저장해둔 차이
         draggablePlayer.style.left = (clientX - shiftX) + 'px';
         draggablePlayer.style.top = (clientY - shiftY) + 'px';
     };
 
-    const endPlayerDrag = () => {
+    const endPlayerDrag = (e) => {
+        if (!isPlayerDragging) return;
         isPlayerDragging = false;
+
+        const dragDuration = new Date().getTime() - dragStartTime;
+        if (dragDuration < 200) {
+             modalOverlay.classList.remove('mini-mode');
+             if(maximizeOverlay) maximizeOverlay.style.display = 'none';
+             draggablePlayer.style.top = '';
+             draggablePlayer.style.left = '';
+             draggablePlayer.style.bottom = '20px';
+             draggablePlayer.style.right = '20px';
+        }
     };
 
-    // 드래그 이벤트 연결
     if (draggablePlayer) {
         draggablePlayer.addEventListener('mousedown', startPlayerDrag);
         draggablePlayer.addEventListener('touchstart', startPlayerDrag, {passive: false});
@@ -181,6 +237,23 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('touchend', endPlayerDrag);
     }
 
+    if (miniPlayPauseBtn) {
+        miniPlayPauseBtn.onclick = (e) => {
+            e.stopPropagation(); 
+            if (player && typeof player.getPlayerState === 'function') {
+                const state = player.getPlayerState();
+                if (state === YT.PlayerState.PLAYING) player.pauseVideo();
+                else player.playVideo();
+            }
+        };
+    }
+
+    if (miniCloseBtn) {
+        miniCloseBtn.onclick = (e) => {
+            e.stopPropagation();
+            closeModal(modalOverlay);
+        };
+    }
 
     const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
     const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
@@ -199,7 +272,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.remove('mini-mode');
         if (maximizeOverlay) maximizeOverlay.style.display = 'none';
         
-        // 위치 초기화
         if(modal === modalOverlay && draggablePlayer) {
             draggablePlayer.style.top = '';
             draggablePlayer.style.left = '';
@@ -208,7 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (modal === modalOverlay) {
-            if(youtubeIframe) youtubeIframe.src = ''; 
+            if(player && typeof player.stopVideo === 'function') {
+                player.stopVideo();
+            }
             releaseWakeLock();
             setTimeout(() => { if(ccmPlayerView) ccmPlayerView.style.display = 'none'; if(ccmMenuView) ccmMenuView.style.display = 'block'; }, 300);
         }
@@ -232,32 +306,47 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeSettingsBtn) closeSettingsBtn.onclick = () => handleCloseBtnClick(settingsModal);
     if (settingsModal) settingsModal.onclick = (e) => { if (e.target === settingsModal) handleCloseBtnClick(settingsModal); };
 
-    function getYouTubeEmbedUrl(url) {
+    function getYouTubeIdInfo(url) {
         if (!url) return null;
         const listMatch = url.match(/[?&]list=([^#&?]+)/);
-        if (listMatch && listMatch[1]) return `https://www.youtube.com/embed/videoseries?list=${listMatch[1]}&autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+        if (listMatch) return { type: 'playlist', id: listMatch[1] };
         const videoMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/)([^#&?]*))/);
-        if (videoMatch && videoMatch[1]) return `https://www.youtube.com/embed/${videoMatch[1]}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+        if (videoMatch) return { type: 'video', id: videoMatch[1] };
         return null;
     }
 
-    const playRandomVideo = (category, title) => {
+    // [중요 수정] 플레이어 재생 함수 (스마트 대기 기능 포함)
+    window.playRandomVideo = (category, title) => {
         if (typeof CCM_PLAYLIST !== 'undefined' && CCM_PLAYLIST[category]) {
             const list = CCM_PLAYLIST[category];
             let availableList = list.filter(url => url !== lastVideoUrl);
             if (availableList.length === 0) availableList = list;
             const randomUrl = availableList[Math.floor(Math.random() * availableList.length)];
             lastVideoUrl = randomUrl;
-            const embedUrl = getYouTubeEmbedUrl(randomUrl);
 
-            if (embedUrl) {
-                if(youtubeIframe) youtubeIframe.src = embedUrl;
-                if(playerTitle && title) playerTitle.innerText = title;
-                
-                if(ccmMenuView) ccmMenuView.style.display = 'none';
-                if(ccmPlayerView) ccmPlayerView.style.display = 'block';
-                requestWakeLock();
-            } else { alert("지원하지 않는 주소입니다."); }
+            const idInfo = getYouTubeIdInfo(randomUrl);
+
+            // 1. 화면 전환 (사용자가 기다리지 않게)
+            if(playerTitle && title) playerTitle.innerText = title;
+            if(ccmMenuView) ccmMenuView.style.display = 'none';
+            if(ccmPlayerView) ccmPlayerView.style.display = 'block';
+            requestWakeLock();
+
+            // 2. 플레이어 상태 확인 및 실행
+            if (idInfo) {
+                if (player && isPlayerReady) {
+                    // 준비됨: 즉시 재생
+                    if (idInfo.type === 'playlist') {
+                        player.loadPlaylist({list: idInfo.id, listType: 'playlist'});
+                    } else {
+                        player.loadVideoById(idInfo.id);
+                    }
+                } else {
+                    // [핵심] 준비 안 됨: 대기열에 저장 (경고창 안 띄움)
+                    console.log("Player not ready. Queuing...");
+                    pendingPlay = { category: category, title: title }; 
+                }
+            }
         } else { alert("재생 목록이 없습니다."); }
     };
 
@@ -279,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (backToMenuBtn) {
         backToMenuBtn.onclick = () => {
-            if(youtubeIframe) youtubeIframe.src = ''; 
+            if(player && typeof player.stopVideo === 'function') player.stopVideo();
             if(ccmPlayerView) ccmPlayerView.style.display = 'none';
             if(ccmMenuView) ccmMenuView.style.display = 'block';
             releaseWakeLock();
@@ -290,21 +379,6 @@ document.addEventListener('DOMContentLoaded', () => {
         floatModeBtn.onclick = () => {
             modalOverlay.classList.add('mini-mode');
             if (maximizeOverlay) maximizeOverlay.style.display = 'block';
-        };
-    }
-
-    if (maximizeOverlay) {
-        maximizeOverlay.onclick = () => {
-            if (!isPlayerDragging) {
-                modalOverlay.classList.remove('mini-mode');
-                maximizeOverlay.style.display = 'none';
-                if (draggablePlayer) {
-                    draggablePlayer.style.top = '';
-                    draggablePlayer.style.left = '';
-                    draggablePlayer.style.bottom = '20px';
-                    draggablePlayer.style.right = '20px';
-                }
-            }
         };
     }
 

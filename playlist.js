@@ -58,7 +58,7 @@ const CCM_PLAYLIST = {
         "https://www.youtube.com/embed/gDS3Ar1ZQm4"
     ],
 
-    // [이름 변경] 5. 신나는 노동요 & 드라이브
+    // 5. 신나는 노동요 & 드라이브
     drive: [
         "https://www.youtube.com/embed/Xd5raTcGV1s",
         "https://www.youtube.com/embed/t_hkY41s-98",
@@ -73,7 +73,7 @@ const CCM_PLAYLIST = {
         "https://www.youtube.com/embed/11-btPv8-8c"
     ],
 
-    // [이름 변경] 6. 카페에서 듣는 찬양
+    // 6. 카페에서 듣는 찬양
     cafe: [
         "https://www.youtube.com/embed/BsszEkOzjCQ",
         "https://www.youtube.com/embed/6v5NEEttOa0",
@@ -82,5 +82,20 @@ const CCM_PLAYLIST = {
         "https://www.youtube.com/embed/5M8XCiBTj8Y",
         "https://www.youtube.com/embed/2pCT3Nz_0u0",
         "https://www.youtube.com/embed/FptG0S6VTrQ"
+    ],
+
+    // [NEW] 7. 7080 베스트 찬양
+    oldies: [
+        "https://www.youtube.com/embed/iilDmtK35dw", // 7080 찬양 15곡 모음
+        "https://www.youtube.com/embed/ahSQ-JySOfo", // 은혜와 감동의 7080
+        "https://www.youtube.com/embed/vttUcyns0GU"  // 복음성가 가수 베스트
+    ],
+
+    // [NEW] 8. 은혜의 찬송가 플리
+    hymn: [
+        "https://www.youtube.com/embed/T3ERy6rpS_s", // 베스트 은혜 찬송가 20
+        "https://www.youtube.com/embed/RAdc5L1nihg", // 한국인이 사랑하는 찬송가
+        "https://www.youtube.com/embed/Pz_16UFdxSA", // 찬송가 100선
+        "https://www.youtube.com/embed/gVbqXSFGiAQ"  // 은혜의 찬송가 40곡
     ]
 };

@@ -21,8 +21,10 @@
 
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="stylesheet" href="style.css">
+    
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2txfYR9bGr4uwcTKnp8D4" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
 
@@ -124,6 +126,9 @@
                     <button class="mood-btn" data-key="sleep"><span class="mood-emoji">🌙</span><span>잠들기 전 평안</span></button>
                     <button class="mood-btn" data-key="drive"><span class="mood-emoji">🚗</span><span>신나는 노동요 & 드라이브</span></button>
                     <button class="mood-btn" data-key="cafe"><span class="mood-emoji">☕</span><span>카페에서 듣는 찬양</span></button>
+                    
+                    <button class="mood-btn" data-key="oldies"><span class="mood-emoji">📻</span><span>7080 베스트 찬양</span></button>
+                    <button class="mood-btn" data-key="hymn"><span class="mood-emoji">📖</span><span>은혜의 찬송가 플리</span></button>
                 </div>
                 <button id="close-modal" class="modal-close-btn">닫기</button>
             </div>
@@ -131,21 +136,27 @@
             <div id="ccm-player-view" style="display: none;">
                 <div class="player-header">
                     <h3 id="player-title">재생 중</h3>
-                    <button id="float-mode-btn" class="float-icon-btn">
-                        <span>📺</span> 화면 띄우기
-                    </button>
-                </div>
+                    </div>
+                
                 <div class="video-container">
-                    <iframe id="youtube-iframe" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
-                    <div id="maximize-overlay" style="display:none;"></div>
+                    <div id="youtube-player"></div>
+                    <div id="mini-controls" class="mini-controls">
+                        <button id="mini-play-pause" class="mini-btn left-top">⏸</button>
+                        <button id="mini-close" class="mini-btn right-top">✕</button>
+                        <div id="maximize-overlay"></div>
+                    </div>
                 </div>
+
                 <div class="player-info">
                     <p class="copyright-notice">이 콘텐츠는 제작자의 유튜브 채널을 통해 재생되며,<br>저작권과 모든 권리는 원 제작자에게 있습니다.</p>
                 </div>
+                
                 <div class="player-buttons">
                     <button id="shuffle-play-btn" class="action-btn">🔄 다른 플리 듣기</button>
                     <button id="back-to-menu-btn" class="action-btn secondary">📂 다른 주제 고르기</button>
                 </div>
+                
+                <button id="float-mode-btn" class="float-icon-btn"><span>📺</span> 화면 띄우기</button>
             </div>
         </div>
     </div>

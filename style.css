@@ -48,17 +48,14 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .btn-go { width: 34px; height: 34px; border-radius: 50%; background: #F5F7FA; border: none; color: #111; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
 .list-card:hover .btn-go { background: #111; color: white; }
 
-/* 아이콘 모드 */
 .list-container.grid-view { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px 8px; padding: 10px 0 40px 0; }
 .list-container.grid-view .list-card { flex-direction: column; padding: 0; background: transparent; box-shadow: none; border: none; align-items: center; }
 .list-container.grid-view .list-card:hover { transform: translateY(-3px); box-shadow: none; }
-.list-container.grid-view .app-icon-img,
-.list-container.grid-view .icon-box { width: 60px; height: 60px; margin: 0 0 8px 0; border-radius: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.list-container.grid-view .app-icon-img, .list-container.grid-view .icon-box { width: 60px; height: 60px; margin: 0 0 8px 0; border-radius: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 .list-container.grid-view .text-box { width: 100%; text-align: center; }
 .list-container.grid-view .text-box h3 { font-size: 11px; font-weight: 400; margin: 0; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
 .list-container.grid-view .text-box p, .list-container.grid-view .btn-go { display: none; }
 
-/* 드래그 및 숨기기 */
 .sortable-ghost { opacity: 0.4; background: #e9ecef; border: 2px dashed #ccc; box-shadow: none; }
 .sortable-drag { opacity: 1; background: white; box-shadow: 0 15px 30px rgba(0,0,0,0.2); transform: scale(1.05); z-index: 9999; }
 body.hide-mode .list-card { animation: wiggle 0.25s infinite alternate ease-in-out; }
@@ -68,8 +65,7 @@ body.hide-mode .btn-go { display: none; }
 .list-card.user-hidden { display: none !important; }
 body.hide-mode .list-card.user-hidden { display: flex !important; opacity: 0.4; filter: grayscale(100%); animation: none; }
 body.hide-mode #card-share, body.hide-mode #card-market { animation: none; opacity: 1; filter: none; cursor: default; }
-body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
-body.hide-mode #card-market .app-icon-img, body.hide-mode #card-market .icon-box { border: none; }
+body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, body.hide-mode #card-market .app-icon-img, body.hide-mode #card-market .icon-box { border: none; }
 @keyframes wiggle { 0% { transform: rotate(-2deg); } 100% { transform: rotate(2deg); } }
 
 /* 공지사항 */
@@ -105,29 +101,33 @@ body.hide-mode #card-market .app-icon-img, body.hide-mode #card-market .icon-box
 .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 .player-info { margin-bottom: 20px; font-size: 12px; color: #666; line-height: 1.5; }
 .player-info p { margin-bottom: 8px; }
-
-/* [수정됨] 저작권 문구 더 작게 */
 .copyright-notice { font-size: 10px; color: #999; letter-spacing: -0.5px; margin-top: 10px; }
 
-/* [수정됨] 화면 띄우기 버튼 디자인 (알약 모양) */
-.float-icon-btn { 
-    background: var(--brand-color); 
-    border: none; 
-    padding: 6px 12px; /* 가로로 넓게 */
-    border-radius: 20px; 
-    cursor: pointer; 
-    color: white; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
-    gap: 6px; /* 아이콘과 글자 사이 간격 */
-    box-shadow: 0 2px 8px rgba(95, 39, 205, 0.3);
-    transition: transform 0.2s;
-}
-.float-icon-btn:hover { transform: scale(1.05); }
-.float-icon-btn .btn-text { font-size: 12px; font-weight: 600; }
+.player-buttons { display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: 20px; }
+.action-btn { flex: 1; padding: 14px; border-radius: 20px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+#shuffle-play-btn { background: var(--brand-color); color: white; box-shadow: 0 4px 12px rgba(95, 39, 205, 0.3); }
+#shuffle-play-btn:hover { background: #4a1eb8; transform: translateY(-2px); }
+#back-to-menu-btn { background: #F1F3F5; color: #444; border: 1px solid #E9ECEF; }
+#back-to-menu-btn:hover { background: #E9ECEF; }
 
-/* 플로팅(Mini) 모드 */
+/* [수정됨] 화면 띄우기 버튼 스타일 (얇고 길게, 연한 색) */
+.float-icon-btn { 
+    width: 100%; /* 길게 */
+    height: 40px; /* 얇게 */
+    margin-top: 10px;
+    background: #E0E7FF; /* 연한 보라/블루 */
+    color: var(--brand-color);
+    border: none; 
+    border-radius: 12px; 
+    cursor: pointer; 
+    display: flex; align-items: center; justify-content: center; 
+    gap: 6px; 
+    font-size: 13px; font-weight: 700;
+    transition: background 0.2s;
+}
+.float-icon-btn:hover { background: #d0dbfc; }
+
+/* 플로팅 모드 */
 .modal-overlay.mini-mode {
     background: transparent;
     pointer-events: none;
@@ -136,42 +136,55 @@ body.hide-mode #card-market .app-icon-img, body.hide-mode #card-market .icon-box
 }
 .modal-overlay.mini-mode .modal-content {
     width: 280px; 
-    padding: 10px;
-    border-radius: 20px;
+    padding: 0; 
+    border-radius: 12px; 
     margin: 0; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
     pointer-events: auto;
     position: fixed; 
     bottom: 20px; right: 20px; 
-    touch-action: none; /* 드래그를 위해 필수 */
-    border: 2px solid rgba(255,255,255,0.8);
-    transition: none; /* 드래그 시 반응 즉각적으로 */
+    touch-action: none; 
+    border: none;
+    overflow: hidden;
 }
+/* 플로팅 시 숨길 요소들 */
 .modal-overlay.mini-mode .player-info,
 .modal-overlay.mini-mode .player-buttons,
 .modal-overlay.mini-mode .modal-close-btn,
-.modal-overlay.mini-mode #player-title { display: none; }
-
-.modal-overlay.mini-mode .player-header {
-    margin: 0 0 5px 0;
-    display: flex;
-    justify-content: flex-end;
-}
+.modal-overlay.mini-mode #player-title,
+.modal-overlay.mini-mode .player-header,
 .modal-overlay.mini-mode .float-icon-btn { display: none; } 
-.modal-overlay.mini-mode .video-container { margin-bottom: 0; }
 
-/* 투명 오버레이 */
+.modal-overlay.mini-mode .video-container { margin-bottom: 0; border-radius: 0; }
+
+.mini-controls {
+    display: none;
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 1000;
+}
+.modal-overlay.mini-mode .mini-controls { display: block; }
+
+.mini-btn {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 1002;
+    display: flex; justify-content: center; align-items: center;
+    backdrop-filter: blur(4px);
+}
+.mini-btn.left-top { top: 10px; left: 10px; }
+.mini-btn.right-top { top: 10px; right: 10px; }
+
 #maximize-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 999; cursor: pointer;
+    z-index: 1001; cursor: move;
 }
-
-.player-buttons { display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: 20px; }
-.action-btn { flex: 1; padding: 14px; border-radius: 20px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-#shuffle-play-btn { background: var(--brand-color); color: white; box-shadow: 0 4px 12px rgba(95, 39, 205, 0.3); }
-#shuffle-play-btn:hover { background: #4a1eb8; transform: translateY(-2px); }
-#back-to-menu-btn { background: #F1F3F5; color: #444; border: 1px solid #E9ECEF; }
-#back-to-menu-btn:hover { background: #E9ECEF; }
 
 .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
 .mood-btn { background: #F5F7FA; border: 1px solid #EEF0F5; border-radius: 20px; padding: 20px 10px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
