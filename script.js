@@ -17,21 +17,23 @@ let isPlayerReady = false;
 let pendingPlay = null;
 
 function onYouTubeIframeAPIReady() {
-    const origin = window.location.origin;
+    // [핵심] 도메인만 깔끔하게 추출 (예: https://csy870617.github.io)
+    const originUrl = window.location.origin; 
     
     player = new YT.Player('youtube-player', {
         height: '100%',
         width: '100%',
+        // [중요] 표준 유튜브 호스트 사용 (쿠키 연동 필수)
         host: 'https://www.youtube.com',
         playerVars: {
-            'playsinline': 1,
-            'rel': 0,
-            'modestbranding': 1,
-            'controls': 1,
-            'origin': origin,
-            'widget_referrer': window.location.href,
-            'enablejsapi': 1,
-            'autoplay': 0 
+            'autoplay': 0,        // 자동 재생 끔 (모바일 정책 준수)
+            'playsinline': 1,     // 인라인 재생
+            'rel': 0,             // 관련 영상 최소화
+            'modestbranding': 1,  // 로고 최소화
+            'controls': 1,        // 컨트롤 바 표시
+            'enablejsapi': 1,     // JS 제어 허용
+            'origin': originUrl,  // [필수] 내 도메인 명시
+            'widget_referrer': originUrl // [필수] 리퍼러 명시
         },
         events: {
             'onReady': onPlayerReady,
@@ -42,6 +44,13 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady(event) {
     isPlayerReady = true;
+    
+    // iframe에 로그인 정보 접근 권한 강제 부여 (allowCredentials 등은 iframe 태그 속성이라 JS로 제어 한계가 있지만 시도)
+    const iframe = document.getElementById('youtube-player');
+    if(iframe) {
+        iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture;');
+    }
+
     if (pendingPlay) {
         playRandomVideo(pendingPlay.category, pendingPlay.title);
         pendingPlay = null; 
@@ -61,6 +70,7 @@ function onPlayerStateChange(event) {
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    // 자동 업데이트
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').then(reg => {
             reg.addEventListener('updatefound', () => {
@@ -87,7 +97,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
 
-    // [NEW] 앱 내 브라우저 로직
+    function openExternalLink(url) {
+        const userAgent = navigator.userAgent.toLowerCase();
+        if (userAgent.match(/android/i) && userAgent.match(/kakaotalk|line|instagram|facebook|wv/i)) {
+            const rawUrl = url.replace(/^https?:\/\//i, '');
+            window.location.href = `intent://${rawUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+        } else {
+            window.open(url, '_blank');
+        }
+    }
+
+    // [앱 내 브라우저]
     const internalBrowser = document.getElementById('internal-browser');
     const browserFrame = document.getElementById('browser-frame');
     const browserTitle = document.getElementById('browser-title');
@@ -98,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
             browserTitle.innerText = title || '페이지 보기';
             browserFrame.src = url;
             internalBrowser.classList.add('show');
-            // 브라우저 열 때 히스토리 추가 (뒤로가기 시 닫히도록)
             history.pushState({ browserOpen: true }, null, "");
         } else {
             window.open(url, '_blank');
@@ -109,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (internalBrowser) {
             internalBrowser.classList.remove('show');
             setTimeout(() => { 
-                if(browserFrame) browserFrame.src = ''; // 리소스 해제
+                if(browserFrame) browserFrame.src = ''; 
             }, 300);
         }
     }
@@ -205,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCategory = null; 
     let lastVideoUrl = null; 
 
-    // 드래그 로직
+    // 드래그 로직 (Offset 방식)
     let isPlayerDragging = false;
     let shiftX, shiftY;
     let dragStartTime = 0;
@@ -235,12 +254,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         isPlayerDragging = true;
         dragStartTime = new Date().getTime();
+
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
         dragStartPos = { x: clientX, y: clientY };
+
         const rect = draggablePlayer.getBoundingClientRect();
         shiftX = clientX - rect.left;
         shiftY = clientY - rect.top;
+
         draggablePlayer.style.transition = 'none';
         draggablePlayer.style.bottom = 'auto';
         draggablePlayer.style.right = 'auto';
@@ -253,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault(); 
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
         draggablePlayer.style.left = (clientX - shiftX) + 'px';
         draggablePlayer.style.top = (clientY - shiftY) + 'px';
     };
@@ -263,9 +287,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
         const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+        
         const distance = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
 
-        if (distance < 10) {
+        // 10px 미만 움직임이고 300ms 이내 터치면 확대
+        if (distance < 10 && (new Date().getTime() - dragStartTime) < 300) {
              maximizePlayer(e);
         }
     };
@@ -333,7 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { if(ccmPlayerView) ccmPlayerView.style.display = 'none'; if(ccmMenuView) ccmMenuView.style.display = 'block'; }, 300);
         }
         
-        // 브라우저 모달인 경우
         if (modal.id === 'internal-browser') {
             closeInternalBrowser();
             return;
@@ -345,10 +370,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleCloseBtnClick = (modal) => { closeModal(modal); if (history.state && (history.state.modalOpen || history.state.browserOpen)) history.back(); };
     
-    // 뒤로가기 통합 처리
     window.addEventListener('popstate', () => {
         if (currentModal) closeModal(currentModal);
-        // 브라우저 닫기 처리
         if (internalBrowser.classList.contains('show')) closeInternalBrowser();
     });
 
@@ -485,7 +508,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (navigator.share) { try { await navigator.share({ url: shareUrl }); return; } catch (err) {} }
                 try { await navigator.clipboard.writeText(shareUrl); alert('주소가 복사되었습니다!'); } catch (err) { prompt('주소:', shareUrl); }
             } else {
-                // [수정됨] 내부 브라우저로 열기
                 const link = card.getAttribute('data-link');
                 const title = card.querySelector('h3') ? card.querySelector('h3').innerText : 'FAITHS';
                 if (link) openInternalBrowser(link, title);
