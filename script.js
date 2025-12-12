@@ -13,6 +13,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    // 자동 업데이트
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').then(reg => {
             reg.addEventListener('updatefound', () => {
@@ -126,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentModal = null; 
     let wakeLock = null;
     let currentCategory = null; 
-    let lastVideoUrl = null; // [NEW] 마지막 재생한 URL 저장
+    let lastVideoUrl = null; 
 
     const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
     const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
@@ -171,25 +172,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
-    // [NEW] 스마트 셔플 함수 (중복 방지)
     const playRandomVideo = (category, title) => {
         if (typeof CCM_PLAYLIST !== 'undefined' && CCM_PLAYLIST[category]) {
             const list = CCM_PLAYLIST[category];
-            
-            // 1. 현재 재생 중인(마지막) 곡을 제외한 목록 만들기
             let availableList = list.filter(url => url !== lastVideoUrl);
-            
-            // 만약 리스트가 1개밖에 없어서 다 제외됐다면, 원래 리스트 사용
-            if (availableList.length === 0) {
-                availableList = list;
-            }
-
-            // 2. 남은 목록 중에서 랜덤 선택
+            if (availableList.length === 0) availableList = list;
             const randomUrl = availableList[Math.floor(Math.random() * availableList.length)];
-            
-            // 3. 마지막 곡 업데이트
             lastVideoUrl = randomUrl;
-
             const embedUrl = getYouTubeEmbedUrl(randomUrl);
 
             if (embedUrl) {
@@ -208,17 +197,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const key = btn.getAttribute('data-key');
             const title = btn.querySelector('span:last-child').innerText;
             currentCategory = key;
-            lastVideoUrl = null; // 카테고리 바꾸면 기록 초기화
+            lastVideoUrl = null; 
             playRandomVideo(key, title);
         };
     });
 
     if (shufflePlayBtn) {
         shufflePlayBtn.onclick = () => {
-            if (currentCategory) {
-                // 제목은 유지한 채로 곡만 변경
-                playRandomVideo(currentCategory, null);
-            }
+            if (currentCategory) playRandomVideo(currentCategory, null);
         };
     }
 
@@ -259,7 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isDragging) return;
 
             if (isHideMode) {
-                if (card.id === 'card-share') {
+                // [수정됨] 달란트 마켓도 숨김 방지 목록에 추가
+                if (card.id === 'card-share' || card.id === 'card-market') {
                     alert("이 메뉴는 숨길 수 없습니다.");
                     return;
                 }
