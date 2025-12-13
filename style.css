@@ -51,7 +51,6 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .list-container { display: flex; flex-direction: column; gap: 8px; padding-bottom: 40px; width: 100%; }
 .list-card { display: flex; align-items: center; background: white; padding: 12px 14px; border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; width: 100%; touch-action: pan-y; }
 .list-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); }
-/* [수정됨] .main-feature 스타일 삭제하여 다른 카드와 동일하게 만듦 */
 .share-card { background: #FFFDE7; border: 1px solid rgba(255, 200, 0, 0.2); }
 
 .app-icon-img { width: 46px; height: 46px; border-radius: 22px; margin-right: 14px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.08); flex-shrink: 0; }
@@ -195,6 +194,24 @@ input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
 .install-btn-text { text-align: left; flex: 1; }
 .install-btn-text h4 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
 .install-btn-text p { font-size: 12px; font-weight: 500; }
+
+/* [NEW] 성경 선택 모달 버튼 스타일 */
+.bible-btn-container { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+.bible-link-btn { 
+    display: flex; align-items: center; 
+    padding: 16px 20px; border-radius: 20px; 
+    background: #fff; color: #333; text-decoration: none; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.2s; position: relative; overflow: hidden;
+}
+.bible-link-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-color: var(--brand-color); }
+.btn-icon-area { font-size: 24px; margin-right: 16px; background: #F8F9FA; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 14px; }
+.btn-text-area { flex: 1; text-align: left; }
+.btn-title { display: block; font-size: 16px; font-weight: 800; color: #333; margin-bottom: 2px; }
+.btn-sub { display: block; font-size: 12px; color: #888; font-weight: 500; }
+.btn-arrow { font-size: 18px; color: #ccc; font-weight: bold; }
+.bible-link-btn:hover .btn-arrow { color: var(--brand-color); }
 
 /* PC Responsive */
 @media (min-width: 768px) {

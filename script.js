@@ -17,21 +17,23 @@ let isPlayerReady = false;
 let pendingPlay = null;
 
 function onYouTubeIframeAPIReady() {
-    const origin = window.location.origin;
+    // [핵심] 로그인 정보 연동을 위해 도메인을 명확히 지정
+    const originUrl = window.location.origin;
     
     player = new YT.Player('youtube-player', {
         height: '100%',
         width: '100%',
-        host: 'https://www.youtube.com',
+        host: 'https://www.youtube.com', // 표준 호스트 강제
         playerVars: {
             'playsinline': 1,
             'rel': 0,
             'modestbranding': 1,
             'controls': 1,
-            'origin': origin,
-            'widget_referrer': window.location.href,
+            'origin': originUrl, // 출처 명시 (필수)
+            'widget_referrer': originUrl, // 리퍼러 명시 (보안 강화)
             'enablejsapi': 1,
-            'autoplay': 0 
+            'autoplay': 0,
+            'disablekb': 1
         },
         events: {
             'onReady': onPlayerReady,
@@ -42,6 +44,14 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady(event) {
     isPlayerReady = true;
+    
+    // iframe에 쿠키 접근 권한 속성 추가 시도
+    const iframe = document.getElementById('youtube-player');
+    if (iframe) {
+        // storage-access 권한 명시
+        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+    }
+
     if (pendingPlay) {
         playRandomVideo(pendingPlay.category, pendingPlay.title);
         pendingPlay = null; 
@@ -109,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeInternalBrowser() {
         if (internalBrowser && internalBrowser.classList.contains('show')) {
             internalBrowser.classList.remove('show');
-            
             setTimeout(() => { 
                 if(browserContentArea) browserContentArea.innerHTML = ''; 
             }, 300);
@@ -191,6 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 모달 관리
     const modalOverlay = document.getElementById('modal-overlay');
     const draggablePlayer = document.getElementById('draggable-player'); 
+    const bibleModal = document.getElementById('bible-modal');
+    const closeBibleModalBtn = document.getElementById('close-bible-modal');
     const iosModal = document.getElementById('ios-modal');
     const settingsModal = document.getElementById('settings-modal');
     const ccmMenuView = document.getElementById('ccm-menu-view');
@@ -245,16 +256,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         isPlayerDragging = true;
         dragStartTime = new Date().getTime();
-
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
         dragStartPos = { x: clientX, y: clientY };
-
         const rect = draggablePlayer.getBoundingClientRect();
         shiftX = clientX - rect.left;
         shiftY = clientY - rect.top;
-
         draggablePlayer.style.transition = 'none';
         draggablePlayer.style.bottom = 'auto';
         draggablePlayer.style.right = 'auto';
@@ -267,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault(); 
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
         draggablePlayer.style.left = (clientX - shiftX) + 'px';
         draggablePlayer.style.top = (clientY - shiftY) + 'px';
     };
@@ -278,10 +284,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
         const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-        
         const distance = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
 
-        if (distance < 10 && (new Date().getTime() - dragStartTime) < 300) {
+        if (distance < 10) {
              maximizePlayer(e);
         }
     };
@@ -350,11 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (modal.id === 'internal-browser') {
-            // 여기서는 UI만 닫고, 내용은 popstate에서 처리됨 (또는 위 함수에서)
-            if (internalBrowser.classList.contains('show')) {
-                internalBrowser.classList.remove('show');
-                setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
-            }
+            closeInternalBrowser();
             return;
         }
 
@@ -383,6 +384,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (ccmBtn) ccmBtn.onclick = () => openModal(modalOverlay);
     if (closeModalBtn) closeModalBtn.onclick = () => handleCloseBtnClick(modalOverlay);
+    if (closeBibleModalBtn) closeBibleModalBtn.onclick = () => handleCloseBtnClick(bibleModal);
+    if (bibleModal) bibleModal.onclick = (e) => { if (e.target === bibleModal) handleCloseBtnClick(bibleModal); };
+
     if (modalOverlay) modalOverlay.onclick = (e) => { 
         if (!modalOverlay.classList.contains('mini-mode') && e.target === modalOverlay) {
             handleCloseBtnClick(modalOverlay); 
@@ -513,10 +517,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (navigator.share) { try { await navigator.share({ url: shareUrl }); return; } catch (err) {} }
                 try { await navigator.clipboard.writeText(shareUrl); alert('주소가 복사되었습니다!'); } catch (err) { prompt('주소:', shareUrl); }
+            } else if (card.id === 'card-bible') {
+                openModal(bibleModal);
             } else {
                 const link = card.getAttribute('data-link');
                 const title = card.querySelector('h3') ? card.querySelector('h3').innerText : 'FAITHS';
-                // [수정됨] data-target="external"이면 새창, 아니면 인앱 브라우저
                 const target = card.getAttribute('data-target');
                 
                 if (link) {
