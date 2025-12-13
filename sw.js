@@ -1,4 +1,4 @@
-const CACHE_NAME = 'faiths-v101'; /* 버전 업 */
+const CACHE_NAME = 'faiths-v102'; /* 버전 업 */
 
 const urlsToCache = [
   './',
@@ -48,4 +48,5 @@ self.addEventListener('activate', event => {
       );
     })
   );
+
 });
