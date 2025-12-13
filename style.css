@@ -3,25 +3,24 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Pretendard Variable", Pretendard, sans-serif; -webkit-tap-highlight-color: transparent; }
 body { background-color: #F5F6F8; display: flex; justify-content: center; min-height: 100vh; padding: 0; margin: 0; }
 
-/* [수정됨] 심플 로딩 화면 (흰색 배경 + 로고만 둥둥) */
+/* 심플 로딩 화면 (흰색 배경 + 로고만 둥둥) */
 #loading-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: #ffffff; /* 흰색으로 변경 */
+    background-color: #ffffff;
     z-index: 99999;
     display: flex; justify-content: center; align-items: center;
     transition: opacity 0.4s ease-out;
 }
 .loading-icon-box {
     width: 70px; height: 70px;
-    /* 배경, 테두리, 그림자 제거 -> 로고만 보이게 */
     display: flex; justify-content: center; align-items: center;
     animation: pulse-soft 2s infinite ease-in-out;
 }
-.loading-icon { width: 60px; height: 60px; border-radius: 14px; } /* 로고 크기 살짝 키움 */
+.loading-icon { width: 60px; height: 60px; border-radius: 14px; }
 
 @keyframes pulse-soft {
     0% { transform: scale(0.95); opacity: 0.9; }
-    50% { transform: scale(1.05); opacity: 1; } /* 그림자 애니메이션 제거 */
+    50% { transform: scale(1.05); opacity: 1; }
     100% { transform: scale(0.95); opacity: 0.9; }
 }
 
@@ -33,8 +32,20 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
     display: none; flex-direction: column;
 }
 .internal-browser.show { display: flex; }
-.browser-content { flex: 1; position: relative; width: 100%; height: 100%; overflow: hidden; }
-#browser-frame { width: 100%; height: 100%; border: none; background: #fff; }
+.browser-content { flex: 1; position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+#browser-frame { width: 100%; height: 100%; border: none; background: #fff; position: relative; z-index: 2; }
+
+/* [NEW] 브라우저 내부 로딩 링 */
+.browser-loader {
+    position: absolute;
+    width: 40px; height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--brand-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 /* 플로팅 X 버튼 */
 .browser-close-floating {
@@ -51,18 +62,10 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
-/* 부드러운 등장 애니메이션 */
 .mobile-wrapper { 
     width: 100%; max-width: 100%; background: #F5F6F8; min-height: 100vh; 
     box-shadow: none; transition: max-width 0.3s ease; 
     padding: 20px 16px; margin: 0 auto; position: relative; z-index: 1; padding-bottom: 140px;
-    opacity: 0; 
-    animation: app-entrance 0.5s ease-out forwards; 
-}
-
-@keyframes app-entrance {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 .hero-banner { background: linear-gradient(135deg, #341f97 0%, #5f27cd 50%, #9980FA 100%); border-radius: 32px; padding: 40px 32px; color: white; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(95, 39, 205, 0.25), 0 10px 10px rgba(95, 39, 205, 0.1); margin-bottom: 24px; display: flex; align-items: center; border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; }

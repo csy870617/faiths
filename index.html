@@ -30,6 +30,12 @@
 </head>
 <body>
 
+    <div id="loading-screen">
+        <div class="loading-icon-box">
+            <img src="icon/0.png" alt="FAITHS" class="loading-icon">
+        </div>
+    </div>
+
     <div id="internal-browser" class="internal-browser">
         <button id="browser-close-btn" class="browser-close-floating">✕</button>
         <div class="browser-content" id="browser-content-area"></div>
@@ -98,10 +104,17 @@
                 <img src="icon/3.png" alt="ENGO 영어회화" class="app-icon-img">
                 <div class="text-box"><h3>ENGO 영어회화</h3><p>English & go 영어회화의 시작</p></div><button class="btn-go">→</button>
             </div>
+            
             <div class="list-card" id="card-tuner" data-category="tools" data-link="https://csy870617.github.io/ChurchTuner/">
                 <img src="icon/6.png" alt="Church Tuner" class="app-icon-img">
                 <div class="text-box"><h3>Church Tuner</h3><p>교회 악기 튜닝기</p></div><button class="btn-go">→</button>
             </div>
+
+            <div class="list-card" id="card-chord" data-category="tools" data-link="https://csy870617.github.io/chordfinder/">
+                <img src="icon/9.png" alt="Guitar Chord Finder" class="app-icon-img">
+                <div class="text-box"><h3>Guitar Chord Finder</h3><p>쉬운 기타 코드 검색기</p></div><button class="btn-go">→</button>
+            </div>
+
             <div class="list-card share-card" id="card-share" data-category="tools">
                 <div class="icon-box" style="background: #FEE500; color: #3b1e1e;">💌</div> 
                 <div class="text-box"><h3>함께 성장할 친구 초대</h3><p>이 플랫폼을 친구에게 공유하기</p></div><button class="btn-go">📤</button>
@@ -248,5 +261,13 @@
 
     <script src="playlist.js"></script>
     <script src="script.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var ls = document.getElementById('loading-screen');
+                if(ls) { ls.style.opacity = '0'; setTimeout(function(){ ls.style.display='none'; }, 500); }
+            }, 1000); 
+        });
+    </script>
 </body>
 </html>

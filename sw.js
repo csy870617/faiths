@@ -1,4 +1,4 @@
-const CACHE_NAME = 'faiths-v98'; /* 버전 업 */
+const CACHE_NAME = 'faiths-v101'; /* 버전 업 */
 
 const urlsToCache = [
   './',
@@ -15,7 +15,8 @@ const urlsToCache = [
   './icon/5.png',
   './icon/6.png',
   './icon/7.png',
-  './icon/8.png'
+  './icon/8.png',
+  './icon/9.png'
 ];
 
 self.addEventListener('install', event => {
