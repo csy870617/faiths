@@ -1,4 +1,4 @@
-const CACHE_NAME = 'faiths-v97'; /* 버전 업 */
+const CACHE_NAME = 'faiths-v98'; /* 버전 업 */
 
 const urlsToCache = [
   './',
