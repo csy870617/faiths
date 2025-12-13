@@ -3,8 +3,6 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Pretendard Variable", Pretendard, sans-serif; -webkit-tap-highlight-color: transparent; }
 body { background-color: #F5F6F8; display: flex; justify-content: center; min-height: 100vh; padding: 0; margin: 0; }
 
-/* [수정됨] 로딩 화면 관련 스타일 삭제됨 */
-
 /* 앱 내 브라우저 */
 .internal-browser {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -50,13 +48,15 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .icon-btn { background: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); flex-shrink: 0; transition: all 0.2s; }
 .icon-btn.active { background: #111; color: white; }
 
-.list-container { display: flex; flex-direction: column; gap: 10px; padding-bottom: 40px; width: 100%; }
-.list-card { display: flex; align-items: center; background: white; padding: 14px 16px; border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; width: 100%; touch-action: pan-y; }
+.list-container { display: flex; flex-direction: column; gap: 8px; padding-bottom: 40px; width: 100%; }
+.list-card { display: flex; align-items: center; background: white; padding: 12px 14px; border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; width: 100%; touch-action: pan-y; }
 .list-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); }
-.main-feature { border: 1px solid rgba(95, 39, 205, 0.2); }
+/* [수정됨] .main-feature 스타일 삭제하여 다른 카드와 동일하게 만듦 */
 .share-card { background: #FFFDE7; border: 1px solid rgba(255, 200, 0, 0.2); }
-.app-icon-img { width: 50px; height: 50px; border-radius: 18px; margin-right: 16px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.08); flex-shrink: 0; }
-.icon-box { width: 50px; height: 50px; border-radius: 18px; display: flex; justify-content: center; align-items: center; font-size: 24px; margin-right: 16px; color: white; flex-shrink: 0; box-shadow: 0 6px 14px rgba(0,0,0,0.05); }
+
+.app-icon-img { width: 46px; height: 46px; border-radius: 22px; margin-right: 14px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.08); flex-shrink: 0; }
+.icon-box { width: 46px; height: 46px; border-radius: 22px; display: flex; justify-content: center; align-items: center; font-size: 22px; margin-right: 14px; color: white; flex-shrink: 0; box-shadow: 0 6px 14px rgba(0,0,0,0.05); }
+
 .text-box { flex-grow: 1; }
 .text-box h3 { font-size: calc(16px * var(--text-scale)); font-weight: 800; color: #111; margin-bottom: 3px; }
 .text-box p { font-size: calc(12px * var(--text-scale)); color: #8898AA; font-weight: 500; }
@@ -66,7 +66,7 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .list-container.grid-view { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px 8px; padding: 10px 0 40px 0; }
 .list-container.grid-view .list-card { flex-direction: column; padding: 0; background: transparent; box-shadow: none; border: none; align-items: center; }
 .list-container.grid-view .list-card:hover { transform: translateY(-3px); box-shadow: none; }
-.list-container.grid-view .app-icon-img, .list-container.grid-view .icon-box { width: 60px; height: 60px; margin: 0 0 8px 0; border-radius: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.list-container.grid-view .app-icon-img, .list-container.grid-view .icon-box { width: 60px; height: 60px; margin: 0 0 8px 0; border-radius: 22px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 .list-container.grid-view .text-box { width: 100%; text-align: center; }
 .list-container.grid-view .text-box h3 { font-size: 11px; font-weight: 400; margin: 0; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
 .list-container.grid-view .text-box p, .list-container.grid-view .btn-go { display: none; }
@@ -100,14 +100,7 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 .text-btn { background: none; border: none; color: #888; font-size: 12px; cursor: pointer; padding: 5px; text-decoration: underline; }
 .divider { color: #ddd; }
 
-/* [중요] 모달 우선순위 20000 */
-.modal-overlay { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: rgba(0, 0, 0, 0.6); 
-    z-index: 20000; 
-    display: none; justify-content: center; align-items: center; 
-    opacity: 0; transition: opacity 0.3s ease; pointer-events: none; 
-}
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 20000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
 .modal-overlay.show { opacity: 1; pointer-events: auto; }
 .modal-content { background: white; width: 90%; max-width: 400px; border-radius: 32px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; transform: translateY(20px); transition: transform 0.3s ease; }
 .modal-overlay.show .modal-content { transform: translateY(0); }
@@ -210,6 +203,7 @@ input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
     .list-container.grid-view { grid-template-columns: repeat(6, 1fr); gap: 30px; }
     .list-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
     .list-card { flex-direction: column; align-items: flex-start; padding: 24px; height: 100%; position: relative; }
+    /* PC에서는 아이콘 크기 유지 */
     .app-icon-img { width: 60px; height: 60px; margin-right: 0; margin-bottom: 16px; border-radius: 22px; }
     .icon-box { margin-bottom: 16px; width: 60px; height: 60px; font-size: 28px; border-radius: 22px; }
     .text-box { margin-bottom: 16px; }
