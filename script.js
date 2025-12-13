@@ -17,20 +17,19 @@ let isPlayerReady = false;
 let pendingPlay = null;
 
 function onYouTubeIframeAPIReady() {
-    // [핵심] 로그인 정보 연동을 위해 도메인을 명확히 지정
-    const originUrl = window.location.origin;
+    const origin = window.location.origin;
     
     player = new YT.Player('youtube-player', {
         height: '100%',
         width: '100%',
-        host: 'https://www.youtube.com', // 표준 호스트 강제
+        host: 'https://www.youtube.com',
         playerVars: {
             'playsinline': 1,
             'rel': 0,
             'modestbranding': 1,
             'controls': 1,
-            'origin': originUrl, // 출처 명시 (필수)
-            'widget_referrer': originUrl, // 리퍼러 명시 (보안 강화)
+            'origin': origin,
+            'widget_referrer': window.location.href,
             'enablejsapi': 1,
             'autoplay': 0,
             'disablekb': 1
@@ -44,14 +43,10 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady(event) {
     isPlayerReady = true;
-    
-    // iframe에 쿠키 접근 권한 속성 추가 시도
     const iframe = document.getElementById('youtube-player');
     if (iframe) {
-        // storage-access 권한 명시
         iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
     }
-
     if (pendingPlay) {
         playRandomVideo(pendingPlay.category, pendingPlay.title);
         pendingPlay = null; 
@@ -85,6 +80,16 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             window.location.reload();
         });
+    }
+
+    // [NEW] 로딩 화면 처리
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+        // 약간의 딜레이를 주어 부드럽게 사라지게 함
+        setTimeout(() => {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => { loadingScreen.style.display = 'none'; }, 400);
+        }, 400); 
     }
 
     try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
