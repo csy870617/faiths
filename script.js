@@ -82,15 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // [NEW] 로딩 화면 처리
-    const loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) {
-        // 약간의 딜레이를 주어 부드럽게 사라지게 함
-        setTimeout(() => {
-            loadingScreen.style.opacity = '0';
-            setTimeout(() => { loadingScreen.style.display = 'none'; }, 400);
-        }, 400); 
-    }
+    // 로딩 화면 코드 삭제됨 (CSS 애니메이션으로 처리)
 
     try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
 
