@@ -32,9 +32,8 @@
 
     <div id="internal-browser" class="internal-browser">
         <button id="browser-close-btn" class="browser-close-floating">✕</button>
-        <div class="browser-content">
-            <iframe id="browser-frame" src="" frameborder="0"></iframe>
-        </div>
+        <div class="browser-content" id="browser-content-area">
+            </div>
     </div>
 
     <div class="mobile-wrapper">
@@ -70,11 +69,17 @@
         </div>
 
         <div class="list-container" id="main-list">
+            
+            <div class="list-card" id="card-bible" data-category="faith" data-link="https://prs.app/ko/bible/gen.1.nkrv" data-target="external">
+                <img src="icon/8.png" alt="Holy Bible" class="app-icon-img">
+                <div class="text-box"><h3>Holy Bible</h3><p>공동체성경읽기 사이트로 연결됩니다</p></div><button class="btn-go">→</button>
+            </div>
+
             <div class="list-card main-feature" id="card-daily" data-category="faith" data-link="https://csy870617.github.io/todaybible/">
                 <img src="icon/1.png" alt="하루말씀" class="app-icon-img">
                 <div class="text-box"><h3>하루 말씀카드</h3><p>오늘 하나님과 동행할 말씀카드</p></div><button class="btn-go">→</button>
             </div>
-            <div class="list-card" id="card-mbti" data-category="faith" data-link="https://faiths.life/">
+            <div class="list-card" id="card-mbti" data-category="growth" data-link="https://faiths.life/">
                 <img src="icon/2.png" alt="FAITH MBTI" class="app-icon-img">
                 <div class="text-box"><h3>FAITH MBTI</h3><p>크리스천 신앙 유형 분석</p></div><button class="btn-go">→</button>
             </div>
@@ -137,6 +142,7 @@
             <div id="ccm-player-view" style="display: none;">
                 <div class="player-header">
                     <h3 id="player-title">재생 중</h3>
+                    <button id="float-mode-btn" class="float-icon-btn"><span>📺</span> 화면 띄우기</button>
                 </div>
                 
                 <div class="video-container">
@@ -155,8 +161,6 @@
                     <button id="shuffle-play-btn" class="action-btn">🔄 다른 플리 듣기</button>
                     <button id="back-to-menu-btn" class="action-btn secondary">📂 다른 주제 고르기</button>
                 </div>
-                
-                <button id="float-mode-btn" class="float-icon-btn"><span>📺</span> 화면 띄우기</button>
             </div>
         </div>
     </div>

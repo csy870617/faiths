@@ -77,30 +77,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 로딩 화면 코드 제거됨
-
     try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
 
-    // 앱 내 브라우저 로직 (간소화됨)
+    // 앱 내 브라우저 로직
     const internalBrowser = document.getElementById('internal-browser');
-    const browserFrame = document.getElementById('browser-frame');
+    const browserContentArea = document.getElementById('browser-content-area');
     const browserCloseBtn = document.getElementById('browser-close-btn');
 
     function openInternalBrowser(url) {
-        if (internalBrowser && browserFrame) {
-            browserFrame.src = url;
-            internalBrowser.classList.add('show');
-            history.pushState({ browserOpen: true }, null, "");
-        } else {
+        if (!internalBrowser || !browserContentArea) {
             window.open(url, '_blank');
+            return;
         }
+
+        browserContentArea.innerHTML = '';
+
+        const newIframe = document.createElement('iframe');
+        newIframe.id = 'browser-frame';
+        newIframe.src = url;
+        newIframe.frameBorder = '0';
+        newIframe.style.width = '100%';
+        newIframe.style.height = '100%';
+        newIframe.style.background = '#fff';
+
+        browserContentArea.appendChild(newIframe);
+        internalBrowser.classList.add('show');
+        
+        history.pushState({ browserOpen: true }, null, "");
     }
 
     function closeInternalBrowser() {
         if (internalBrowser && internalBrowser.classList.contains('show')) {
             internalBrowser.classList.remove('show');
+            
             setTimeout(() => { 
-                if(browserFrame) browserFrame.src = ''; 
+                if(browserContentArea) browserContentArea.innerHTML = ''; 
             }, 300);
             
             if (history.state && history.state.browserOpen) {
@@ -113,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
         browserCloseBtn.onclick = () => {
             if (internalBrowser.classList.contains('show')) {
                  internalBrowser.classList.remove('show');
-                 setTimeout(() => { if(browserFrame) browserFrame.src = ''; }, 300);
+                 setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
                  if (history.state && history.state.browserOpen) {
                      history.back();
                  }
@@ -339,7 +350,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (modal.id === 'internal-browser') {
-            closeInternalBrowser();
+            // 여기서는 UI만 닫고, 내용은 popstate에서 처리됨 (또는 위 함수에서)
+            if (internalBrowser.classList.contains('show')) {
+                internalBrowser.classList.remove('show');
+                setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
+            }
             return;
         }
 
@@ -349,11 +364,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleCloseBtnClick = (modal) => { closeModal(modal); if (history.state && (history.state.modalOpen || history.state.browserOpen)) history.back(); };
     
-    // [중요 수정] 뒤로가기 로직 간소화
+    // 뒤로가기 로직
     window.addEventListener('popstate', () => {
         if (internalBrowser.classList.contains('show')) {
             internalBrowser.classList.remove('show');
-            setTimeout(() => { if(browserFrame) browserFrame.src = ''; }, 300);
+            if(browserContentArea) browserContentArea.innerHTML = '';
             return;
         }
         
@@ -501,7 +516,16 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 const link = card.getAttribute('data-link');
                 const title = card.querySelector('h3') ? card.querySelector('h3').innerText : 'FAITHS';
-                if (link) openInternalBrowser(link); // 타이틀 인자 제거
+                // [수정됨] data-target="external"이면 새창, 아니면 인앱 브라우저
+                const target = card.getAttribute('data-target');
+                
+                if (link) {
+                    if (target === 'external') {
+                        window.open(link, '_blank');
+                    } else {
+                        openInternalBrowser(link);
+                    }
+                }
             }
         };
     }
