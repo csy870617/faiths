@@ -1,10 +1,10 @@
-const CACHE_NAME = 'faiths-v102'; /* 버전 업 */
+const CACHE_NAME = 'faiths-v103'; /* 버전 업 */
 
 const urlsToCache = [
   './',
   './index.html',
-  './style.css?v=102', /* 여기도 쿼리 스트링 맞춤 */
-  './script.js?v=102',
+  './style.css?v=103',
+  './script.js?v=103',
   './playlist.js?v=102',
   './manifest.json',
   './icon/0.png',

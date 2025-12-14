@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
 
-    // [수정됨] 앱 내 브라우저 로직 (로딩 링 추가)
+    // 앱 내 브라우저 로직
     const internalBrowser = document.getElementById('internal-browser');
     const browserContentArea = document.getElementById('browser-content-area');
     const browserCloseBtn = document.getElementById('browser-close-btn');
@@ -103,15 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 1. 기존 내용 비우기
         browserContentArea.innerHTML = '';
 
-        // 2. 로딩 링 생성 및 추가
         const loadingDiv = document.createElement('div');
         loadingDiv.className = 'browser-loader';
         browserContentArea.appendChild(loadingDiv);
 
-        // 3. 아이프레임 생성 (초기엔 숨김)
         const newIframe = document.createElement('iframe');
         newIframe.id = 'browser-frame';
         newIframe.src = url;
@@ -119,10 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
         newIframe.style.width = '100%';
         newIframe.style.height = '100%';
         newIframe.style.background = '#fff';
-        newIframe.style.opacity = '0'; // 로딩 전까지 안 보이게
+        newIframe.style.opacity = '0'; 
         newIframe.style.transition = 'opacity 0.3s ease';
 
-        // 4. 로드 완료 시 로딩 링 제거 후 아이프레임 표시
         newIframe.onload = function() {
             if (browserContentArea.contains(loadingDiv)) {
                 loadingDiv.remove();
@@ -206,7 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
             listContainer.classList.remove('grid-view');
             viewListBtn.classList.add('active');
             viewGridBtn.classList.remove('active');
-            if(shareTitle) shareTitle.innerText = '함께 성장할 친구 초대';
+            // [수정됨] 문구 변경
+            if(shareTitle) shareTitle.innerText = '함께 성장할 교회친구 초대';
         }
         localStorage.setItem('viewMode', mode);
     };
@@ -529,7 +526,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (card.id === 'card-ccm') {
-                openModal(modalOverlay);
+                // [수정됨] 화면 복원 로직 추가
+                if (modalOverlay.classList.contains('mini-mode')) {
+                    maximizePlayer();
+                } else {
+                    openModal(modalOverlay);
+                }
             } else if (card.id === 'card-share') {
                 const shareUrl = 'https://csy870617.github.io/faiths/';
                 if (window.Kakao && Kakao.isInitialized()) {
