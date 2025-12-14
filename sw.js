@@ -3,9 +3,9 @@ const CACHE_NAME = 'faiths-v102'; /* 버전 업 */
 const urlsToCache = [
   './',
   './index.html',
-  './style.css',
-  './script.js',
-  './playlist.js',
+  './style.css?v=102', /* 여기도 쿼리 스트링 맞춤 */
+  './script.js?v=102',
+  './playlist.js?v=102',
   './manifest.json',
   './icon/0.png',
   './icon/1.png',
@@ -48,5 +48,4 @@ self.addEventListener('activate', event => {
       );
     })
   );
-
 });

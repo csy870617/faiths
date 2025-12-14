@@ -8,12 +8,12 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#F5F6F8">
     <link rel="apple-touch-icon" href="icon/0.png">
 
     <meta name="referrer" content="no-referrer-when-downgrade">
-
     <meta name="description" content="더 멋진 크리스천으로 함께 성장해요.">
     <meta property="og:type" content="website">
     <meta property="og:title" content="FAITHS - 크리스천 성장 도구">
@@ -22,7 +22,8 @@
     <meta property="og:url" content="https://csy870617.github.io/faiths/">
 
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-    <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="style.css?v=102">
     
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2txfYR9bGr4uwcTKnp8D4" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
@@ -74,12 +75,10 @@
         </div>
 
         <div class="list-container" id="main-list">
-            
             <div class="list-card" id="card-bible" data-category="faith">
                 <img src="icon/8.png" alt="Holy Bible" class="app-icon-img">
                 <div class="text-box"><h3>Holy Bible</h3><p>공동체성경읽기 / YouVersion</p></div><button class="btn-go">→</button>
             </div>
-
             <div class="list-card main-feature" id="card-daily" data-category="faith" data-link="https://csy870617.github.io/todaybible/">
                 <img src="icon/1.png" alt="오늘의 말씀카드" class="app-icon-img">
                 <div class="text-box"><h3>오늘의 말씀카드</h3><p>오늘 하나님과 동행할 말씀카드</p></div><button class="btn-go">→</button>
@@ -104,17 +103,14 @@
                 <img src="icon/3.png" alt="ENGO 영어회화" class="app-icon-img">
                 <div class="text-box"><h3>ENGO 영어회화</h3><p>English & go 영어회화의 시작</p></div><button class="btn-go">→</button>
             </div>
-            
             <div class="list-card" id="card-tuner" data-category="tools" data-link="https://csy870617.github.io/ChurchTuner/">
                 <img src="icon/6.png" alt="Church Tuner" class="app-icon-img">
                 <div class="text-box"><h3>Church Tuner</h3><p>교회 악기 튜닝기</p></div><button class="btn-go">→</button>
             </div>
-
             <div class="list-card" id="card-chord" data-category="tools" data-link="https://csy870617.github.io/chordfinder/">
                 <img src="icon/9.png" alt="Guitar Chord Finder" class="app-icon-img">
                 <div class="text-box"><h3>Guitar Chord Finder</h3><p>쉬운 기타 코드 검색기</p></div><button class="btn-go">→</button>
             </div>
-
             <div class="list-card share-card" id="card-share" data-category="tools">
                 <div class="icon-box" style="background: #FEE500; color: #3b1e1e;">💌</div> 
                 <div class="text-box"><h3>함께 성장할 친구 초대</h3><p>이 플랫폼을 친구에게 공유하기</p></div><button class="btn-go">📤</button>
@@ -259,8 +255,9 @@
         </div>
     </div>
 
-    <script src="playlist.js"></script>
-    <script src="script.js"></script>
+    <script src="playlist.js?v=102"></script>
+    <script src="script.js?v=102"></script>
+    
     <script>
         window.addEventListener('load', function() {
             setTimeout(function() {
