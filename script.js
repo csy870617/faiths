@@ -90,9 +90,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 400); 
     }
 
-    try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
+    // [수정됨] 사용자 키 적용 (b5c055c0651a6fce6f463abd18a9bdc7)
+    try { 
+        if (!Kakao.isInitialized()) {
+            Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); 
+        }
+    } catch (e) {}
 
-    // 앱 내 브라우저 로직 (숨쉬는 로고 사용)
+    // 앱 내 브라우저 로직
     const internalBrowser = document.getElementById('internal-browser');
     const browserContentArea = document.getElementById('browser-content-area');
     const browserCloseBtn = document.getElementById('browser-close-btn');
@@ -457,15 +462,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else if (card.id === 'card-share') {
                 const shareUrl = 'https://csy870617.github.io/faiths/';
-                // [수정됨] 1순위: 모바일 기본 공유 (가장 안전하고 확실함)
+                // [수정됨] 말풍선(Kakao.Share) 기능 제거
+                // 1. 모바일 기본 공유 (가장 깔끔함)
                 if (navigator.share) {
                     try { await navigator.share({ title: 'FAITHS', text: '크리스천 성장 도구 FAITHS', url: shareUrl }); return; } catch (err) {}
                 }
-                // 2순위: 카카오 (키가 맞을 때만 작동)
-                if (window.Kakao && Kakao.isInitialized()) {
-                    try { Kakao.Share.sendScrap({ requestUrl: shareUrl }); return; } catch (err) {}
-                }
-                // 3순위: 클립보드 복사
+                // 2. 안 되면 클립보드 복사
                 try { await navigator.clipboard.writeText(shareUrl); alert('주소가 복사되었습니다!'); } catch (err) { prompt('주소:', shareUrl); }
             } else if (card.id === 'card-bible') {
                 openModal(bibleModal);
