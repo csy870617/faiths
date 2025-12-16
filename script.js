@@ -1,4 +1,12 @@
-// 0. 인앱 브라우저 탈출
+// 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
+let player;
+let isPlayerReady = false;
+let pendingPlay = null;
+let wakeLock = null;
+let currentCategory = null; 
+let lastVideoUrl = null; 
+
+// 인앱 브라우저 탈출
 (function() {
     const userAgent = navigator.userAgent.toLowerCase();
     const targetUrl = location.href;
@@ -11,66 +19,81 @@
     }
 })();
 
-// 유튜브 API 변수
-let player;
-let isPlayerReady = false;
-let pendingPlay = null;
+// WakeLock 함수 (전역)
+const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
+const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
 
+// 유튜브 API 콜백 (전역)
 function onYouTubeIframeAPIReady() {
     const origin = window.location.origin;
-    
     player = new YT.Player('youtube-player', {
         height: '100%',
         width: '100%',
         host: 'https://www.youtube.com',
-        playerVars: {
-            'playsinline': 1,
-            'rel': 0,
-            'modestbranding': 1,
-            'controls': 1,
-            'origin': origin,
-            'widget_referrer': window.location.href,
-            'enablejsapi': 1,
-            'autoplay': 0,
-            'disablekb': 1
-        },
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
-        }
+        playerVars: { 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'controls': 1, 'origin': origin, 'widget_referrer': window.location.href, 'enablejsapi': 1, 'autoplay': 0, 'disablekb': 1 },
+        events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
     });
 }
 
 function onPlayerReady(event) {
     isPlayerReady = true;
     const iframe = document.getElementById('youtube-player');
-    if (iframe) {
-        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
-    }
-    if (pendingPlay) {
-        playRandomVideo(pendingPlay.category, pendingPlay.title);
-        pendingPlay = null; 
-    }
+    if (iframe) { iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'); }
+    if (pendingPlay) { playRandomVideo(pendingPlay.category, pendingPlay.title); pendingPlay = null; }
 }
 
 function onPlayerStateChange(event) {
     const playPauseBtn = document.getElementById('mini-play-pause');
     if (playPauseBtn) {
-        if (event.data == YT.PlayerState.PLAYING) {
-            playPauseBtn.innerText = "⏸";
-        } else {
-            playPauseBtn.innerText = "▶";
-        }
+        if (event.data == YT.PlayerState.PLAYING) { playPauseBtn.innerText = "⏸"; } else { playPauseBtn.innerText = "▶"; }
     }
 }
 
+function getYouTubeIdInfo(url) {
+    if (!url) return null;
+    const listMatch = url.match(/[?&]list=([^#&?]+)/);
+    if (listMatch) return { type: 'playlist', id: listMatch[1] };
+    const videoMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/)([^#&?]*))/);
+    if (videoMatch) return { type: 'video', id: videoMatch[1] };
+    return null;
+}
+
+// [핵심] 재생 함수 (전역으로 이동)
+window.playRandomVideo = (category, title) => {
+    // DOM 요소 찾기 (전역이라서 내부에서 찾음)
+    const ccmMenuView = document.getElementById('ccm-menu-view');
+    const ccmPlayerView = document.getElementById('ccm-player-view');
+    const playerTitle = document.getElementById('player-title');
+
+    if (typeof CCM_PLAYLIST !== 'undefined' && CCM_PLAYLIST[category]) {
+        const list = CCM_PLAYLIST[category];
+        let availableList = list.filter(url => url !== lastVideoUrl);
+        if (availableList.length === 0) availableList = list;
+        const randomUrl = availableList[Math.floor(Math.random() * availableList.length)];
+        lastVideoUrl = randomUrl;
+
+        const idInfo = getYouTubeIdInfo(randomUrl);
+
+        if(playerTitle && title) playerTitle.innerText = title;
+        if(ccmMenuView) ccmMenuView.style.display = 'none';
+        if(ccmPlayerView) ccmPlayerView.style.display = 'block';
+        requestWakeLock();
+
+        if (idInfo) {
+            if (player && isPlayerReady) {
+                if (idInfo.type === 'playlist') { player.loadPlaylist({list: idInfo.id, listType: 'playlist'}); } 
+                else { player.loadVideoById(idInfo.id); }
+            } else {
+                console.log("Player not ready. Queuing...");
+                pendingPlay = { category: category, title: title }; 
+            }
+        }
+    } else { alert("재생 목록이 없습니다."); }
+};
+
+// 2. DOM 로드 후 실행 (이벤트 바인딩)
 document.addEventListener('DOMContentLoaded', () => {
     
-    let wakeLock = null;
-    
-    const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
-    const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
-
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').then(reg => {
             reg.addEventListener('updatefound', () => {
@@ -103,13 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const browserCloseBtn = document.getElementById('browser-close-btn');
 
     function openInternalBrowser(url) {
-        if (!internalBrowser || !browserContentArea) {
-            window.open(url, '_blank');
-            return;
-        }
-
+        if (!internalBrowser || !browserContentArea) { window.open(url, '_blank'); return; }
         browserContentArea.innerHTML = '';
-
         const loadingBox = document.createElement('div');
         loadingBox.className = 'loading-icon-box';
         const loadingImg = document.createElement('img');
@@ -129,28 +147,19 @@ document.addEventListener('DOMContentLoaded', () => {
         newIframe.style.transition = 'opacity 0.3s ease';
 
         newIframe.onload = function() {
-            if (browserContentArea.contains(loadingBox)) {
-                loadingBox.remove();
-            }
+            if (browserContentArea.contains(loadingBox)) { loadingBox.remove(); }
             newIframe.style.opacity = '1';
         };
-
         browserContentArea.appendChild(newIframe);
         internalBrowser.classList.add('show');
-        
         history.pushState({ browserOpen: true }, null, "");
     }
 
     function closeInternalBrowser() {
         if (internalBrowser && internalBrowser.classList.contains('show')) {
             internalBrowser.classList.remove('show');
-            setTimeout(() => { 
-                if(browserContentArea) browserContentArea.innerHTML = ''; 
-            }, 300);
-            
-            if (history.state && history.state.browserOpen) {
-                history.back();
-            }
+            setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
+            if (history.state && history.state.browserOpen) { history.back(); }
         }
     }
 
@@ -159,33 +168,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (internalBrowser.classList.contains('show')) {
                  internalBrowser.classList.remove('show');
                  setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
-                 if (history.state && history.state.browserOpen) {
-                     history.back();
-                 }
+                 if (history.state && history.state.browserOpen) { history.back(); }
             }
         };
     }
 
     const listContainer = document.getElementById('main-list');
     let isDragging = false; 
-
     const savedOrder = JSON.parse(localStorage.getItem('menuOrder'));
     if (savedOrder) {
         const currentCards = Array.from(listContainer.children);
         const cardMap = {};
         currentCards.forEach(card => cardMap[card.id] = card);
-        savedOrder.forEach(id => {
-            if (cardMap[id]) listContainer.appendChild(cardMap[id]);
-        });
+        savedOrder.forEach(id => { if (cardMap[id]) listContainer.appendChild(cardMap[id]); });
     }
 
     new Sortable(listContainer, {
-        animation: 150,
-        delay: 200, 
-        delayOnTouchOnly: true, 
-        touchStartThreshold: 5, 
-        ghostClass: 'sortable-ghost',
-        dragClass: 'sortable-drag',
+        animation: 150, delay: 200, delayOnTouchOnly: true, touchStartThreshold: 5, 
+        ghostClass: 'sortable-ghost', dragClass: 'sortable-drag',
         onStart: function() { isDragging = true; },
         onEnd: function (evt) {
             setTimeout(() => { isDragging = false; }, 100);
@@ -203,13 +203,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const setViewMode = (mode) => {
         if (mode === 'grid') {
             listContainer.classList.add('grid-view');
-            viewGridBtn.classList.add('active');
-            viewListBtn.classList.remove('active');
+            viewGridBtn.classList.add('active'); viewListBtn.classList.remove('active');
             if(shareTitle) shareTitle.innerText = '친구 초대';
         } else {
             listContainer.classList.remove('grid-view');
-            viewListBtn.classList.add('active');
-            viewGridBtn.classList.remove('active');
+            viewListBtn.classList.add('active'); viewGridBtn.classList.remove('active');
             if(shareTitle) shareTitle.innerText = '함께 성장할 교회친구 초대';
         }
         localStorage.setItem('viewMode', mode);
@@ -234,111 +232,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const maximizeOverlay = document.getElementById('maximize-overlay'); 
     const miniPlayPauseBtn = document.getElementById('mini-play-pause');
     const miniCloseBtn = document.getElementById('mini-close');
-
-    const playerTitle = document.getElementById('player-title');
+    
+    // UI 버튼들
     const ccmBtn = document.getElementById('ccm-btn');
     const settingsBtn = document.getElementById('settings-btn');
     const closeModalBtn = document.getElementById('close-modal');
     const closeIosModalBtn = document.getElementById('close-ios-modal');
     const closeSettingsBtn = document.getElementById('close-settings-modal');
     const moodBtns = document.querySelectorAll('.mood-btn');
-    let currentModal = null; 
-    let currentCategory = null; 
-    let lastVideoUrl = null; 
 
-    let isPlayerDragging = false;
-    let shiftX, shiftY;
-    let dragStartTime = 0;
-    let dragStartPos = { x: 0, y: 0 };
+    // Mood 버튼 클릭 이벤트 연결
+    moodBtns.forEach(btn => {
+        btn.onclick = () => {
+            const key = btn.getAttribute('data-key');
+            const title = btn.querySelector('span:last-child').innerText;
+            currentCategory = key;
+            lastVideoUrl = null; 
+            playRandomVideo(key, title); 
+        };
+    });
 
-    const maximizePlayer = (e) => {
-         if (e) {
-             e.preventDefault();
-             e.stopPropagation();
-             e.stopImmediatePropagation(); 
-         }
-
-         modalOverlay.classList.remove('mini-mode');
-         if(maximizeOverlay) maximizeOverlay.style.display = 'none';
-         
-         ccmMenuView.style.display = 'none';
-         ccmPlayerView.style.display = 'block';
-
-         draggablePlayer.style.top = '';
-         draggablePlayer.style.left = '';
-         draggablePlayer.style.bottom = '20px';
-         draggablePlayer.style.right = '20px';
-    };
-
-    const startPlayerDrag = (e) => {
-        if (!modalOverlay.classList.contains('mini-mode')) return;
-        if (e.target.classList.contains('mini-btn')) return;
-
-        isPlayerDragging = true;
-        dragStartTime = new Date().getTime();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        dragStartPos = { x: clientX, y: clientY };
-        const rect = draggablePlayer.getBoundingClientRect();
-        shiftX = clientX - rect.left;
-        shiftY = clientY - rect.top;
-        draggablePlayer.style.transition = 'none';
-        draggablePlayer.style.bottom = 'auto';
-        draggablePlayer.style.right = 'auto';
-        draggablePlayer.style.left = rect.left + 'px';
-        draggablePlayer.style.top = rect.top + 'px';
-    };
-
-    const onPlayerDrag = (e) => {
-        if (!isPlayerDragging) return;
-        e.preventDefault(); 
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        draggablePlayer.style.left = (clientX - shiftX) + 'px';
-        draggablePlayer.style.top = (clientY - shiftY) + 'px';
-    };
-
-    const endPlayerDrag = (e) => {
-        if (!isPlayerDragging) return;
-        isPlayerDragging = false;
-        
-        const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-        const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-        const distance = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
-
-        if (distance < 10) {
-             maximizePlayer(e);
-        }
-    };
-
-    if (draggablePlayer) {
-        draggablePlayer.addEventListener('mousedown', startPlayerDrag);
-        draggablePlayer.addEventListener('touchstart', startPlayerDrag, {passive: false});
-        document.addEventListener('mousemove', onPlayerDrag);
-        document.addEventListener('touchmove', onPlayerDrag, {passive: false});
-        document.addEventListener('mouseup', endPlayerDrag);
-        document.addEventListener('touchend', endPlayerDrag);
-    }
-
-    if (maximizeOverlay) {
-        maximizeOverlay.onclick = maximizePlayer;
-    }
-
-    if (miniPlayPauseBtn) {
-        miniPlayPauseBtn.onclick = (e) => {
-            e.stopPropagation(); 
-            if (player && typeof player.getPlayerState === 'function') {
-                const state = player.getPlayerState();
-                if (state === YT.PlayerState.PLAYING) player.pauseVideo();
-                else player.playVideo();
-            }
+    if (shufflePlayBtn) {
+        shufflePlayBtn.onclick = () => {
+            if (currentCategory) playRandomVideo(currentCategory, null);
         };
     }
 
-    if (miniCloseBtn) {
-        miniCloseBtn.onclick = (e) => {
-            e.stopPropagation();
-            closeModal(modalOverlay);
+    if (backToMenuBtn) {
+        backToMenuBtn.onclick = () => {
+            if(player && typeof player.stopVideo === 'function') player.stopVideo();
+            if(ccmPlayerView) ccmPlayerView.style.display = 'none';
+            if(ccmMenuView) ccmMenuView.style.display = 'block';
+            releaseWakeLock(); 
+        };
+    }
+
+    if (floatModeBtn) {
+        floatModeBtn.onclick = () => {
+            modalOverlay.classList.add('mini-mode');
+            if (maximizeOverlay) maximizeOverlay.style.display = 'block';
         };
     }
 
@@ -352,50 +284,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const closeModal = (modal) => {
         if (!modal) return;
-        
         modal.classList.remove('mini-mode');
         if (maximizeOverlay) maximizeOverlay.style.display = 'none';
         
+        // 플레이어 위치 초기화
         if(modal === modalOverlay && draggablePlayer) {
-            draggablePlayer.style.top = '';
-            draggablePlayer.style.left = '';
-            draggablePlayer.style.bottom = '20px';
-            draggablePlayer.style.right = '20px';
+            draggablePlayer.style.top = ''; draggablePlayer.style.left = '';
+            draggablePlayer.style.bottom = '20px'; draggablePlayer.style.right = '20px';
         }
 
         if (modal === modalOverlay) {
-            if(player && typeof player.stopVideo === 'function') {
-                player.stopVideo();
-            }
-            if (typeof releaseWakeLock === 'function') {
-                releaseWakeLock();
-            }
+            if(player && typeof player.stopVideo === 'function') { player.stopVideo(); }
+            releaseWakeLock(); 
             setTimeout(() => { if(ccmPlayerView) ccmPlayerView.style.display = 'none'; if(ccmMenuView) ccmMenuView.style.display = 'block'; }, 300);
         }
+        if (modal.id === 'internal-browser') { closeInternalBrowser(); return; }
         
-        if (modal.id === 'internal-browser') {
-            closeInternalBrowser();
-            return;
-        }
-
         modal.classList.remove('show');
         setTimeout(() => { modal.style.display = 'none'; if (currentModal === modal) currentModal = null; }, 300);
     };
 
     const handleCloseBtnClick = (modal) => { closeModal(modal); if (history.state && (history.state.modalOpen || history.state.browserOpen)) history.back(); };
     
+    // 뒤로가기
     window.addEventListener('popstate', () => {
         if (internalBrowser.classList.contains('show')) {
             internalBrowser.classList.remove('show');
             if(browserContentArea) browserContentArea.innerHTML = '';
             return;
         }
-        
         if (currentModal) {
-            if (currentModal === modalOverlay && modalOverlay.classList.contains('mini-mode')) {
-                currentModal = null; 
-                return;
-            }
+            if (currentModal === modalOverlay && modalOverlay.classList.contains('mini-mode')) { currentModal = null; return; }
             closeModal(currentModal);
         }
     });
@@ -404,17 +323,113 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeModalBtn) closeModalBtn.onclick = () => handleCloseBtnClick(modalOverlay);
     if (closeBibleModalBtn) closeBibleModalBtn.onclick = () => handleCloseBtnClick(bibleModal);
     if (bibleModal) bibleModal.onclick = (e) => { if (e.target === bibleModal) handleCloseBtnClick(bibleModal); };
-
-    if (modalOverlay) modalOverlay.onclick = (e) => { 
-        if (!modalOverlay.classList.contains('mini-mode') && e.target === modalOverlay) {
-            handleCloseBtnClick(modalOverlay); 
-        }
-    };
+    if (modalOverlay) modalOverlay.onclick = (e) => { if (!modalOverlay.classList.contains('mini-mode') && e.target === modalOverlay) { handleCloseBtnClick(modalOverlay); } };
     if (closeIosModalBtn) closeIosModalBtn.onclick = () => handleCloseBtnClick(iosModal);
     if (iosModal) iosModal.onclick = (e) => { if (e.target === iosModal) handleCloseBtnClick(iosModal); };
     if (settingsBtn) settingsBtn.onclick = () => openModal(settingsModal);
     if (closeSettingsBtn) closeSettingsBtn.onclick = () => handleCloseBtnClick(settingsModal);
     if (settingsModal) settingsModal.onclick = (e) => { if (e.target === settingsModal) handleCloseBtnClick(settingsModal); };
+
+    // --- 드래그 기능 완벽 복구 (여기부터 시작) ---
+    let isPlayerDragging = false;
+    let shiftX, shiftY;
+    let dragStartPos = { x: 0, y: 0 };
+
+    // 플레이어 화면 키우기 함수
+    const maximizePlayer = (e) => {
+         if (e) {
+             e.preventDefault();
+             e.stopPropagation();
+             e.stopImmediatePropagation(); 
+         }
+         modalOverlay.classList.remove('mini-mode');
+         if(maximizeOverlay) maximizeOverlay.style.display = 'none';
+         
+         ccmMenuView.style.display = 'none';
+         ccmPlayerView.style.display = 'block';
+
+         // 위치 초기화 (전체 화면 모드 복귀 시 하단 고정)
+         draggablePlayer.style.top = '';
+         draggablePlayer.style.left = '';
+         draggablePlayer.style.bottom = '20px';
+         draggablePlayer.style.right = '20px';
+    };
+
+    // 1. 드래그 시작
+    const startPlayerDrag = (e) => {
+        if (!modalOverlay.classList.contains('mini-mode')) return;
+        // 미니 버튼(재생/닫기) 클릭 시 드래그 안 함
+        if (e.target.classList.contains('mini-btn')) return;
+
+        isPlayerDragging = true;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        dragStartPos = { x: clientX, y: clientY };
+
+        const rect = draggablePlayer.getBoundingClientRect();
+        shiftX = clientX - rect.left;
+        shiftY = clientY - rect.top;
+        
+        // 부드러운 이동을 위해 트랜지션 해제 및 좌표 설정 방식 변경
+        draggablePlayer.style.transition = 'none';
+        draggablePlayer.style.bottom = 'auto';
+        draggablePlayer.style.right = 'auto';
+        draggablePlayer.style.left = rect.left + 'px';
+        draggablePlayer.style.top = rect.top + 'px';
+    };
+
+    // 2. 드래그 중
+    const onPlayerDrag = (e) => {
+        if (!isPlayerDragging) return;
+        e.preventDefault(); // 스크롤 방지
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        draggablePlayer.style.left = (clientX - shiftX) + 'px';
+        draggablePlayer.style.top = (clientY - shiftY) + 'px';
+    };
+
+    // 3. 드래그 끝
+    const endPlayerDrag = (e) => {
+        if (!isPlayerDragging) return;
+        isPlayerDragging = false;
+        
+        const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+        const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+        
+        // 이동 거리가 매우 짧으면(10px 미만) 드래그가 아니라 '클릭'으로 판단 -> 화면 키우기
+        const distance = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
+
+        if (distance < 10) {
+             maximizePlayer(e);
+        }
+    };
+
+    // 이벤트 리스너 연결
+    if (draggablePlayer) {
+        draggablePlayer.addEventListener('mousedown', startPlayerDrag);
+        draggablePlayer.addEventListener('touchstart', startPlayerDrag, {passive: false});
+        document.addEventListener('mousemove', onPlayerDrag);
+        document.addEventListener('touchmove', onPlayerDrag, {passive: false});
+        document.addEventListener('mouseup', endPlayerDrag);
+        document.addEventListener('touchend', endPlayerDrag);
+    }
+    
+    // 확대 오버레이 클릭 시 확대
+    if (maximizeOverlay) {
+        maximizeOverlay.onclick = maximizePlayer;
+    }
+
+    if (miniPlayPauseBtn) {
+        miniPlayPauseBtn.onclick = (e) => {
+            e.stopPropagation(); 
+            if (player && typeof player.getPlayerState === 'function') {
+                const state = player.getPlayerState();
+                if (state === YT.PlayerState.PLAYING) player.pauseVideo(); else player.playVideo();
+            }
+        };
+    }
+    if (miniCloseBtn) { miniCloseBtn.onclick = (e) => { e.stopPropagation(); closeModal(modalOverlay); }; }
+    // --- 드래그 기능 끝 ---
 
     const hideModeBtn = document.getElementById('hide-mode-btn'); 
     let isHideMode = false;
@@ -440,14 +455,9 @@ document.addEventListener('DOMContentLoaded', () => {
         listContainer.onclick = async (e) => {
             const card = e.target.closest('.list-card');
             if (!card) return;
-
             if (isDragging) return;
-
             if (isHideMode) {
-                if (card.id === 'card-share' || card.id === 'card-market') {
-                    alert("이 메뉴는 숨길 수 없습니다.");
-                    return;
-                }
+                if (card.id === 'card-share' || card.id === 'card-market') { alert("이 메뉴는 숨길 수 없습니다."); return; }
                 let hiddenList = JSON.parse(localStorage.getItem('hiddenCards')) || [];
                 if (hiddenList.includes(card.id)) { hiddenList = hiddenList.filter(id => id !== card.id); card.classList.remove('user-hidden'); } 
                 else { hiddenList.push(card.id); card.classList.add('user-hidden'); }
@@ -456,32 +466,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (card.id === 'card-ccm') {
-                if (modalOverlay.classList.contains('mini-mode')) {
-                    maximizePlayer();
-                } else {
-                    openModal(modalOverlay);
-                }
+                if (modalOverlay.classList.contains('mini-mode')) { maximizePlayer(); } else { openModal(modalOverlay); }
             } else if (card.id === 'card-share') {
                 const shareUrl = 'https://csy870617.github.io/faiths/';
-                // [수정됨] URL만 공유 (말풍선 없이 링크만 전달)
-                if (navigator.share) {
-                    try { await navigator.share({ url: shareUrl }); return; } catch (err) {}
-                }
-                // 안 되면 복사
+                if (navigator.share) { try { await navigator.share({ url: shareUrl }); return; } catch (err) {} }
                 try { await navigator.clipboard.writeText(shareUrl); alert('주소가 복사되었습니다!'); } catch (err) { prompt('주소:', shareUrl); }
             } else if (card.id === 'card-bible') {
                 openModal(bibleModal);
             } else {
                 const link = card.getAttribute('data-link');
-                const title = card.querySelector('h3') ? card.querySelector('h3').innerText : 'FAITHS';
                 const target = card.getAttribute('data-target');
-                
                 if (link) {
-                    if (target === 'external') {
-                        window.open(link, '_blank');
-                    } else {
-                        openInternalBrowser(link);
-                    }
+                    if (target === 'external') { window.open(link, '_blank'); } else { openInternalBrowser(link); }
                 }
             }
         };
