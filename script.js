@@ -258,8 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const moodBtns = document.querySelectorAll('.mood-btn');
     const bibleLinkBtns = document.querySelectorAll('.bible-link-btn');
 
-    // [추가됨] 플레이어 설정 및 가이드 모달 관련
-    const playerSettingsBtn = document.getElementById('player-settings-btn');
+    // [수정됨] 새로 만든 설정 버튼 연결 (ID 변경: video-settings-btn)
+    const videoSettingsBtn = document.getElementById('video-settings-btn'); // New Button
     const cookieGuideModal = document.getElementById('cookie-guide-modal');
     const closeCookieGuideBtn = document.getElementById('close-cookie-guide-btn');
 
@@ -364,10 +364,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeSettingsBtn) closeSettingsBtn.onclick = () => handleCloseBtnClick(settingsModal);
     if (settingsModal) settingsModal.onclick = (e) => { if (e.target === settingsModal) handleCloseBtnClick(settingsModal); };
 
-    // [추가됨] 가이드 모달 연결
-    if (playerSettingsBtn) {
-        playerSettingsBtn.onclick = (e) => {
-            e.stopPropagation(); // 플레이어 드래그 등 다른 이벤트 방지
+    // [추가됨] 가이드 모달 연결 (새 버튼 ID: video-settings-btn)
+    if (videoSettingsBtn) {
+        videoSettingsBtn.onclick = (e) => {
+            e.stopPropagation(); 
             openModal(cookieGuideModal);
         };
     }
