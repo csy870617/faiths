@@ -258,10 +258,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const moodBtns = document.querySelectorAll('.mood-btn');
     const bibleLinkBtns = document.querySelectorAll('.bible-link-btn');
 
-    // [수정됨] 새로 만든 설정 버튼 연결 (ID 변경: video-settings-btn)
-    const videoSettingsBtn = document.getElementById('video-settings-btn'); // New Button
+    // [수정됨] 설정 버튼들 연결
+    const videoSettingsBtn = document.getElementById('video-settings-btn'); 
     const cookieGuideModal = document.getElementById('cookie-guide-modal');
     const closeCookieGuideBtn = document.getElementById('close-cookie-guide-btn');
+    const settingsCookieGuideBtn = document.getElementById('settings-cookie-guide-btn'); // [추가]
 
     // Mood 버튼 클릭 이벤트 연결
     moodBtns.forEach(btn => {
@@ -364,13 +365,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeSettingsBtn) closeSettingsBtn.onclick = () => handleCloseBtnClick(settingsModal);
     if (settingsModal) settingsModal.onclick = (e) => { if (e.target === settingsModal) handleCloseBtnClick(settingsModal); };
 
-    // [추가됨] 가이드 모달 연결 (새 버튼 ID: video-settings-btn)
+    // [추가됨] 가이드 모달 연결 (영상 화면 & 설정 화면 버튼 둘 다 처리)
     if (videoSettingsBtn) {
         videoSettingsBtn.onclick = (e) => {
             e.stopPropagation(); 
             openModal(cookieGuideModal);
         };
     }
+    // [추가] 설정 화면 내 버튼 클릭 시 설정창 닫고 가이드 열기
+    if (settingsCookieGuideBtn) {
+        settingsCookieGuideBtn.onclick = () => {
+            closeModal(settingsModal);
+            setTimeout(() => openModal(cookieGuideModal), 300);
+        };
+    }
+
     if (closeCookieGuideBtn) closeCookieGuideBtn.onclick = () => handleCloseBtnClick(cookieGuideModal);
     if (cookieGuideModal) cookieGuideModal.onclick = (e) => { if (e.target === cookieGuideModal) handleCloseBtnClick(cookieGuideModal); };
 

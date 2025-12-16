@@ -23,7 +23,7 @@
 
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     
-    <link rel="stylesheet" href="style.css?v=120">
+    <link rel="stylesheet" href="style.css?v=121">
     
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
@@ -163,9 +163,7 @@
                 </div>
                 <div class="video-container">
                     <div id="youtube-player"></div>
-                    
                     <button id="video-settings-btn" class="video-overlay-btn">⚙️</button>
-
                     <div id="mini-controls" class="mini-controls">
                         <button id="mini-play-pause" class="mini-btn left-top">⏸</button>
                         <button id="mini-close" class="mini-btn right-top">✕</button>
@@ -279,6 +277,16 @@
                         </div>
                     </div>
                 </div>
+                
+                <div class="setting-group" style="margin-top: 20px;">
+                    <div class="setting-item">
+                        <label>브라우저 설정</label>
+                        <button id="settings-cookie-guide-btn" class="settings-action-btn" style="background: #FFFDE7; border: 1px solid #FEE500; color: #333;">
+                            <span class="emoji">🍪</span> 서드파티 쿠키 / 광고 설정 방법
+                        </button>
+                    </div>
+                </div>
+
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 24px 0;">
                 <div class="setting-group">
                     <div class="setting-item">
@@ -296,8 +304,8 @@
         </div>
     </div>
 
-    <script src="playlist.js?v=120"></script>
-    <script src="script.js?v=120"></script>
+    <script src="playlist.js?v=121"></script>
+    <script src="script.js?v=121"></script>
     
     <script>
         window.addEventListener('load', function() {
