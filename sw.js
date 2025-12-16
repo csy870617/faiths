@@ -1,13 +1,13 @@
 // sw.js
-// [중요] 버전 업데이트: v117 (롤백 적용)
-const CACHE_NAME = 'faiths-v118'; 
+// [중요] 버전 업데이트: v119
+const CACHE_NAME = 'faiths-v119'; 
 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
-    './style.css?v=118',
-    './script.js?v=118',
-    './playlist.js?v=118', 
+    './style.css?v=119',
+    './script.js?v=119',
+    './playlist.js?v=119', 
     './manifest.json',
     './icon/0.png', 
     // 필요한 이미지나 아이콘 경로를 여기에 추가하세요

@@ -8,7 +8,6 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#F5F6F8">
     <link rel="apple-touch-icon" href="icon/0.png">
@@ -24,7 +23,7 @@
 
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     
-    <link rel="stylesheet" href="style.css?v=118">
+    <link rel="stylesheet" href="style.css?v=119">
     
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
@@ -82,27 +81,22 @@
         </div>
 
         <div class="list-container" id="main-list">
-            
             <div class="list-card" id="card-bible" data-category="faith">
                 <img src="icon/8.png" alt="Holy Bible" class="app-icon-img">
                 <div class="text-box"><h3>Holy Bible</h3><p>공동체성경읽기 / YouVersion</p></div><button class="btn-go">→</button>
             </div>
-
             <div class="list-card main-feature" id="card-daily" data-category="growth" data-link="https://csy870617.github.io/todaybible/">
                 <img src="icon/1.png" alt="오늘의 말씀카드" class="app-icon-img">
                 <div class="text-box"><h3>오늘의 말씀카드</h3><p>오늘 하나님과 동행할 말씀카드</p></div><button class="btn-go">→</button>
             </div>
-            
             <div class="list-card" id="card-mbti" data-category="growth" data-link="https://faiths.life/">
                 <img src="icon/2.png" alt="FAITH MBTI" class="app-icon-img">
                 <div class="text-box"><h3>FAITH MBTI</h3><p>크리스천 신앙 유형 분석</p></div><button class="btn-go">→</button>
             </div>
-            
             <div class="list-card" id="card-choir" data-category="faith" data-link="https://csy870617.github.io/ChurchChoir/">
                 <img src="icon/5.png" alt="성가대 연습실" class="app-icon-img">
                 <div class="text-box"><h3>성가대 연습실</h3><p>우리교회 성가대를 위한 특별한 공간</p></div><button class="btn-go">→</button>
             </div>
-            
             <div class="list-card" id="card-market" data-category="tools" data-link="https://csy870617.github.io/market/">
                 <img src="icon/7.png" alt="달란트 마켓" class="app-icon-img">
                 <div class="text-box"><h3>달란트 마켓</h3><p>신앙과 삶을 잇는 제품들을 추천합니다</p></div><button class="btn-go">→</button>
@@ -123,12 +117,10 @@
                 <img src="icon/9.png" alt="Guitar Chord Finder" class="app-icon-img">
                 <div class="text-box"><h3>Guitar Chord Finder</h3><p>쉬운 기타 코드 검색기</p></div><button class="btn-go">→</button>
             </div>
-            
             <div class="list-card" id="card-calendar" data-category="faith" data-link="https://csy870617.github.io/calendar/">
                 <img src="icon/10.png" alt="쳐치 캘린더" class="app-icon-img">
                 <div class="text-box"><h3>쳐치 캘린더</h3><p>교회 일정을 함께 만들기</p></div><button class="btn-go">→</button>
             </div>
-            
             <div class="list-card share-card" id="card-share" data-category="share">
                 <div class="icon-box" style="background: #FEE500; color: #3b1e1e;">💌</div> 
                 <div class="text-box"><h3>함께 성장할 친구 초대</h3><p>이 플랫폼을 친구에게 공유하기</p></div><button class="btn-go">📤</button>
@@ -173,6 +165,9 @@
                     <div id="youtube-player"></div>
                     <div id="mini-controls" class="mini-controls">
                         <button id="mini-play-pause" class="mini-btn left-top">⏸</button>
+                        
+                        <button id="player-settings-btn" class="mini-btn settings-pos">⚙️</button>
+                        
                         <button id="mini-close" class="mini-btn right-top">✕</button>
                         <div id="maximize-overlay"></div>
                     </div>
@@ -187,6 +182,37 @@
                 
                 <button id="float-mode-btn" class="float-icon-btn"><span>📺</span> 화면 작게 보기</button>
             </div>
+        </div>
+    </div>
+
+    <div id="cookie-guide-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>유튜브 프리미엄 회원 광고 제거</h3>
+                <p style="font-size: 13px; margin-bottom: 20px;">프리미엄 회원인데 광고가 나오나요?<br>아래 설정을 확인해주세요.</p>
+            </div>
+            <div class="guide-content" style="text-align: left; padding: 0 10px;">
+                <div class="guide-section" style="margin-bottom: 20px;">
+                    <h4 style="font-size: 15px; margin-bottom: 8px; color: #111;">🍎 아이폰 (Safari/iOS)</h4>
+                    <p style="font-size: 13px; color: #555; line-height: 1.5;">
+                        <strong>설정 > Safari</strong> 메뉴로 이동하여<br>
+                        <strong>'크로스 사이트 추적 방지'</strong> 항목을<br>
+                        <span style="color: #e74c3c; font-weight: bold;">꺼주세요 (OFF).</span>
+                    </p>
+                </div>
+                <div class="guide-section">
+                    <h4 style="font-size: 15px; margin-bottom: 8px; color: #111;">🤖 안드로이드 (Chrome)</h4>
+                    <p style="font-size: 13px; color: #555; line-height: 1.5;">
+                        앱 내 브라우저 또는 크롬 설정에서<br>
+                        <strong>사이트 설정 > 서드파티 쿠키</strong>를<br>
+                        <span style="color: #2ecc71; font-weight: bold;">허용</span>으로 변경해주세요.
+                    </p>
+                </div>
+            </div>
+            <p style="font-size: 11px; color: #999; margin-top: 20px;">
+                * 유튜브의 로그인 정보(쿠키)를 불러오기 위해<br>필요한 설정입니다.
+            </p>
+            <button id="close-cookie-guide-btn" class="modal-close-btn" style="margin-top: 20px;">확인했습니다</button>
         </div>
     </div>
 
@@ -270,8 +296,8 @@
         </div>
     </div>
 
-    <script src="playlist.js?v=118"></script>
-    <script src="script.js?v=118"></script>
+    <script src="playlist.js?v=119"></script>
+    <script src="script.js?v=119"></script>
     
     <script>
         window.addEventListener('load', function() {

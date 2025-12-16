@@ -49,7 +49,6 @@ function onPlayerReady(event) {
     isPlayerReady = true;
     const iframe = document.getElementById('youtube-player');
     if (iframe) {
-        // [롤백됨] 기본 권한만 허용 (storage-access 제거)
         iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
     }
     if (pendingPlay) { playRandomVideo(pendingPlay.category, pendingPlay.title); pendingPlay = null; }
@@ -259,6 +258,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const moodBtns = document.querySelectorAll('.mood-btn');
     const bibleLinkBtns = document.querySelectorAll('.bible-link-btn');
 
+    // [추가됨] 플레이어 설정 및 가이드 모달 관련
+    const playerSettingsBtn = document.getElementById('player-settings-btn');
+    const cookieGuideModal = document.getElementById('cookie-guide-modal');
+    const closeCookieGuideBtn = document.getElementById('close-cookie-guide-btn');
+
     // Mood 버튼 클릭 이벤트 연결
     moodBtns.forEach(btn => {
         btn.onclick = () => {
@@ -359,6 +363,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settingsBtn) settingsBtn.onclick = () => openModal(settingsModal);
     if (closeSettingsBtn) closeSettingsBtn.onclick = () => handleCloseBtnClick(settingsModal);
     if (settingsModal) settingsModal.onclick = (e) => { if (e.target === settingsModal) handleCloseBtnClick(settingsModal); };
+
+    // [추가됨] 가이드 모달 연결
+    if (playerSettingsBtn) {
+        playerSettingsBtn.onclick = (e) => {
+            e.stopPropagation(); // 플레이어 드래그 등 다른 이벤트 방지
+            openModal(cookieGuideModal);
+        };
+    }
+    if (closeCookieGuideBtn) closeCookieGuideBtn.onclick = () => handleCloseBtnClick(cookieGuideModal);
+    if (cookieGuideModal) cookieGuideModal.onclick = (e) => { if (e.target === cookieGuideModal) handleCloseBtnClick(cookieGuideModal); };
+
 
     // --- 드래그 기능 ---
     let isPlayerDragging = false;
