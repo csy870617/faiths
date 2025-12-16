@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
 
-    // [수정됨] 앱 내 브라우저 로직 (숨쉬는 로고 사용)
+    // 앱 내 브라우저 로직 (숨쉬는 로고 사용)
     const internalBrowser = document.getElementById('internal-browser');
     const browserContentArea = document.getElementById('browser-content-area');
     const browserCloseBtn = document.getElementById('browser-close-btn');
@@ -105,15 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         browserContentArea.innerHTML = '';
 
-        // 1. 숨쉬는 로고 박스 생성
         const loadingBox = document.createElement('div');
         loadingBox.className = 'loading-icon-box';
-        
-        // 2. 로고 이미지 생성
         const loadingImg = document.createElement('img');
         loadingImg.src = 'icon/0.png';
         loadingImg.className = 'loading-icon';
-        
         loadingBox.appendChild(loadingImg);
         browserContentArea.appendChild(loadingBox);
 
@@ -165,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 순서 변경
     const listContainer = document.getElementById('main-list');
     let isDragging = false; 
 
@@ -220,8 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (viewListBtn) viewListBtn.onclick = () => setViewMode('list');
     if (viewGridBtn) viewGridBtn.onclick = () => setViewMode('grid');
 
-
-    // 모달 관리
     const modalOverlay = document.getElementById('modal-overlay');
     const draggablePlayer = document.getElementById('draggable-player'); 
     const bibleModal = document.getElementById('bible-modal');
@@ -249,7 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCategory = null; 
     let lastVideoUrl = null; 
 
-    // 드래그 로직
     let isPlayerDragging = false;
     let shiftX, shiftY;
     let dragStartTime = 0;
@@ -346,9 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
-    const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
-
     const openModal = (modal) => {
         if (!modal) return;
         currentModal = modal;
@@ -389,7 +378,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleCloseBtnClick = (modal) => { closeModal(modal); if (history.state && (history.state.modalOpen || history.state.browserOpen)) history.back(); };
     
-    // 뒤로가기 로직
     window.addEventListener('popstate', () => {
         if (internalBrowser.classList.contains('show')) {
             internalBrowser.classList.remove('show');
@@ -421,77 +409,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settingsBtn) settingsBtn.onclick = () => openModal(settingsModal);
     if (closeSettingsBtn) closeSettingsBtn.onclick = () => handleCloseBtnClick(settingsModal);
     if (settingsModal) settingsModal.onclick = (e) => { if (e.target === settingsModal) handleCloseBtnClick(settingsModal); };
-
-    function getYouTubeIdInfo(url) {
-        if (!url) return null;
-        const listMatch = url.match(/[?&]list=([^#&?]+)/);
-        if (listMatch) return { type: 'playlist', id: listMatch[1] };
-        const videoMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/)([^#&?]*))/);
-        if (videoMatch) return { type: 'video', id: videoMatch[1] };
-        return null;
-    }
-
-    window.playRandomVideo = (category, title) => {
-        if (typeof CCM_PLAYLIST !== 'undefined' && CCM_PLAYLIST[category]) {
-            const list = CCM_PLAYLIST[category];
-            let availableList = list.filter(url => url !== lastVideoUrl);
-            if (availableList.length === 0) availableList = list;
-            const randomUrl = availableList[Math.floor(Math.random() * availableList.length)];
-            lastVideoUrl = randomUrl;
-
-            const idInfo = getYouTubeIdInfo(randomUrl);
-
-            if(playerTitle && title) playerTitle.innerText = title;
-            if(ccmMenuView) ccmMenuView.style.display = 'none';
-            if(ccmPlayerView) ccmPlayerView.style.display = 'block';
-            requestWakeLock();
-
-            if (idInfo) {
-                if (player && isPlayerReady) {
-                    if (idInfo.type === 'playlist') {
-                        player.loadPlaylist({list: idInfo.id, listType: 'playlist'});
-                    } else {
-                        player.loadVideoById(idInfo.id);
-                    }
-                } else {
-                    console.log("Player not ready. Queuing...");
-                    pendingPlay = { category: category, title: title }; 
-                }
-            }
-        } else { alert("재생 목록이 없습니다."); }
-    };
-
-    moodBtns.forEach(btn => {
-        btn.onclick = () => {
-            const key = btn.getAttribute('data-key');
-            const title = btn.querySelector('span:last-child').innerText;
-            currentCategory = key;
-            lastVideoUrl = null; 
-            playRandomVideo(key, title);
-        };
-    });
-
-    if (shufflePlayBtn) {
-        shufflePlayBtn.onclick = () => {
-            if (currentCategory) playRandomVideo(currentCategory, null);
-        };
-    }
-
-    if (backToMenuBtn) {
-        backToMenuBtn.onclick = () => {
-            if(player && typeof player.stopVideo === 'function') player.stopVideo();
-            if(ccmPlayerView) ccmPlayerView.style.display = 'none';
-            if(ccmMenuView) ccmMenuView.style.display = 'block';
-            releaseWakeLock();
-        };
-    }
-
-    if (floatModeBtn) {
-        floatModeBtn.onclick = () => {
-            modalOverlay.classList.add('mini-mode');
-            if (maximizeOverlay) maximizeOverlay.style.display = 'block';
-        };
-    }
 
     const hideModeBtn = document.getElementById('hide-mode-btn'); 
     let isHideMode = false;
@@ -534,16 +451,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (card.id === 'card-ccm') {
                 if (modalOverlay.classList.contains('mini-mode')) {
-                    maximizePlayer(); // 작아져 있을 땐 키우기
+                    maximizePlayer();
                 } else {
-                    openModal(modalOverlay); // 아닐 땐 열기
+                    openModal(modalOverlay);
                 }
             } else if (card.id === 'card-share') {
                 const shareUrl = 'https://csy870617.github.io/faiths/';
+                // [수정됨] 1순위: 모바일 기본 공유 (가장 안전하고 확실함)
+                if (navigator.share) {
+                    try { await navigator.share({ title: 'FAITHS', text: '크리스천 성장 도구 FAITHS', url: shareUrl }); return; } catch (err) {}
+                }
+                // 2순위: 카카오 (키가 맞을 때만 작동)
                 if (window.Kakao && Kakao.isInitialized()) {
                     try { Kakao.Share.sendScrap({ requestUrl: shareUrl }); return; } catch (err) {}
                 }
-                if (navigator.share) { try { await navigator.share({ url: shareUrl }); return; } catch (err) {} }
+                // 3순위: 클립보드 복사
                 try { await navigator.clipboard.writeText(shareUrl); alert('주소가 복사되었습니다!'); } catch (err) { prompt('주소:', shareUrl); }
             } else if (card.id === 'card-bible') {
                 openModal(bibleModal);
