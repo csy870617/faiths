@@ -208,7 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             listContainer.classList.remove('grid-view');
             viewListBtn.classList.add('active'); viewGridBtn.classList.remove('active');
-            if(shareTitle) shareTitle.innerText = '함께 성장할 교회친구 초대';
+            // [수정됨] 문구 변경 반영
+            if(shareTitle) shareTitle.innerText = '함께 성장할 친구 초대';
         }
         localStorage.setItem('viewMode', mode);
     };
