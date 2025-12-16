@@ -23,25 +23,42 @@ let lastVideoUrl = null;
 const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
 const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
 
-// 유튜브 API 콜백 (전역)
+// [핵심 수정] 유튜브 API 콜백: 수동으로 iframe 생성 후 연결
 function onYouTubeIframeAPIReady() {
     const origin = window.location.origin;
+    const container = document.getElementById('youtube-player');
+    
+    // 이미 iframe이면 건너뜀 (중복 실행 방지)
+    if (container.tagName === 'IFRAME') return;
+
+    // 1. 안전한 iframe 요소 직접 생성
+    const iframe = document.createElement('iframe');
+    iframe.id = 'youtube-player';
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.frameBorder = '0';
+    // [중요] 생성 시점에 권한 부여 (리로드 방지)
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; storage-access-by-user-activation';
+    iframe.title = 'YouTube video player';
+    
+    // 2. src 설정 (API 파라미터 포함)
+    const srcUrl = `https://www.youtube.com/embed/?enablejsapi=1&origin=${origin}&widget_referrer=${window.location.href}&playsinline=1&rel=0&modestbranding=1&controls=1&disablekb=1&autoplay=0`;
+    iframe.src = srcUrl;
+
+    // 3. 기존 div를 iframe으로 교체
+    container.replaceWith(iframe);
+
+    // 4. Player 객체 연결
     player = new YT.Player('youtube-player', {
-        height: '100%',
-        width: '100%',
-        host: 'https://www.youtube.com',
-        playerVars: { 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'controls': 1, 'origin': origin, 'widget_referrer': window.location.href, 'enablejsapi': 1, 'autoplay': 0, 'disablekb': 1 },
         events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
     });
 }
 
 function onPlayerReady(event) {
     isPlayerReady = true;
-    const iframe = document.getElementById('youtube-player');
-    if (iframe) {
-        // [수정] Storage Access API 활성화 (storage-access-by-user-activation)
-        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; storage-access-by-user-activation');
-    }
+    // [삭제됨] 여기서 setAttribute를 하면 크롬에서 플레이어가 멈춥니다.
+    // 대신 위에서 생성할 때 allow 속성을 미리 넣었습니다.
+    
     if (pendingPlay) { playRandomVideo(pendingPlay.category, pendingPlay.title); pendingPlay = null; }
 }
 

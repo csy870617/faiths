@@ -1,13 +1,13 @@
 // sw.js
-// [중요] 버전 업데이트: v115
-const CACHE_NAME = 'faiths-v116'; 
+// [중요] 버전 업데이트: v116 (캐시 강제 갱신용)
+const CACHE_NAME = 'faiths-v117'; 
 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
-    './style.css?v=115',
-    './script.js?v=115',
-    './playlist.js?v=115', // playlist 파일도 캐싱 목록에 있다면 버전 맞춰주기
+    './style.css?v=117',
+    './script.js?v=117',
+    './playlist.js?v=117', 
     './manifest.json',
     './icon/0.png', 
     // 필요한 이미지나 아이콘 경로를 여기에 추가하세요
