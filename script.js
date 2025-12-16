@@ -39,8 +39,7 @@ function onPlayerReady(event) {
     isPlayerReady = true;
     const iframe = document.getElementById('youtube-player');
     if (iframe) {
-        // [수정됨] Storage Access API 지원을 위한 속성 추가 (storage-access-by-user-activation)
-        // 이 속성은 사용자가 아이프레임과 상호작용(클릭 등)할 때 쿠키 접근 권한 요청을 허용합니다.
+        // [수정] Storage Access API 활성화 (storage-access-by-user-activation)
         iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; storage-access-by-user-activation');
     }
     if (pendingPlay) { playRandomVideo(pendingPlay.category, pendingPlay.title); pendingPlay = null; }
