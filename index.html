@@ -23,7 +23,7 @@
 
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     
-    <link rel="stylesheet" href="style.css?v=114">
+    <link rel="stylesheet" href="style.css?v=116">
     
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
@@ -38,7 +38,13 @@
     </div>
 
     <div id="internal-browser" class="internal-browser">
-        <button id="browser-close-btn" class="browser-close-floating">✕</button>
+        <div class="browser-header">
+            <div class="url-bar">
+                <span class="lock-icon">🔒</span>
+                <span id="browser-url-text" class="url-text">Loading...</span>
+            </div>
+            <button id="browser-close-btn" class="browser-close-btn">닫기</button>
+        </div>
         <div class="browser-content" id="browser-content-area"></div>
     </div>
 
@@ -190,25 +196,25 @@
                 <p>원하시는 성경 서비스를 선택해주세요.</p>
             </div>
             <div class="bible-btn-container">
-                <a href="https://prs.app/ko/bible/gen.1.nkrv" target="_blank" class="bible-link-btn prs-btn">
+                <div class="bible-link-btn prs-btn" data-link="https://prs.app/ko/bible/gen.1.nkrv">
                     <div class="btn-icon-area">🎧</div>
                     <div class="btn-text-area">
                         <span class="btn-title">공동체성경읽기</span>
                         <span class="btn-sub">드라마 바이블 (개역개정)</span>
                     </div>
                     <div class="btn-arrow">→</div>
-                </a>
-                <a href="https://www.bible.com/ko/bible/142/GEN.1.RNKSV" target="_blank" class="bible-link-btn youversion-btn">
+                </div>
+                <div class="bible-link-btn youversion-btn" data-link="https://www.bible.com/ko/bible/142/GEN.1.RNKSV">
                     <div class="btn-icon-area">📖</div>
                     <div class="btn-text-area">
                         <span class="btn-title">YouVersion</span>
                         <span class="btn-sub">다양한 번역본 (새번역 등)</span>
                     </div>
                     <div class="btn-arrow">→</div>
-                </a>
+                </div>
             </div>
             <p class="copyright-notice" style="margin-top: 24px; color: #aaa;">
-                버튼을 클릭하시면 해당 성경 페이지로 직접 연결됩니다.<br>
+                버튼을 클릭하시면 해당 성경 페이지로 연결됩니다.<br>
                 콘텐츠의 저작권과 모든 권리는 각 제공 기관에 있습니다.
             </p>
             <button id="close-bible-modal" class="modal-close-btn secondary">닫기</button>
@@ -263,8 +269,8 @@
         </div>
     </div>
 
-    <script src="playlist.js?v=114"></script>
-    <script src="script.js?v=114"></script>
+    <script src="playlist.js?v=116"></script>
+    <script src="script.js?v=116"></script>
     
     <script>
         window.addEventListener('load', function() {

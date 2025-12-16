@@ -38,7 +38,11 @@ function onYouTubeIframeAPIReady() {
 function onPlayerReady(event) {
     isPlayerReady = true;
     const iframe = document.getElementById('youtube-player');
-    if (iframe) { iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'); }
+    if (iframe) {
+        // [수정됨] Storage Access API 지원을 위한 속성 추가 (storage-access-by-user-activation)
+        // 이 속성은 사용자가 아이프레임과 상호작용(클릭 등)할 때 쿠키 접근 권한 요청을 허용합니다.
+        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; storage-access-by-user-activation');
+    }
     if (pendingPlay) { playRandomVideo(pendingPlay.category, pendingPlay.title); pendingPlay = null; }
 }
 
@@ -124,9 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const internalBrowser = document.getElementById('internal-browser');
     const browserContentArea = document.getElementById('browser-content-area');
     const browserCloseBtn = document.getElementById('browser-close-btn');
+    const browserUrlText = document.getElementById('browser-url-text'); 
 
     function openInternalBrowser(url) {
         if (!internalBrowser || !browserContentArea) { window.open(url, '_blank'); return; }
+        
+        if(browserUrlText) browserUrlText.innerText = url;
+
         browserContentArea.innerHTML = '';
         const loadingBox = document.createElement('div');
         loadingBox.className = 'loading-icon-box';
@@ -208,7 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             listContainer.classList.remove('grid-view');
             viewListBtn.classList.add('active'); viewGridBtn.classList.remove('active');
-            // [수정됨] 문구 변경 반영
             if(shareTitle) shareTitle.innerText = '함께 성장할 친구 초대';
         }
         localStorage.setItem('viewMode', mode);
@@ -241,6 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeIosModalBtn = document.getElementById('close-ios-modal');
     const closeSettingsBtn = document.getElementById('close-settings-modal');
     const moodBtns = document.querySelectorAll('.mood-btn');
+    const bibleLinkBtns = document.querySelectorAll('.bible-link-btn');
 
     // Mood 버튼 클릭 이벤트 연결
     moodBtns.forEach(btn => {
@@ -250,6 +258,18 @@ document.addEventListener('DOMContentLoaded', () => {
             currentCategory = key;
             lastVideoUrl = null; 
             playRandomVideo(key, title); 
+        };
+    });
+
+    // 성경 버튼 클릭 시 내부 브라우저 호출
+    bibleLinkBtns.forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault(); 
+            const link = btn.getAttribute('data-link');
+            if(link) {
+                closeModal(bibleModal);
+                setTimeout(() => openInternalBrowser(link), 100);
+            }
         };
     });
 
