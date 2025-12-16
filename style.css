@@ -3,10 +3,10 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Pretendard Variable", Pretendard, sans-serif; -webkit-tap-highlight-color: transparent; }
 body { background-color: #F5F6F8; display: flex; justify-content: center; min-height: 100vh; padding: 0; margin: 0; }
 
-/* 심플 로딩 화면 (흰색 배경 + 로고만 둥둥) */
+/* [수정됨] 로딩 화면 (흰색 배경 + 숨쉬는 로고) */
 #loading-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: #ffffff;
+    background-color: #ffffff; /* 흰색 배경 고정 */
     z-index: 99999;
     display: flex; justify-content: center; align-items: center;
     transition: opacity 0.4s ease-out;
@@ -16,7 +16,7 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
     display: flex; justify-content: center; align-items: center;
     animation: pulse-soft 2s infinite ease-in-out;
 }
-.loading-icon { width: 60px; height: 60px; border-radius: 14px; }
+.loading-icon { width: 60px; height: 60px; border-radius: 14px; } /* 로고 */
 
 @keyframes pulse-soft {
     0% { transform: scale(0.95); opacity: 0.9; }
@@ -34,18 +34,6 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .internal-browser.show { display: flex; }
 .browser-content { flex: 1; position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; justify-content: center; align-items: center; }
 #browser-frame { width: 100%; height: 100%; border: none; background: #fff; position: relative; z-index: 2; }
-
-/* [NEW] 브라우저 내부 로딩 링 */
-.browser-loader {
-    position: absolute;
-    width: 40px; height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid var(--brand-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    z-index: 1;
-}
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 /* 플로팅 X 버튼 */
 .browser-close-floating {

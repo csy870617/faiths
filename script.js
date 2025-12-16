@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
 
-    // 앱 내 브라우저 로직
+    // [수정됨] 앱 내 브라우저 로직 (숨쉬는 로고 사용)
     const internalBrowser = document.getElementById('internal-browser');
     const browserContentArea = document.getElementById('browser-content-area');
     const browserCloseBtn = document.getElementById('browser-close-btn');
@@ -105,9 +105,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         browserContentArea.innerHTML = '';
 
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'browser-loader';
-        browserContentArea.appendChild(loadingDiv);
+        // 1. 숨쉬는 로고 박스 생성
+        const loadingBox = document.createElement('div');
+        loadingBox.className = 'loading-icon-box';
+        
+        // 2. 로고 이미지 생성
+        const loadingImg = document.createElement('img');
+        loadingImg.src = 'icon/0.png';
+        loadingImg.className = 'loading-icon';
+        
+        loadingBox.appendChild(loadingImg);
+        browserContentArea.appendChild(loadingBox);
 
         const newIframe = document.createElement('iframe');
         newIframe.id = 'browser-frame';
@@ -120,8 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
         newIframe.style.transition = 'opacity 0.3s ease';
 
         newIframe.onload = function() {
-            if (browserContentArea.contains(loadingDiv)) {
-                loadingDiv.remove();
+            if (browserContentArea.contains(loadingBox)) {
+                loadingBox.remove();
             }
             newIframe.style.opacity = '1';
         };
@@ -202,7 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
             listContainer.classList.remove('grid-view');
             viewListBtn.classList.add('active');
             viewGridBtn.classList.remove('active');
-            // [수정됨] 문구 변경
             if(shareTitle) shareTitle.innerText = '함께 성장할 교회친구 초대';
         }
         localStorage.setItem('viewMode', mode);
@@ -526,11 +533,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (card.id === 'card-ccm') {
-                // [수정됨] 화면 복원 로직 추가
                 if (modalOverlay.classList.contains('mini-mode')) {
-                    maximizePlayer();
+                    maximizePlayer(); // 작아져 있을 땐 키우기
                 } else {
-                    openModal(modalOverlay);
+                    openModal(modalOverlay); // 아닐 땐 열기
                 }
             } else if (card.id === 'card-share') {
                 const shareUrl = 'https://csy870617.github.io/faiths/';
