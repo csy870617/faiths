@@ -23,42 +23,35 @@ let lastVideoUrl = null;
 const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
 const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
 
-// [핵심 수정] 유튜브 API 콜백: 수동으로 iframe 생성 후 연결
+// [롤백됨] 유튜브 API 콜백: 표준 생성 방식으로 복구
 function onYouTubeIframeAPIReady() {
     const origin = window.location.origin;
-    const container = document.getElementById('youtube-player');
-    
-    // 이미 iframe이면 건너뜀 (중복 실행 방지)
-    if (container.tagName === 'IFRAME') return;
-
-    // 1. 안전한 iframe 요소 직접 생성
-    const iframe = document.createElement('iframe');
-    iframe.id = 'youtube-player';
-    iframe.style.width = '100%';
-    iframe.style.height = '100%';
-    iframe.frameBorder = '0';
-    // [중요] 생성 시점에 권한 부여 (리로드 방지)
-    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; storage-access-by-user-activation';
-    iframe.title = 'YouTube video player';
-    
-    // 2. src 설정 (API 파라미터 포함)
-    const srcUrl = `https://www.youtube.com/embed/?enablejsapi=1&origin=${origin}&widget_referrer=${window.location.href}&playsinline=1&rel=0&modestbranding=1&controls=1&disablekb=1&autoplay=0`;
-    iframe.src = srcUrl;
-
-    // 3. 기존 div를 iframe으로 교체
-    container.replaceWith(iframe);
-
-    // 4. Player 객체 연결
     player = new YT.Player('youtube-player', {
+        height: '100%',
+        width: '100%',
+        host: 'https://www.youtube.com',
+        playerVars: { 
+            'playsinline': 1, 
+            'rel': 0, 
+            'modestbranding': 1, 
+            'controls': 1, 
+            'origin': origin, 
+            'widget_referrer': window.location.href, 
+            'enablejsapi': 1, 
+            'autoplay': 0, 
+            'disablekb': 1 
+        },
         events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
     });
 }
 
 function onPlayerReady(event) {
     isPlayerReady = true;
-    // [삭제됨] 여기서 setAttribute를 하면 크롬에서 플레이어가 멈춥니다.
-    // 대신 위에서 생성할 때 allow 속성을 미리 넣었습니다.
-    
+    const iframe = document.getElementById('youtube-player');
+    if (iframe) {
+        // [롤백됨] 기본 권한만 허용 (storage-access 제거)
+        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+    }
     if (pendingPlay) { playRandomVideo(pendingPlay.category, pendingPlay.title); pendingPlay = null; }
 }
 
@@ -367,12 +360,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeSettingsBtn) closeSettingsBtn.onclick = () => handleCloseBtnClick(settingsModal);
     if (settingsModal) settingsModal.onclick = (e) => { if (e.target === settingsModal) handleCloseBtnClick(settingsModal); };
 
-    // --- 드래그 기능 완벽 복구 (여기부터 시작) ---
+    // --- 드래그 기능 ---
     let isPlayerDragging = false;
     let shiftX, shiftY;
     let dragStartPos = { x: 0, y: 0 };
 
-    // 플레이어 화면 키우기 함수
     const maximizePlayer = (e) => {
          if (e) {
              e.preventDefault();
@@ -385,17 +377,14 @@ document.addEventListener('DOMContentLoaded', () => {
          ccmMenuView.style.display = 'none';
          ccmPlayerView.style.display = 'block';
 
-         // 위치 초기화 (전체 화면 모드 복귀 시 하단 고정)
          draggablePlayer.style.top = '';
          draggablePlayer.style.left = '';
          draggablePlayer.style.bottom = '20px';
          draggablePlayer.style.right = '20px';
     };
 
-    // 1. 드래그 시작
     const startPlayerDrag = (e) => {
         if (!modalOverlay.classList.contains('mini-mode')) return;
-        // 미니 버튼(재생/닫기) 클릭 시 드래그 안 함
         if (e.target.classList.contains('mini-btn')) return;
 
         isPlayerDragging = true;
@@ -407,7 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
         shiftX = clientX - rect.left;
         shiftY = clientY - rect.top;
         
-        // 부드러운 이동을 위해 트랜지션 해제 및 좌표 설정 방식 변경
         draggablePlayer.style.transition = 'none';
         draggablePlayer.style.bottom = 'auto';
         draggablePlayer.style.right = 'auto';
@@ -415,25 +403,21 @@ document.addEventListener('DOMContentLoaded', () => {
         draggablePlayer.style.top = rect.top + 'px';
     };
 
-    // 2. 드래그 중
     const onPlayerDrag = (e) => {
         if (!isPlayerDragging) return;
-        e.preventDefault(); // 스크롤 방지
+        e.preventDefault(); 
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         draggablePlayer.style.left = (clientX - shiftX) + 'px';
         draggablePlayer.style.top = (clientY - shiftY) + 'px';
     };
 
-    // 3. 드래그 끝
     const endPlayerDrag = (e) => {
         if (!isPlayerDragging) return;
         isPlayerDragging = false;
         
         const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
         const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-        
-        // 이동 거리가 매우 짧으면(10px 미만) 드래그가 아니라 '클릭'으로 판단 -> 화면 키우기
         const distance = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
 
         if (distance < 10) {
@@ -441,7 +425,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // 이벤트 리스너 연결
     if (draggablePlayer) {
         draggablePlayer.addEventListener('mousedown', startPlayerDrag);
         draggablePlayer.addEventListener('touchstart', startPlayerDrag, {passive: false});
@@ -451,7 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('touchend', endPlayerDrag);
     }
     
-    // 확대 오버레이 클릭 시 확대
     if (maximizeOverlay) {
         maximizeOverlay.onclick = maximizePlayer;
     }
@@ -466,7 +448,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     if (miniCloseBtn) { miniCloseBtn.onclick = (e) => { e.stopPropagation(); closeModal(modalOverlay); }; }
-    // --- 드래그 기능 끝 ---
 
     const hideModeBtn = document.getElementById('hide-mode-btn'); 
     let isHideMode = false;
