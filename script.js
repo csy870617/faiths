@@ -66,6 +66,11 @@ function onPlayerStateChange(event) {
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    let wakeLock = null;
+    
+    const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
+    const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
+
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').then(reg => {
             reg.addEventListener('updatefound', () => {
@@ -90,12 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 400); 
     }
 
-    // [수정됨] 사용자 키 적용 (b5c055c0651a6fce6f463abd18a9bdc7)
-    try { 
-        if (!Kakao.isInitialized()) {
-            Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); 
-        }
-    } catch (e) {}
+    try { if (!Kakao.isInitialized()) Kakao.init('b5c055c0651a6fce6f463abd18a9bdc7'); } catch (e) {}
 
     // 앱 내 브라우저 로직
     const internalBrowser = document.getElementById('internal-browser');
@@ -243,7 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeSettingsBtn = document.getElementById('close-settings-modal');
     const moodBtns = document.querySelectorAll('.mood-btn');
     let currentModal = null; 
-    let wakeLock = null;
     let currentCategory = null; 
     let lastVideoUrl = null; 
 
@@ -368,7 +367,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if(player && typeof player.stopVideo === 'function') {
                 player.stopVideo();
             }
-            releaseWakeLock();
+            if (typeof releaseWakeLock === 'function') {
+                releaseWakeLock();
+            }
             setTimeout(() => { if(ccmPlayerView) ccmPlayerView.style.display = 'none'; if(ccmMenuView) ccmMenuView.style.display = 'block'; }, 300);
         }
         
@@ -462,12 +463,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else if (card.id === 'card-share') {
                 const shareUrl = 'https://csy870617.github.io/faiths/';
-                // [수정됨] 말풍선(Kakao.Share) 기능 제거
-                // 1. 모바일 기본 공유 (가장 깔끔함)
+                // [수정됨] URL만 공유 (말풍선 없이 링크만 전달)
                 if (navigator.share) {
-                    try { await navigator.share({ title: 'FAITHS', text: '크리스천 성장 도구 FAITHS', url: shareUrl }); return; } catch (err) {}
+                    try { await navigator.share({ url: shareUrl }); return; } catch (err) {}
                 }
-                // 2. 안 되면 클립보드 복사
+                // 안 되면 복사
                 try { await navigator.clipboard.writeText(shareUrl); alert('주소가 복사되었습니다!'); } catch (err) { prompt('주소:', shareUrl); }
             } else if (card.id === 'card-bible') {
                 openModal(bibleModal);
