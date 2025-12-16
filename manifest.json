@@ -3,7 +3,7 @@
   "short_name": "FAITHS",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#F5F6F8",
+  "background_color": "#ffffff",
   "theme_color": "#5f27cd",
   "orientation": "portrait",
   "icons": [
