@@ -23,7 +23,7 @@ let lastVideoUrl = null;
 const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
 const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
 
-// [롤백됨] 유튜브 API 콜백: 표준 생성 방식으로 복구
+// 유튜브 API 콜백
 function onYouTubeIframeAPIReady() {
     const origin = window.location.origin;
     player = new YT.Player('youtube-player', {
@@ -70,9 +70,8 @@ function getYouTubeIdInfo(url) {
     return null;
 }
 
-// [핵심] 재생 함수 (전역으로 이동)
+// 재생 함수
 window.playRandomVideo = (category, title) => {
-    // DOM 요소 찾기 (전역이라서 내부에서 찾음)
     const ccmMenuView = document.getElementById('ccm-menu-view');
     const ccmPlayerView = document.getElementById('ccm-player-view');
     const playerTitle = document.getElementById('player-title');
@@ -103,7 +102,7 @@ window.playRandomVideo = (category, title) => {
     } else { alert("재생 목록이 없습니다."); }
 };
 
-// 2. DOM 로드 후 실행 (이벤트 바인딩)
+// DOM 로드 후 실행
 document.addEventListener('DOMContentLoaded', () => {
     
     if ('serviceWorker' in navigator) {
@@ -135,21 +134,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // 앱 내 브라우저 로직
     const internalBrowser = document.getElementById('internal-browser');
     const browserContentArea = document.getElementById('browser-content-area');
-    const browserCloseBtn = document.getElementById('browser-close-btn');
+    // 닫기 버튼 변수 삭제됨
     const browserUrlText = document.getElementById('browser-url-text'); 
     const browserHeader = document.getElementById('browser-header-bar');
-    const floatingCloseBtn = document.getElementById('floating-close-btn'); 
     
     function openInternalBrowser(url, showUrl = false) {
         if (!internalBrowser || !browserContentArea) { window.open(url, '_blank'); return; }
         
         if (showUrl) {
+            // 성경 모드: 헤더 보임
             if(browserHeader) browserHeader.style.display = 'flex';
-            if(floatingCloseBtn) floatingCloseBtn.style.display = 'none';
             if(browserUrlText) browserUrlText.innerText = url;
         } else {
+            // 일반 모드: 헤더 숨김
             if(browserHeader) browserHeader.style.display = 'none';
-            if(floatingCloseBtn) floatingCloseBtn.style.display = 'flex';
         }
 
         browserContentArea.innerHTML = '';
@@ -188,24 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (browserCloseBtn) {
-        browserCloseBtn.onclick = () => {
-            if (internalBrowser.classList.contains('show')) {
-                 internalBrowser.classList.remove('show');
-                 setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
-                 if (history.state && history.state.browserOpen) { history.back(); }
-            }
-        };
-    }
-    if (floatingCloseBtn) {
-        floatingCloseBtn.onclick = () => {
-            if (internalBrowser.classList.contains('show')) {
-                 internalBrowser.classList.remove('show');
-                 setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
-                 if (history.state && history.state.browserOpen) { history.back(); }
-            }
-        };
-    }
+    // 닫기 버튼 이벤트 삭제됨 (뒤로가기로만 닫음)
 
     const listContainer = document.getElementById('main-list');
     let isDragging = false; 
@@ -555,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bannerInstallBtn.onclick = () => {
             installBanner.classList.remove('show');
             if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((r) => { deferredPrompt = null; }); }
-            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); } else { alert("브라우저 메뉴에서 [앱 설치]를 선택하세요."); } }
+            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); } else { alert("이미 설치되어 있거나 브라우저 메뉴에서 설치 가능합니다."); } }
         };
     }
     if (bannerCloseBtn) bannerCloseBtn.onclick = () => installBanner.classList.remove('show');
