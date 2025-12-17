@@ -23,7 +23,7 @@ let lastVideoUrl = null;
 const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
 const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
 
-// 유튜브 API 콜백
+// [롤백됨] 유튜브 API 콜백: 표준 생성 방식으로 복구
 function onYouTubeIframeAPIReady() {
     const origin = window.location.origin;
     player = new YT.Player('youtube-player', {
@@ -70,8 +70,9 @@ function getYouTubeIdInfo(url) {
     return null;
 }
 
-// 재생 함수
+// [핵심] 재생 함수 (전역으로 이동)
 window.playRandomVideo = (category, title) => {
+    // DOM 요소 찾기 (전역이라서 내부에서 찾음)
     const ccmMenuView = document.getElementById('ccm-menu-view');
     const ccmPlayerView = document.getElementById('ccm-player-view');
     const playerTitle = document.getElementById('player-title');
@@ -102,7 +103,7 @@ window.playRandomVideo = (category, title) => {
     } else { alert("재생 목록이 없습니다."); }
 };
 
-// DOM 로드 후 실행
+// 2. DOM 로드 후 실행 (이벤트 바인딩)
 document.addEventListener('DOMContentLoaded', () => {
     
     if ('serviceWorker' in navigator) {
@@ -136,21 +137,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const browserContentArea = document.getElementById('browser-content-area');
     const browserCloseBtn = document.getElementById('browser-close-btn');
     const browserUrlText = document.getElementById('browser-url-text'); 
+    const browserHeader = document.getElementById('browser-header-bar');
+    const floatingCloseBtn = document.getElementById('floating-close-btn'); 
     
-    // [수정됨] 주소창 표시 여부 제어 (showUrl 파라미터 추가)
     function openInternalBrowser(url, showUrl = false) {
         if (!internalBrowser || !browserContentArea) { window.open(url, '_blank'); return; }
         
-        // 주소창(url-bar) 요소 찾기
-        const urlBar = document.querySelector('.url-bar');
-        
-        if (urlBar) {
-            if (showUrl) {
-                urlBar.style.display = 'flex'; // 보이기
-                if(browserUrlText) browserUrlText.innerText = url;
-            } else {
-                urlBar.style.display = 'none'; // 숨기기
-            }
+        if (showUrl) {
+            if(browserHeader) browserHeader.style.display = 'flex';
+            if(floatingCloseBtn) floatingCloseBtn.style.display = 'none';
+            if(browserUrlText) browserUrlText.innerText = url;
+        } else {
+            if(browserHeader) browserHeader.style.display = 'none';
+            if(floatingCloseBtn) floatingCloseBtn.style.display = 'flex';
         }
 
         browserContentArea.innerHTML = '';
@@ -191,6 +190,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (browserCloseBtn) {
         browserCloseBtn.onclick = () => {
+            if (internalBrowser.classList.contains('show')) {
+                 internalBrowser.classList.remove('show');
+                 setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
+                 if (history.state && history.state.browserOpen) { history.back(); }
+            }
+        };
+    }
+    if (floatingCloseBtn) {
+        floatingCloseBtn.onclick = () => {
             if (internalBrowser.classList.contains('show')) {
                  internalBrowser.classList.remove('show');
                  setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
@@ -282,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // [수정됨] 성경 버튼 클릭 시에만 주소창 표시 (true)
+    // 성경 버튼 클릭 시에만 주소창 표시 (true)
     bibleLinkBtns.forEach(btn => {
         btn.onclick = (e) => {
             e.preventDefault(); 
@@ -523,7 +531,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const target = card.getAttribute('data-target');
                 if (link) {
                     if (target === 'external') { window.open(link, '_blank'); } else { 
-                        // [수정됨] 일반 메뉴 클릭 시에는 주소창 숨김 (false)
                         openInternalBrowser(link, false); 
                     }
                 }
@@ -548,8 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bannerInstallBtn.onclick = () => {
             installBanner.classList.remove('show');
             if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((r) => { deferredPrompt = null; }); }
-            else if (isIos) { setTimeout(() => openModal(iosModal), 300); }
-            else { alert("브라우저 메뉴에서 [앱 설치]를 선택하세요."); }
+            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); } else { alert("브라우저 메뉴에서 [앱 설치]를 선택하세요."); } }
         };
     }
     if (bannerCloseBtn) bannerCloseBtn.onclick = () => installBanner.classList.remove('show');
