@@ -23,7 +23,7 @@ let lastVideoUrl = null;
 const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
 const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
 
-// [롤백됨] 유튜브 API 콜백: 표준 생성 방식으로 복구
+// 유튜브 API 콜백
 function onYouTubeIframeAPIReady() {
     const origin = window.location.origin;
     player = new YT.Player('youtube-player', {
@@ -70,9 +70,8 @@ function getYouTubeIdInfo(url) {
     return null;
 }
 
-// [핵심] 재생 함수 (전역으로 이동)
+// 재생 함수
 window.playRandomVideo = (category, title) => {
-    // DOM 요소 찾기 (전역이라서 내부에서 찾음)
     const ccmMenuView = document.getElementById('ccm-menu-view');
     const ccmPlayerView = document.getElementById('ccm-player-view');
     const playerTitle = document.getElementById('player-title');
@@ -103,7 +102,7 @@ window.playRandomVideo = (category, title) => {
     } else { alert("재생 목록이 없습니다."); }
 };
 
-// 2. DOM 로드 후 실행 (이벤트 바인딩)
+// DOM 로드 후 실행
 document.addEventListener('DOMContentLoaded', () => {
     
     if ('serviceWorker' in navigator) {
@@ -137,11 +136,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const browserContentArea = document.getElementById('browser-content-area');
     const browserCloseBtn = document.getElementById('browser-close-btn');
     const browserUrlText = document.getElementById('browser-url-text'); 
-
-    function openInternalBrowser(url) {
+    
+    // [수정됨] 주소창 표시 여부 제어 (showUrl 파라미터 추가)
+    function openInternalBrowser(url, showUrl = false) {
         if (!internalBrowser || !browserContentArea) { window.open(url, '_blank'); return; }
         
-        if(browserUrlText) browserUrlText.innerText = url;
+        // 주소창(url-bar) 요소 찾기
+        const urlBar = document.querySelector('.url-bar');
+        
+        if (urlBar) {
+            if (showUrl) {
+                urlBar.style.display = 'flex'; // 보이기
+                if(browserUrlText) browserUrlText.innerText = url;
+            } else {
+                urlBar.style.display = 'none'; // 숨기기
+            }
+        }
 
         browserContentArea.innerHTML = '';
         const loadingBox = document.createElement('div');
@@ -249,7 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const miniPlayPauseBtn = document.getElementById('mini-play-pause');
     const miniCloseBtn = document.getElementById('mini-close');
     
-    // UI 버튼들
     const ccmBtn = document.getElementById('ccm-btn');
     const settingsBtn = document.getElementById('settings-btn');
     const closeModalBtn = document.getElementById('close-modal');
@@ -258,13 +267,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const moodBtns = document.querySelectorAll('.mood-btn');
     const bibleLinkBtns = document.querySelectorAll('.bible-link-btn');
 
-    // [수정됨] 설정 버튼들 연결
     const videoSettingsBtn = document.getElementById('video-settings-btn'); 
     const cookieGuideModal = document.getElementById('cookie-guide-modal');
     const closeCookieGuideBtn = document.getElementById('close-cookie-guide-btn');
-    const settingsCookieGuideBtn = document.getElementById('settings-cookie-guide-btn'); // [추가]
+    const settingsCookieGuideBtn = document.getElementById('settings-cookie-guide-btn');
 
-    // Mood 버튼 클릭 이벤트 연결
     moodBtns.forEach(btn => {
         btn.onclick = () => {
             const key = btn.getAttribute('data-key');
@@ -275,14 +282,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // 성경 버튼 클릭 시 내부 브라우저 호출
+    // [수정됨] 성경 버튼 클릭 시에만 주소창 표시 (true)
     bibleLinkBtns.forEach(btn => {
         btn.onclick = (e) => {
             e.preventDefault(); 
             const link = btn.getAttribute('data-link');
             if(link) {
                 closeModal(bibleModal);
-                setTimeout(() => openInternalBrowser(link), 100);
+                setTimeout(() => openInternalBrowser(link, true), 100); 
             }
         };
     });
@@ -322,7 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.remove('mini-mode');
         if (maximizeOverlay) maximizeOverlay.style.display = 'none';
         
-        // 플레이어 위치 초기화
         if(modal === modalOverlay && draggablePlayer) {
             draggablePlayer.style.top = ''; draggablePlayer.style.left = '';
             draggablePlayer.style.bottom = '20px'; draggablePlayer.style.right = '20px';
@@ -341,7 +347,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleCloseBtnClick = (modal) => { closeModal(modal); if (history.state && (history.state.modalOpen || history.state.browserOpen)) history.back(); };
     
-    // 뒤로가기
     window.addEventListener('popstate', () => {
         if (internalBrowser.classList.contains('show')) {
             internalBrowser.classList.remove('show');
@@ -365,14 +370,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeSettingsBtn) closeSettingsBtn.onclick = () => handleCloseBtnClick(settingsModal);
     if (settingsModal) settingsModal.onclick = (e) => { if (e.target === settingsModal) handleCloseBtnClick(settingsModal); };
 
-    // [추가됨] 가이드 모달 연결 (영상 화면 & 설정 화면 버튼 둘 다 처리)
     if (videoSettingsBtn) {
         videoSettingsBtn.onclick = (e) => {
             e.stopPropagation(); 
             openModal(cookieGuideModal);
         };
     }
-    // [추가] 설정 화면 내 버튼 클릭 시 설정창 닫고 가이드 열기
     if (settingsCookieGuideBtn) {
         settingsCookieGuideBtn.onclick = () => {
             closeModal(settingsModal);
@@ -519,7 +522,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const link = card.getAttribute('data-link');
                 const target = card.getAttribute('data-target');
                 if (link) {
-                    if (target === 'external') { window.open(link, '_blank'); } else { openInternalBrowser(link); }
+                    if (target === 'external') { window.open(link, '_blank'); } else { 
+                        // [수정됨] 일반 메뉴 클릭 시에는 주소창 숨김 (false)
+                        openInternalBrowser(link, false); 
+                    }
                 }
             }
         };
@@ -542,7 +548,8 @@ document.addEventListener('DOMContentLoaded', () => {
         bannerInstallBtn.onclick = () => {
             installBanner.classList.remove('show');
             if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((r) => { deferredPrompt = null; }); }
-            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); } else { alert("이미 설치되어 있거나 브라우저 메뉴에서 설치 가능합니다."); } }
+            else if (isIos) { setTimeout(() => openModal(iosModal), 300); }
+            else { alert("브라우저 메뉴에서 [앱 설치]를 선택하세요."); }
         };
     }
     if (bannerCloseBtn) bannerCloseBtn.onclick = () => installBanner.classList.remove('show');
