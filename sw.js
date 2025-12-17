@@ -1,15 +1,16 @@
 // sw.js
-// [중요] 버전 업데이트: v124
-const CACHE_NAME = 'faiths-v124'; 
+// [중요] 버전 업데이트: v125
+const CACHE_NAME = 'faiths-v125'; 
 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
-    './style.css?v=124',
-    './script.js?v=124',
-    './playlist.js?v=124', 
+    './style.css?v=125',
+    './script.js?v=125',
+    './playlist.js?v=125', 
     './manifest.json',
     './icon/0.png', 
+    './icon/11.png', // [추가됨] 신앙일지 아이콘 캐싱
     // 필요한 이미지나 아이콘 경로를 여기에 추가하세요
 ];
 
