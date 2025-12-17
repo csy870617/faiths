@@ -542,8 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bannerInstallBtn.onclick = () => {
             installBanner.classList.remove('show');
             if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((r) => { deferredPrompt = null; }); }
-            else if (isIos) { setTimeout(() => openModal(iosModal), 300); }
-            else { alert("브라우저 메뉴에서 [앱 설치]를 선택하세요."); }
+            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); } else { alert("이미 설치되어 있거나 브라우저 메뉴에서 설치 가능합니다."); } }
         };
     }
     if (bannerCloseBtn) bannerCloseBtn.onclick = () => installBanner.classList.remove('show');
