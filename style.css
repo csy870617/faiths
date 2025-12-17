@@ -220,27 +220,17 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 .mini-btn.left-top { top: 5px; left: 5px; }
 .mini-btn.right-top { top: 5px; right: 5px; }
 
-/* [추가됨] 비디오 설정 버튼 (큰 화면용) */
-.video-overlay-btn {
-    position: absolute;
-    top: 10px; 
-    right: 10px;
-    background: rgba(0,0,0,0.3);
-    color: white;
+/* [수정됨] 헤더 내 설정 버튼 스타일 */
+.header-settings-btn {
+    background: none;
     border: none;
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    z-index: 20; /* iframe(z-index 0~1)보다 위에 있어야 함 */
-    display: flex; justify-content: center; align-items: center;
     font-size: 18px;
-    backdrop-filter: blur(4px);
-    transition: background 0.2s;
+    cursor: pointer;
+    color: #8898AA;
+    padding: 5px;
+    transition: 0.2s;
 }
-.video-overlay-btn:hover { background: rgba(0,0,0,0.6); }
-
-/* [중요] 미니 모드일 땐 이 버튼 숨김 (작은 화면 방해 금지) */
-.modal-overlay.mini-mode .video-overlay-btn { display: none; }
+.header-settings-btn:hover { color: #111; transform: rotate(45deg); }
 
 #maximize-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1001; cursor: move; }
 
