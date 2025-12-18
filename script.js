@@ -23,13 +23,11 @@ let lastVideoUrl = null;
 const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
 const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
 
-// [수정됨] 유튜브 API 콜백을 window 객체에 명시적으로 등록 (인식 실패 방지)
+// 유튜브 API 콜백
 window.onYouTubeIframeAPIReady = function() {
     const origin = window.location.origin;
-    // 이미 생성되었다면 중단
     if (player) return;
     
-    // 타겟 요소가 있는지 확인
     const container = document.getElementById('youtube-player');
     if (!container) return;
 
@@ -86,7 +84,6 @@ window.playRandomVideo = (category, title) => {
     const ccmPlayerView = document.getElementById('ccm-player-view');
     const playerTitle = document.getElementById('player-title');
 
-    // [안전장치] 플레이어가 없는데 API는 로드된 상태라면 강제 생성 시도
     if (!player && window.YT && window.YT.Player) {
         window.onYouTubeIframeAPIReady();
     }
@@ -120,7 +117,6 @@ window.playRandomVideo = (category, title) => {
 // DOM 로드 후 실행
 document.addEventListener('DOMContentLoaded', () => {
     
-    // [안전장치] 페이지 로드 시 API가 이미 와있다면 수동 트리거
     if (window.YT && window.YT.Player && !player) {
         window.onYouTubeIframeAPIReady();
     }
@@ -154,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 앱 내 브라우저 로직
     const internalBrowser = document.getElementById('internal-browser');
     const browserContentArea = document.getElementById('browser-content-area');
-    // 닫기 버튼 요소들 제거됨 (v129 반영 유지)
+    // 닫기 버튼 변수 제거됨
     const browserUrlText = document.getElementById('browser-url-text'); 
     const browserHeader = document.getElementById('browser-header-bar');
     
