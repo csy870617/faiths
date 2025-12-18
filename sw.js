@@ -1,16 +1,18 @@
 // sw.js
-// [중요] 버전 업데이트: v131
-const CACHE_NAME = 'faiths-v131'; 
+// [중요] 버전 업데이트: v137
+const CACHE_NAME = 'faiths-v137'; 
 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
-    './style.css?v=131',
-    './script.js?v=131',
-    './playlist.js?v=131', 
+    './style.css?v=137',
+    './script.js?v=137',
+    './playlist.js?v=137', 
     './manifest.json',
     './icon/0.png', 
     './icon/11.png',
+    './ad/01.png',
+    './ad.css?v=137', // ad.css 추가
     // 필요한 이미지나 아이콘 경로를 여기에 추가하세요
 ];
 

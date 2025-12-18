@@ -117,6 +117,15 @@ window.playRandomVideo = (category, title) => {
 // DOM 로드 후 실행
 document.addEventListener('DOMContentLoaded', () => {
     
+    // [추가됨] 카드 슬라이더 가로 휠 스크롤 지원
+    const cardSlider = document.getElementById('card-slider');
+    if (cardSlider) {
+        cardSlider.addEventListener('wheel', (evt) => {
+            evt.preventDefault();
+            cardSlider.scrollLeft += evt.deltaY;
+        });
+    }
+
     if (window.YT && window.YT.Player && !player) {
         window.onYouTubeIframeAPIReady();
     }
@@ -150,18 +159,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // 앱 내 브라우저 로직
     const internalBrowser = document.getElementById('internal-browser');
     const browserContentArea = document.getElementById('browser-content-area');
-    // 닫기 버튼 변수 제거됨
     const browserUrlText = document.getElementById('browser-url-text'); 
     const browserHeader = document.getElementById('browser-header-bar');
+    const floatingCloseBtn = document.getElementById('floating-close-btn'); 
     
     function openInternalBrowser(url, showUrl = false) {
         if (!internalBrowser || !browserContentArea) { window.open(url, '_blank'); return; }
         
         if (showUrl) {
             if(browserHeader) browserHeader.style.display = 'flex';
+            if(floatingCloseBtn) floatingCloseBtn.style.display = 'none';
             if(browserUrlText) browserUrlText.innerText = url;
         } else {
             if(browserHeader) browserHeader.style.display = 'none';
+            if(floatingCloseBtn) floatingCloseBtn.style.display = 'flex';
         }
 
         browserContentArea.innerHTML = '';
@@ -200,7 +211,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 닫기 버튼 이벤트 없음 (뒤로가기로 제어)
+    // 닫기 버튼 이벤트 (플로팅 닫기)
+    if (floatingCloseBtn) {
+        floatingCloseBtn.onclick = () => {
+            if (internalBrowser.classList.contains('show')) {
+                 internalBrowser.classList.remove('show');
+                 setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
+                 if (history.state && history.state.browserOpen) { history.back(); }
+            }
+        };
+    }
 
     const listContainer = document.getElementById('main-list');
     let isDragging = false; 
