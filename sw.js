@@ -1,12 +1,12 @@
 // sw.js
-// [중요] 버전 업데이트: v129
-const CACHE_NAME = 'faiths-v129'; 
+// [중요] 버전 업데이트: v130
+const CACHE_NAME = 'faiths-v130'; 
 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './style.css?v=129',
-    './script.js?v=129',
+    './script.js?v=130',
     './playlist.js?v=129', 
     './manifest.json',
     './icon/0.png', 
