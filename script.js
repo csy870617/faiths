@@ -160,7 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const browserContentArea = document.getElementById('browser-content-area');
     const browserUrlText = document.getElementById('browser-url-text'); 
     const browserHeader = document.getElementById('browser-header-bar');
-    // [수정됨] 하단 버튼 변수명 변경 (v143에 맞춤)
     const floatingCloseBtn = document.getElementById('floating-close-btn-right');
     
     // 네비게이션 버튼
@@ -345,13 +344,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
+    // [수정됨] 성경 링크 클릭 시 외부 브라우저(새 창)로 열기
     bibleLinkBtns.forEach(btn => {
         btn.onclick = (e) => {
             e.preventDefault(); 
             const link = btn.getAttribute('data-link');
             if(link) {
                 closeModal(bibleModal);
-                setTimeout(() => openInternalBrowser(link, 'bible'), 100); 
+                window.open(link, '_blank'); // 외부 브라우저 호출
             }
         };
     });
@@ -579,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const target = card.getAttribute('data-target');
                 if (link) {
                     if (target === 'external') { window.open(link, '_blank'); } else { 
-                        openInternalBrowser(link, false); 
+                        openInternalBrowser(link, 'default'); // 기본 모드로 열기
                     }
                 }
             }
