@@ -117,7 +117,6 @@ window.playRandomVideo = (category, title) => {
 // DOM 로드 후 실행
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 카드 슬라이더 가로 휠 스크롤
     const cardSlider = document.getElementById('card-slider');
     if (cardSlider) {
         cardSlider.addEventListener('wheel', (evt) => {
@@ -159,8 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 앱 내 브라우저 로직
     const internalBrowser = document.getElementById('internal-browser');
     const browserContentArea = document.getElementById('browser-content-area');
+    const browserUrlText = document.getElementById('browser-url-text'); 
     const browserHeader = document.getElementById('browser-header-bar');
-    const browserUrlText = document.getElementById('browser-url-text');
     
     function openInternalBrowser(url, showUrl = false) {
         if (!internalBrowser || !browserContentArea) { window.open(url, '_blank'); return; }
@@ -207,8 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (history.state && history.state.browserOpen) { history.back(); }
         }
     }
-
-    // 뒤로가기로 닫기 제어 (버튼 없음)
 
     const listContainer = document.getElementById('main-list');
     let isDragging = false; 
@@ -281,6 +278,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoSettingsBtn = document.getElementById('video-settings-btn'); 
     const cookieGuideModal = document.getElementById('cookie-guide-modal');
     const closeCookieGuideBtn = document.getElementById('close-cookie-guide-btn');
+    const settingsCookieGuideBtn = document.getElementById('settings-cookie-guide-btn');
+
+    // [추가됨] PC 다운로드 카드 로직
+    const pcDownloadCard = document.getElementById('pc-download-card');
+    if (pcDownloadCard) {
+        pcDownloadCard.onclick = async () => {
+            const url = 'https://csy870617.github.io/faiths/';
+            try {
+                await navigator.clipboard.writeText(url);
+                alert('PC 버전 주소가 복사되었습니다!\n\n' + url + '\n\nPC 브라우저 주소창에 붙여넣기 하세요.');
+            } catch (err) {
+                prompt('아래 주소를 복사해서 PC에서 접속하세요:', url);
+            }
+        };
+    }
 
     moodBtns.forEach(btn => {
         btn.onclick = () => {
@@ -550,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bannerInstallBtn.onclick = () => {
             installBanner.classList.remove('show');
             if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((r) => { deferredPrompt = null; }); }
-            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); } else { alert("브라우저 메뉴에서 [앱 설치]를 선택하세요."); } }
+            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); } else { alert("이미 설치되어 있거나 브라우저 메뉴에서 설치 가능합니다."); } }
         };
     }
     if (bannerCloseBtn) bannerCloseBtn.onclick = () => installBanner.classList.remove('show');

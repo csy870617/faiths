@@ -254,6 +254,7 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 }
 .header-settings-btn:hover { color: #111; transform: rotate(45deg); }
 
+/* [수정됨] PC 버전 다운로드 카드 스타일 (세련된 디자인 + 커서 추가) */
 .pc-download-card {
     display: flex;
     align-items: center;
@@ -269,6 +270,7 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
     position: relative;
     overflow: hidden; /* 배경 그래픽 잘림 처리 */
     margin-top: 10px;
+    cursor: pointer; /* [추가됨] 클릭 가능한 커서 */
 }
 
 /* 호버 효과: 살짝 떠오르며 그림자 강조 */
@@ -317,7 +319,6 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
     transform: rotate(-20deg);
     pointer-events: none;
 }
-
 
 #maximize-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1001; cursor: move; }
 
