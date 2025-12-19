@@ -1,21 +1,21 @@
 // sw.js
-// [중요] 버전 업데이트: v140
-const CACHE_NAME = 'faiths-v140'; 
+// [중요] 버전 업데이트: v142
+const CACHE_NAME = 'faiths-v142'; 
 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
-    './style.css?v=140',
-    './script.js?v=140',
-    './playlist.js?v=140', 
+    './style.css?v=142',
+    './script.js?v=142',
+    './playlist.js?v=142', 
     './manifest.json',
     './icon/0.png', 
     './icon/11.png',
     './ad/01.png',
-    './ad.css?v=140',
+    './ad.css?v=142',
     // 필요한 이미지나 아이콘 경로를 여기에 추가하세요
 ];
-
+/* ... (나머지 로직 동일) ... */
 // 1. 설치 (Install): 캐시 저장
 self.addEventListener('install', (event) => {
     event.waitUntil(

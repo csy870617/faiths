@@ -1,11 +1,13 @@
-/* ad.css - 카드 뉴스 및 광고 영역 스타일 */
+/* ad.css - v141 */
 
+/* 카드 뉴스 섹션 컨테이너 */
 .card-news-section { 
     width: 100%; 
     padding-bottom: 12px; 
     overflow: hidden; 
 }
 
+/* 가로 스크롤 슬라이더 */
 .card-slider {
     display: flex; 
     gap: 14px;
@@ -17,6 +19,7 @@
 }
 .card-slider::-webkit-scrollbar { display: none; }
 
+/* 공통 카드 스타일 */
 .news-card {
     flex: 0 0 290px;
     min-height: 160px;
@@ -36,6 +39,17 @@
 }
 .news-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
 .news-card:active { transform: scale(0.98); }
+
+/* 1. 공지사항 (Notice) 테마 */
+.notice-theme { background: white; }
+.notice-theme h4 { color: #111 !important; font-size: 20px !important; margin-bottom: 8px; font-weight: 800; }
+.notice-theme p { color: #666 !important; font-size: 14px !important; line-height: 1.5; font-weight: 500; }
+.notice-theme .news-badge { background: #E0E7FF; color: #5f27cd; border: 1px solid rgba(95, 39, 205, 0.1); }
+.notice-theme .news-icon-circle { background: #F3F0FF; color: #5f27cd; }
+
+/* 2. 추천도서 (Ad) 테마 */
+.ad-theme { background: white; }
+.ad-theme .news-badge { background: #E8F5E9; color: #2E7D32; border: 1px solid rgba(46, 125, 50, 0.1); }
 
 /* 이미지/아이콘 영역 */
 .news-visual { flex-shrink: 0; }
@@ -61,7 +75,7 @@
     display: flex; flex-direction: column; justify-content: flex-start;
 }
 
-/* 뱃지 스타일 */
+/* 뱃지 스타일 (텍스트 상단 배치) */
 .news-badge-row { margin-bottom: 6px; }
 .news-badge { 
     display: inline-block;
@@ -69,9 +83,6 @@
     padding: 4px 8px; border-radius: 6px;
     letter-spacing: 0.5px;
 }
-
-.notice-badge { background: #E0E7FF; color: #5f27cd; }
-.ad-badge { background: #E8F5E9; color: #2E7D32; }
 
 .news-text-content h4 { 
     font-size: calc(16px * var(--text-scale)); 
@@ -85,7 +96,7 @@
 }
 .sub-info { font-size: 11px; color: #999; margin-top: 4px; display: block; }
 
-/* 배경 장식 아이콘 (공지용) */
+/* 배경 장식 아이콘 */
 .notice-bg-icon {
     position: absolute;
     bottom: -15px; right: -15px;
