@@ -159,28 +159,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const internalBrowser = document.getElementById('internal-browser');
     const browserContentArea = document.getElementById('browser-content-area');
     const browserUrlText = document.getElementById('browser-url-text'); 
-    
-    // [수정됨] 헤더 및 버튼 요소
     const browserHeader = document.getElementById('browser-header-bar');
-    const floatingCloseBtnRight = document.getElementById('floating-close-btn-right');
+    // [수정됨] 하단 버튼 변수명 변경 (v143에 맞춤)
+    const floatingCloseBtn = document.getElementById('floating-close-btn-right');
+    
+    // 네비게이션 버튼
     const navBack = document.getElementById('nav-back');
     const navForward = document.getElementById('nav-forward');
     const navReload = document.getElementById('nav-reload');
     const navHome = document.getElementById('nav-home');
 
-    // [수정됨] 모드에 따른 브라우저 열기 (bible vs default)
     function openInternalBrowser(url, mode = 'default') {
         if (!internalBrowser || !browserContentArea) { window.open(url, '_blank'); return; }
         
         if (mode === 'bible') {
-            // 성경 모드: 헤더 보임, 플로팅 숨김
             if(browserHeader) browserHeader.style.display = 'flex';
-            if(floatingCloseBtnRight) floatingCloseBtnRight.style.display = 'none';
+            if(floatingCloseBtn) floatingCloseBtn.style.display = 'none';
             if(browserUrlText) browserUrlText.innerText = url;
         } else {
-            // 일반 모드: 헤더 숨김, 우측 플로팅 보임
             if(browserHeader) browserHeader.style.display = 'none';
-            if(floatingCloseBtnRight) floatingCloseBtnRight.style.display = 'flex';
+            if(floatingCloseBtn) floatingCloseBtn.style.display = 'flex';
         }
 
         browserContentArea.innerHTML = '';
@@ -219,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // [추가됨] 네비게이션 버튼 이벤트
+    // 네비게이션 버튼 이벤트
     if (navBack) {
         navBack.onclick = () => {
             const iframe = document.getElementById('browser-frame');
@@ -246,9 +244,9 @@ document.addEventListener('DOMContentLoaded', () => {
         navHome.onclick = () => { closeInternalBrowser(); };
     }
     
-    // 우측 상단 플로팅 닫기 (일반 모드)
-    if (floatingCloseBtnRight) {
-        floatingCloseBtnRight.onclick = () => { closeInternalBrowser(); };
+    // 닫기 버튼 이벤트
+    if (floatingCloseBtn) {
+        floatingCloseBtn.onclick = () => { closeInternalBrowser(); };
     }
 
     const listContainer = document.getElementById('main-list');
@@ -324,7 +322,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeCookieGuideBtn = document.getElementById('close-cookie-guide-btn');
     const settingsCookieGuideBtn = document.getElementById('settings-cookie-guide-btn');
 
-    // [추가됨] PC 다운로드 카드 로직
     const pcDownloadCard = document.getElementById('pc-download-card');
     if (pcDownloadCard) {
         pcDownloadCard.onclick = async () => {
@@ -348,7 +345,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // [수정됨] 성경 버튼 클릭 시 'bible' 모드로 오픈
     bibleLinkBtns.forEach(btn => {
         btn.onclick = (e) => {
             e.preventDefault(); 
@@ -583,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const target = card.getAttribute('data-target');
                 if (link) {
                     if (target === 'external') { window.open(link, '_blank'); } else { 
-                        openInternalBrowser(link, 'default'); // [수정됨] 기본 모드로 열기
+                        openInternalBrowser(link, false); 
                     }
                 }
             }
@@ -607,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bannerInstallBtn.onclick = () => {
             installBanner.classList.remove('show');
             if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((r) => { deferredPrompt = null; }); }
-            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); } else { alert("브라우저 메뉴에서 [앱 설치]를 선택하세요."); } }
+            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); } else { alert("이미 설치되어 있거나 브라우저 메뉴에서 설치 가능합니다."); } }
         };
     }
     if (bannerCloseBtn) bannerCloseBtn.onclick = () => installBanner.classList.remove('show');
