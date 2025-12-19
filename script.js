@@ -117,7 +117,7 @@ window.playRandomVideo = (category, title) => {
 // DOM 로드 후 실행
 document.addEventListener('DOMContentLoaded', () => {
     
-    // [추가됨] 카드 슬라이더 가로 휠 스크롤 지원
+    // 카드 슬라이더 가로 휠 스크롤
     const cardSlider = document.getElementById('card-slider');
     if (cardSlider) {
         cardSlider.addEventListener('wheel', (evt) => {
@@ -159,20 +159,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // 앱 내 브라우저 로직
     const internalBrowser = document.getElementById('internal-browser');
     const browserContentArea = document.getElementById('browser-content-area');
-    const browserUrlText = document.getElementById('browser-url-text'); 
     const browserHeader = document.getElementById('browser-header-bar');
-    const floatingCloseBtn = document.getElementById('floating-close-btn'); 
+    const browserUrlText = document.getElementById('browser-url-text');
     
     function openInternalBrowser(url, showUrl = false) {
         if (!internalBrowser || !browserContentArea) { window.open(url, '_blank'); return; }
         
         if (showUrl) {
             if(browserHeader) browserHeader.style.display = 'flex';
-            if(floatingCloseBtn) floatingCloseBtn.style.display = 'none';
             if(browserUrlText) browserUrlText.innerText = url;
         } else {
             if(browserHeader) browserHeader.style.display = 'none';
-            if(floatingCloseBtn) floatingCloseBtn.style.display = 'flex';
         }
 
         browserContentArea.innerHTML = '';
@@ -211,16 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 닫기 버튼 이벤트 (플로팅 닫기)
-    if (floatingCloseBtn) {
-        floatingCloseBtn.onclick = () => {
-            if (internalBrowser.classList.contains('show')) {
-                 internalBrowser.classList.remove('show');
-                 setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
-                 if (history.state && history.state.browserOpen) { history.back(); }
-            }
-        };
-    }
+    // 뒤로가기로 닫기 제어 (버튼 없음)
 
     const listContainer = document.getElementById('main-list');
     let isDragging = false; 
@@ -293,7 +281,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoSettingsBtn = document.getElementById('video-settings-btn'); 
     const cookieGuideModal = document.getElementById('cookie-guide-modal');
     const closeCookieGuideBtn = document.getElementById('close-cookie-guide-btn');
-    const settingsCookieGuideBtn = document.getElementById('settings-cookie-guide-btn');
 
     moodBtns.forEach(btn => {
         btn.onclick = () => {
@@ -396,12 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
         videoSettingsBtn.onclick = (e) => {
             e.stopPropagation(); 
             openModal(cookieGuideModal);
-        };
-    }
-    if (settingsCookieGuideBtn) {
-        settingsCookieGuideBtn.onclick = () => {
-            closeModal(settingsModal);
-            setTimeout(() => openModal(cookieGuideModal), 300);
         };
     }
 
@@ -569,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bannerInstallBtn.onclick = () => {
             installBanner.classList.remove('show');
             if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((r) => { deferredPrompt = null; }); }
-            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); } else { alert("이미 설치되어 있거나 브라우저 메뉴에서 설치 가능합니다."); } }
+            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); } else { alert("브라우저 메뉴에서 [앱 설치]를 선택하세요."); } }
         };
     }
     if (bannerCloseBtn) bannerCloseBtn.onclick = () => installBanner.classList.remove('show');

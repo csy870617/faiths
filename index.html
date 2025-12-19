@@ -23,8 +23,8 @@
 
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     
-    <link rel="stylesheet" href="style.css?v=137">
-    <link rel="stylesheet" href="ad.css?v=137">
+    <link rel="stylesheet" href="style.css?v=139">
+    <link rel="stylesheet" href="ad.css?v=139">
     
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
@@ -72,100 +72,44 @@
 
         <div class="card-news-section">
             <div class="card-slider" id="card-slider">
-                
                 <div class="news-card notice-theme">
-                    <div class="news-visual">
-                        <div class="news-icon-circle">📢</div>
-                    </div>
+                    <div class="news-visual"><div class="news-icon-circle">📢</div></div>
                     <div class="news-text-content">
-                        <div class="news-badge-row">
-                            <span class="news-badge notice-badge">공지</span>
-                        </div>
-                        <h4>Upcoming Updates</h4>
-                        <p>크리스천의 성장을 돕기 위한 다양한 도구와 콘텐츠가 계속해서 제작/배포될 예정입니다.</p>
+                        <div class="news-badge-row"><span class="news-badge notice-badge">공지</span></div>
+                        <h4>Upcoming Updates</h4><p>크리스천의 성장을 돕기 위한 다양한 도구와 콘텐츠가 계속해서 제작/배포될 예정입니다.</p>
                     </div>
                     <div class="notice-bg-icon">📢</div>
                 </div>
-
                 <div class="news-card ad-theme" onclick="window.open('https://ebook-product.kyobobook.co.kr/dig/epd/ebook/E000012331585', '_blank')">
-                    <div class="news-visual">
-                        <img src="ad/01.png" alt="Book" class="news-img">
-                    </div>
+                    <div class="news-visual"><img src="ad/01.png" alt="Book" class="news-img"></div>
                     <div class="news-text-content">
-                        <div class="news-badge-row">
-                            <span class="news-badge ad-badge">추천도서</span>
-                        </div>
-                        <h4>FAITH MBTI</h4>
-                        <p>신앙에도 유형이 있다<br><span class="sub-info">교보문고 eBook</span></p>
+                        <div class="news-badge-row"><span class="news-badge ad-badge">추천도서</span></div>
+                        <h4>FAITH MBTI</h4><p>신앙에도 유형이 있다<br><span class="sub-info">교보문고 eBook</span></p>
                         <div class="ad-cta">보러가기 ➔</div>
                     </div>
                 </div>
-
             </div>
         </div>
 
         <div class="list-container" id="main-list">
-            <div class="list-card" id="card-bible" data-category="faith">
-                <img src="icon/8.png" alt="Holy Bible" class="app-icon-img">
-                <div class="text-box"><h3>Holy Bible</h3><p>공동체성경읽기 / YouVersion</p></div><button class="btn-go">→</button>
-            </div>
-            <div class="list-card main-feature" id="card-daily" data-category="growth" data-link="https://csy870617.github.io/todaybible/">
-                <img src="icon/1.png" alt="오늘의 말씀카드" class="app-icon-img">
-                <div class="text-box"><h3>오늘의 말씀카드</h3><p>매일 새로운 말씀으로 시작하는 하루</p></div><button class="btn-go">→</button>
-            </div>
-            <div class="list-card" id="card-mbti" data-category="growth" data-link="https://faiths.life/">
-                <img src="icon/2.png" alt="FAITH MBTI" class="app-icon-img">
-                <div class="text-box"><h3>FAITH MBTI</h3><p>크리스천 신앙 유형 분석</p></div><button class="btn-go">→</button>
-            </div>
-            <div class="list-card" id="card-diary" data-category="growth" data-link="https://csy870617.github.io/diary/">
-                <img src="icon/11.png" alt="신앙일지" class="app-icon-img">
-                <div class="text-box"><h3>신앙일지</h3><p>FAITH LOG 기록이 믿음이 되는 순간</p></div><button class="btn-go">→</button>
-            </div>
-            <div class="list-card" id="card-choir" data-category="faith" data-link="https://csy870617.github.io/ChurchChoir/">
-                <img src="icon/5.png" alt="성가대 연습실" class="app-icon-img">
-                <div class="text-box"><h3>성가대 연습실</h3><p>우리교회 성가대를 위한 특별한 공간</p></div><button class="btn-go">→</button>
-            </div>
-            <div class="list-card" id="card-market" data-category="tools" data-link="https://csy870617.github.io/shopping/">
-                <img src="icon/7.png" alt="달란트 쇼핑" class="app-icon-img">
-                <div class="text-box"><h3>달란트 쇼핑</h3><p>신앙과 삶을 잇는 제품이 한 곳에</p></div><button class="btn-go">→</button>
-            </div>
-            <div class="list-card" id="card-ccm" data-category="faith">
-                <img src="icon/4.png" alt="CCM 플리" class="app-icon-img">
-                <div class="text-box"><h3>CCM 플리</h3><p>내 기분과 상황에 딱 맞는 찬양 듣기</p></div><button class="btn-go">→</button>
-            </div>
-            <div class="list-card" id="card-engo" data-category="growth" data-link="https://engo.life/">
-                <img src="icon/3.png" alt="ENGO 영어회화" class="app-icon-img">
-                <div class="text-box"><h3>ENGO 영어회화</h3><p>English & go 영어회화의 시작</p></div><button class="btn-go">→</button>
-            </div>
-            <div class="list-card" id="card-tuner" data-category="tools" data-link="https://csy870617.github.io/ChurchTuner/">
-                <img src="icon/6.png" alt="Church Tuner" class="app-icon-img">
-                <div class="text-box"><h3>Church Tuner</h3><p>교회 악기 튜닝기</p></div><button class="btn-go">→</button>
-            </div>
-            <div class="list-card" id="card-chord" data-category="tools" data-link="https://csy870617.github.io/chordfinder/">
-                <img src="icon/9.png" alt="Chord Finder" class="app-icon-img">
-                <div class="text-box"><h3>Chord Finder</h3><p>쉬운 기타 코드 검색기</p></div><button class="btn-go">→</button>
-            </div>
-            <div class="list-card" id="card-calendar" data-category="faith" data-link="https://csy870617.github.io/calendar/">
-                <img src="icon/10.png" alt="쳐치 캘린더" class="app-icon-img">
-                <div class="text-box"><h3>쳐치 캘린더</h3><p>교회력 확인 및 우리교회 일정 함께 만들기</p></div><button class="btn-go">→</button>
-            </div>
-            <div class="list-card share-card" id="card-share" data-category="share">
-                <div class="icon-box" style="background: #FEE500; color: #3b1e1e;">💌</div> 
-                <div class="text-box"><h3>함께 성장할 친구 초대</h3><p>이 플랫폼을 친구에게 공유하기</p></div><button class="btn-go">📤</button>
-            </div>
+            <div class="list-card" id="card-bible" data-category="faith"><img src="icon/8.png" alt="Holy Bible" class="app-icon-img"><div class="text-box"><h3>Holy Bible</h3><p>공동체성경읽기 / YouVersion</p></div><button class="btn-go">→</button></div>
+            <div class="list-card main-feature" id="card-daily" data-category="growth" data-link="https://csy870617.github.io/todaybible/"><img src="icon/1.png" alt="오늘의 말씀카드" class="app-icon-img"><div class="text-box"><h3>오늘의 말씀카드</h3><p>매일 새로운 말씀으로 시작하는 하루</p></div><button class="btn-go">→</button></div>
+            <div class="list-card" id="card-mbti" data-category="growth" data-link="https://faiths.life/"><img src="icon/2.png" alt="FAITH MBTI" class="app-icon-img"><div class="text-box"><h3>FAITH MBTI</h3><p>크리스천 신앙 유형 분석</p></div><button class="btn-go">→</button></div>
+            <div class="list-card" id="card-diary" data-category="growth" data-link="https://csy870617.github.io/diary/"><img src="icon/11.png" alt="신앙일지" class="app-icon-img"><div class="text-box"><h3>신앙일지</h3><p>FAITH LOG 기록이 믿음이 되는 순간</p></div><button class="btn-go">→</button></div>
+            <div class="list-card" id="card-choir" data-category="faith" data-link="https://csy870617.github.io/ChurchChoir/"><img src="icon/5.png" alt="성가대 연습실" class="app-icon-img"><div class="text-box"><h3>성가대 연습실</h3><p>우리교회 성가대를 위한 특별한 공간</p></div><button class="btn-go">→</button></div>
+            <div class="list-card" id="card-market" data-category="tools" data-link="https://csy870617.github.io/shopping/"><img src="icon/7.png" alt="달란트 쇼핑" class="app-icon-img"><div class="text-box"><h3>달란트 쇼핑</h3><p>신앙과 삶을 잇는 제품이 한 곳에</p></div><button class="btn-go">→</button></div>
+            <div class="list-card" id="card-ccm" data-category="faith"><img src="icon/4.png" alt="CCM 플리" class="app-icon-img"><div class="text-box"><h3>CCM 플리</h3><p>내 기분과 상황에 딱 맞는 찬양 듣기</p></div><button class="btn-go">→</button></div>
+            <div class="list-card" id="card-engo" data-category="growth" data-link="https://engo.life/"><img src="icon/3.png" alt="ENGO 영어회화" class="app-icon-img"><div class="text-box"><h3>ENGO 영어회화</h3><p>English & go 영어회화의 시작</p></div><button class="btn-go">→</button></div>
+            <div class="list-card" id="card-tuner" data-category="tools" data-link="https://csy870617.github.io/ChurchTuner/"><img src="icon/6.png" alt="Church Tuner" class="app-icon-img"><div class="text-box"><h3>Church Tuner</h3><p>교회 악기 튜닝기</p></div><button class="btn-go">→</button></div>
+            <div class="list-card" id="card-chord" data-category="tools" data-link="https://csy870617.github.io/chordfinder/"><img src="icon/9.png" alt="Chord Finder" class="app-icon-img"><div class="text-box"><h3>Chord Finder</h3><p>쉬운 기타 코드 검색기</p></div><button class="btn-go">→</button></div>
+            <div class="list-card" id="card-calendar" data-category="faith" data-link="https://csy870617.github.io/calendar/"><img src="icon/10.png" alt="쳐치 캘린더" class="app-icon-img"><div class="text-box"><h3>쳐치 캘린더</h3><p>교회력 확인 및 우리교회 일정 함께 만들기</p></div><button class="btn-go">→</button></div>
+            <div class="list-card share-card" id="card-share" data-category="share"><div class="icon-box" style="background: #FEE500; color: #3b1e1e;">💌</div><div class="text-box"><h3>함께 성장할 친구 초대</h3><p>이 플랫폼을 친구에게 공유하기</p></div><button class="btn-go">📤</button></div>
         </div>
     </div>
 
     <div id="install-banner" class="install-banner">
-        <div class="install-content">
-            <div class="install-text"><strong>앱으로 더 편하게!</strong><p>홈 화면에 설치하고 바로 접속하세요.</p></div>
-            <button id="banner-install-btn" class="banner-btn primary">설치</button>
-        </div>
-        <div class="install-footer">
-            <button id="banner-close-btn" class="text-btn">닫기</button>
-            <span class="divider">|</span>
-            <button id="banner-never-btn" class="text-btn">다시 보지 않기</button>
-        </div>
+        <div class="install-content"><div class="install-text"><strong>앱으로 더 편하게!</strong><p>홈 화면에 설치하고 바로 접속하세요.</p></div><button id="banner-install-btn" class="banner-btn primary">설치</button></div>
+        <div class="install-footer"><button id="banner-close-btn" class="text-btn">닫기</button><span class="divider">|</span><button id="banner-never-btn" class="text-btn">다시 보지 않기</button></div>
     </div>
 
     <div id="modal-overlay" class="modal-overlay">
@@ -184,13 +128,11 @@
                 </div>
                 <button id="close-modal" class="modal-close-btn">닫기</button>
             </div>
-            
             <div id="ccm-player-view" style="display: none;">
                 <div class="player-header" style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 id="player-title">재생 중</h3>
                     <button id="video-settings-btn" class="header-settings-btn">⚙️</button>
                 </div>
-                
                 <div class="video-container">
                     <div id="youtube-player"></div>
                     <div id="mini-controls" class="mini-controls">
@@ -199,14 +141,8 @@
                         <div id="maximize-overlay"></div>
                     </div>
                 </div>
-                <div class="player-info">
-                    <p class="copyright-notice">이 콘텐츠는 제작자의 유튜브 채널을 통해 재생되며,<br>저작권과 모든 권리는 원 제작자에게 있습니다.</p>
-                </div>
-                <div class="player-buttons">
-                    <button id="shuffle-play-btn" class="action-btn">🔄 다른 플리 듣기</button>
-                    <button id="back-to-menu-btn" class="action-btn secondary">📂 다른 주제 고르기</button>
-                </div>
-                
+                <div class="player-info"><p class="copyright-notice">이 콘텐츠는 제작자의 유튜브 채널을 통해 재생되며,<br>저작권과 모든 권리는 원 제작자에게 있습니다.</p></div>
+                <div class="player-buttons"><button id="shuffle-play-btn" class="action-btn">🔄 다른 플리 듣기</button><button id="back-to-menu-btn" class="action-btn secondary">📂 다른 주제 고르기</button></div>
                 <button id="float-mode-btn" class="float-icon-btn"><span>📺</span> 화면 작게 보기</button>
             </div>
         </div>
@@ -214,63 +150,24 @@
 
     <div id="cookie-guide-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>유튜브 프리미엄 회원 광고 제거</h3>
-                <p style="font-size: 13px; margin-bottom: 20px;">프리미엄 회원인데 광고가 나오나요?<br>아래 설정을 확인해주세요.</p>
-            </div>
+            <div class="modal-header"><h3>유튜브 프리미엄 회원 광고 제거</h3><p style="font-size: 13px; margin-bottom: 20px;">프리미엄 회원인데 광고가 나오나요?<br>아래 설정을 확인해주세요.</p></div>
             <div class="guide-content" style="text-align: left; padding: 0 10px;">
-                <div class="guide-section" style="margin-bottom: 20px;">
-                    <h4 style="font-size: 15px; margin-bottom: 8px; color: #111;">🍎 아이폰 (Safari/iOS)</h4>
-                    <p style="font-size: 13px; color: #555; line-height: 1.5;">
-                        <strong>설정 > Safari</strong> 메뉴로 이동하여<br>
-                        <strong>'크로스 사이트 추적 방지'</strong> 항목을<br>
-                        <span style="color: #e74c3c; font-weight: bold;">꺼주세요 (OFF).</span>
-                    </p>
-                </div>
-                <div class="guide-section">
-                    <h4 style="font-size: 15px; margin-bottom: 8px; color: #111;">🤖 안드로이드 (Chrome)</h4>
-                    <p style="font-size: 13px; color: #555; line-height: 1.5;">
-                        앱 내 브라우저 또는 크롬 설정에서<br>
-                        <strong>사이트 설정 > 서드파티 쿠키</strong>를<br>
-                        <span style="color: #2ecc71; font-weight: bold;">허용</span>으로 변경해주세요.
-                    </p>
-                </div>
+                <div class="guide-section" style="margin-bottom: 20px;"><h4 style="font-size: 15px; margin-bottom: 8px; color: #111;">🍎 아이폰 (Safari/iOS)</h4><p style="font-size: 13px; color: #555; line-height: 1.5;"><strong>설정 > Safari</strong> 메뉴로 이동하여<br><strong>'크로스 사이트 추적 방지'</strong> 항목을<br><span style="color: #e74c3c; font-weight: bold;">꺼주세요 (OFF).</span></p></div>
+                <div class="guide-section"><h4 style="font-size: 15px; margin-bottom: 8px; color: #111;">🤖 안드로이드 (Chrome)</h4><p style="font-size: 13px; color: #555; line-height: 1.5;">앱 내 브라우저 또는 크롬 설정에서<br><strong>사이트 설정 > 서드파티 쿠키</strong>를<br><span style="color: #2ecc71; font-weight: bold;">허용</span>으로 변경해주세요.</p></div>
             </div>
-            <p style="font-size: 11px; color: #999; margin-top: 20px;">
-                * 유튜브의 로그인 정보(쿠키)를 불러오기 위해<br>필요한 설정입니다.
-            </p>
+            <p style="font-size: 11px; color: #999; margin-top: 20px;">* 유튜브의 로그인 정보(쿠키)를 불러오기 위해<br>필요한 설정입니다.</p>
             <button id="close-cookie-guide-btn" class="modal-close-btn" style="margin-top: 20px;">확인했습니다</button>
         </div>
     </div>
 
     <div id="bible-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>성경 읽기</h3>
-                <p>원하시는 성경 서비스를 선택해주세요.</p>
-            </div>
+            <div class="modal-header"><h3>성경 읽기</h3><p>원하시는 성경 서비스를 선택해주세요.</p></div>
             <div class="bible-btn-container">
-                <div class="bible-link-btn prs-btn" data-link="https://prs.app/ko/bible/gen.1.nkrv">
-                    <div class="btn-icon-area">🎧</div>
-                    <div class="btn-text-area">
-                        <span class="btn-title">공동체성경읽기</span>
-                        <span class="btn-sub">드라마 바이블 (개역개정)</span>
-                    </div>
-                    <div class="btn-arrow">→</div>
-                </div>
-                <div class="bible-link-btn youversion-btn" data-link="https://www.bible.com/ko/bible/142/GEN.1.RNKSV">
-                    <div class="btn-icon-area">📖</div>
-                    <div class="btn-text-area">
-                        <span class="btn-title">YouVersion</span>
-                        <span class="btn-sub">다양한 번역본 (새번역 등)</span>
-                    </div>
-                    <div class="btn-arrow">→</div>
-                </div>
+                <div class="bible-link-btn prs-btn" data-link="https://prs.app/ko/bible/gen.1.nkrv"><div class="btn-icon-area">🎧</div><div class="btn-text-area"><span class="btn-title">공동체성경읽기</span><span class="btn-sub">드라마 바이블 (개역개정)</span></div><div class="btn-arrow">→</div></div>
+                <div class="bible-link-btn youversion-btn" data-link="https://www.bible.com/ko/bible/142/GEN.1.RNKSV"><div class="btn-icon-area">📖</div><div class="btn-text-area"><span class="btn-title">YouVersion</span><span class="btn-sub">다양한 번역본 (새번역 등)</span></div><div class="btn-arrow">→</div></div>
             </div>
-            <p class="copyright-notice" style="margin-top: 24px; color: #aaa;">
-                버튼을 클릭하시면 해당 성경 페이지로 연결됩니다.<br>
-                콘텐츠의 저작권과 모든 권리는 각 제공 기관에 있습니다.
-            </p>
+            <p class="copyright-notice" style="margin-top: 24px; color: #aaa;">버튼을 클릭하시면 해당 성경 페이지로 연결됩니다.<br>콘텐츠의 저작권과 모든 권리는 각 제공 기관에 있습니다.</p>
             <button id="close-bible-modal" class="modal-close-btn secondary">닫기</button>
         </div>
     </div>
@@ -307,16 +204,23 @@
                     </div>
                 </div>
                 
-                <div class="setting-group" style="margin-top: 20px;">
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+                <div class="setting-group">
                     <div class="setting-item">
-                        <label>유튜브 설정</label>
-                        <button id="settings-cookie-guide-btn" class="settings-action-btn" style="background: #FFFDE7; border: 1px solid #FEE500; color: #333;">
-                            <span class="emoji">🍪</span> 유튜브 광고 문제 해결 (가이드)
-                        </button>
+                        <a href="https://csy870617.github.io/faiths/" target="_blank" class="pc-download-card">
+                            <div class="pc-icon-box">🖥️</div>
+                            <div class="pc-text-box">
+                                <span class="pc-title">PC 버전 다운로드</span>
+                                <span class="pc-sub">더 큰 화면으로 편하게 이용하세요</span>
+                            </div>
+                            <div class="pc-bg-graphic">💻</div>
+                        </a>
                     </div>
                 </div>
 
-                <hr style="border: 0; border-top: 1px solid #eee; margin: 24px 0;">
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                
                 <div class="setting-group">
                     <div class="setting-item">
                         <button id="install-app-btn" class="settings-action-btn install-btn-layout">
@@ -333,8 +237,8 @@
         </div>
     </div>
 
-    <script src="playlist.js?v=135"></script>
-    <script src="script.js?v=135"></script>
+    <script src="playlist.js?v=139"></script>
+    <script src="script.js?v=139"></script>
     
     <script>
         window.addEventListener('load', function() {
