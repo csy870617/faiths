@@ -1,18 +1,18 @@
 // sw.js
-// [중요] 버전 업데이트: v145
-const CACHE_NAME = 'faiths-v145'; 
+// [중요] 버전 업데이트: v146
+const CACHE_NAME = 'faiths-v146'; 
 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
-    './style.css?v=145', // (파일 내용 변경 없음, 버전만 올림)
-    './script.js?v=145',
-    './playlist.js?v=145', 
+    './style.css?v=146', // (파일 내용 변경 없음, 버전만 올림)
+    './script.js?v=146',
+    './playlist.js?v=146', 
     './manifest.json',
     './icon/0.png', 
     './icon/11.png',
     './ad/01.png',
-    './ad.css?v=145',
+    './ad.css?v=146',
     // 필요한 이미지나 아이콘 경로를 여기에 추가하세요
 ];
 
@@ -71,4 +71,5 @@ self.addEventListener('fetch', (event) => {
                 return caches.match(event.request);
             })
     );
+
 });
