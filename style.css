@@ -1,5 +1,15 @@
 /* style.css - v141 */
 
+/* ✨ 스크롤바 숨기기 (기능은 유지됨) */
+::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+body {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+
 /* ---- 1. 기본 설정 ---- */
 :root { --text-scale: 1; --brand-color: #5f27cd; }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Pretendard Variable", Pretendard, sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -405,4 +415,5 @@ input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
     .text-box p { font-size: 14px; }
     .btn-go { position: absolute; bottom: 24px; right: 24px; width: 40px; height: 40px; }
 }
+
 @media (min-width: 1200px) { .list-container { grid-template-columns: repeat(3, 1fr); } }
