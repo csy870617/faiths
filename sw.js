@@ -1,6 +1,6 @@
 // sw.js
-// [중요] 버전 업데이트: v146
-const CACHE_NAME = 'faiths-v146'; 
+// [중요] 버전 업데이트: v147
+const CACHE_NAME = 'faiths-v147'; 
 
 const ASSETS_TO_CACHE = [
     './',
@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
     './manifest.json',
     './icon/0.png', 
     './icon/11.png',
+    './icon/12.png', // BINGO 아이콘 추가
     './ad/01.png',
     './ad.css?v=145',
 ];
@@ -43,9 +44,8 @@ self.addEventListener('activate', (event) => {
     return self.clients.claim();
 });
 
-// 3. 요청 (Fetch): http/https 프로토콜 필터링 추가
+// 3. 요청 (Fetch)
 self.addEventListener('fetch', (event) => {
-    // http 또는 https 요청만 처리 (chrome-extension 등 제외)
     if (!event.request.url.startsWith('http')) {
         return;
     }
