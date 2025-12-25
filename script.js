@@ -1,3 +1,5 @@
+// script.js - v146 (PC 드래그 최적화 버전)
+
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
 let isPlayerReady = false;
@@ -344,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // [수정됨] 성경 링크 클릭 시 외부 브라우저(새 창)로 열기
+    // 성경 링크 클릭 시 외부 브라우저(새 창)로 열기
     bibleLinkBtns.forEach(btn => {
         btn.onclick = (e) => {
             e.preventDefault(); 
@@ -443,16 +445,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cookieGuideModal) cookieGuideModal.onclick = (e) => { if (e.target === cookieGuideModal) handleCloseBtnClick(cookieGuideModal); };
 
 
-    // --- 드래그 기능 ---
+    // --- 드래그 기능 수정 (PC 지원 최적화) ---
     let isPlayerDragging = false;
     let shiftX, shiftY;
     let dragStartPos = { x: 0, y: 0 };
+    let totalMovedDistance = 0; // 드래그한 총 거리
 
     const maximizePlayer = (e) => {
          if (e) {
-             e.preventDefault();
-             e.stopPropagation();
-             e.stopImmediatePropagation(); 
+             if (typeof e.preventDefault === 'function') e.preventDefault();
+             if (typeof e.stopPropagation === 'function') e.stopPropagation();
          }
          modalOverlay.classList.remove('mini-mode');
          if(maximizeOverlay) maximizeOverlay.style.display = 'none';
@@ -464,13 +466,16 @@ document.addEventListener('DOMContentLoaded', () => {
          draggablePlayer.style.left = '';
          draggablePlayer.style.bottom = '20px';
          draggablePlayer.style.right = '20px';
+         draggablePlayer.style.transition = ''; 
     };
 
     const startPlayerDrag = (e) => {
         if (!modalOverlay.classList.contains('mini-mode')) return;
-        if (e.target.classList.contains('mini-btn')) return;
+        if (e.target.closest('.mini-btn')) return;
 
         isPlayerDragging = true;
+        totalMovedDistance = 0; // 초기화
+
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         dragStartPos = { x: clientX, y: clientY };
@@ -488,9 +493,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const onPlayerDrag = (e) => {
         if (!isPlayerDragging) return;
-        e.preventDefault(); 
+        
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        // 드래그 거리 누적 계산
+        const dist = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
+        totalMovedDistance = dist;
+
         draggablePlayer.style.left = (clientX - shiftX) + 'px';
         draggablePlayer.style.top = (clientY - shiftY) + 'px';
     };
@@ -499,11 +509,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isPlayerDragging) return;
         isPlayerDragging = false;
         
-        const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-        const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-        const distance = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
-
-        if (distance < 10) {
+        // 드래그 거리가 10px 미만일 때만 클릭으로 간주하여 최대화
+        if (totalMovedDistance < 10) {
              maximizePlayer(e);
         }
     };
@@ -517,8 +524,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('touchend', endPlayerDrag);
     }
     
+    // PC에서 드래그와 클릭 충돌을 방지하기 위해 onclick 대신 드래그 로직 내에서 판단함
     if (maximizeOverlay) {
-        maximizeOverlay.onclick = maximizePlayer;
+        // 기존의 maximizeOverlay.onclick = maximizePlayer; 코드는 삭제됨
     }
 
     if (miniPlayPauseBtn) {
@@ -579,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const target = card.getAttribute('data-target');
                 if (link) {
                     if (target === 'external') { window.open(link, '_blank'); } else { 
-                        openInternalBrowser(link, 'default'); // 기본 모드로 열기
+                        openInternalBrowser(link, 'default'); 
                     }
                 }
             }

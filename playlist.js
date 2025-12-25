@@ -14,11 +14,16 @@ const CCM_PLAYLIST = {
         "https://www.youtube.com/embed/J9mNIr99RqQ",
         "https://www.youtube.com/embed/eWGehATN8Xk",
         "https://www.youtube.com/embed/FAa_oQo_tms",
-        "https://www.youtube.com/embed/zHfp71hwO2g", // [NEW]
-        "https://www.youtube.com/embed/RcmyhEvaYWA", // [NEW]
-        "https://www.youtube.com/embed/OTTWQ8ePxBQ", // [NEW]
-        "https://www.youtube.com/embed/Rc_QHVrUlx8", // [NEW]
-        "https://www.youtube.com/embed/SJwVH-Agzbw"  // [NEW]
+        "https://www.youtube.com/embed/zHfp71hwO2g",
+        "https://www.youtube.com/embed/RcmyhEvaYWA",
+        "https://www.youtube.com/embed/OTTWQ8ePxBQ",
+        "https://www.youtube.com/embed/Rc_QHVrUlx8",
+        "https://www.youtube.com/embed/SJwVH-Agzbw",
+        "https://www.youtube.com/embed/1GL8skLUhdM", // [NEW]
+        "https://www.youtube.com/embed/MRPqLfK2vZI", // [NEW]
+        "https://www.youtube.com/embed/wNem2P_0VHY", // [NEW]
+        "https://www.youtube.com/embed/fZ3-ysdNl24", // [NEW]
+        "https://www.youtube.com/embed/KgaIHEIFmK0"  // [NEW]
     ],
 
     // 2. 깊은 기도의 시간
@@ -32,9 +37,13 @@ const CCM_PLAYLIST = {
         "https://www.youtube.com/embed/KOSJHN89qk8",
         "https://www.youtube.com/embed/TGE56pKXyp4",
         "https://www.youtube.com/embed/PrYd9qUhJgE",
-        "https://www.youtube.com/embed/ye2B_dLOZYw", // [NEW]
-        "https://www.youtube.com/embed/JHchbQxnUnU", // [NEW]
-        "https://www.youtube.com/embed/3-ShlJLcnFc"  // [NEW]
+        "https://www.youtube.com/embed/ye2B_dLOZYw",
+        "https://www.youtube.com/embed/JHchbQxnUnU",
+        "https://www.youtube.com/embed/3-ShlJLcnFc",
+        "https://www.youtube.com/embed/t_diIBoh4Sk", // [NEW]
+        "https://www.youtube.com/embed/-b1bWVeZ808", // [NEW]
+        "https://www.youtube.com/embed/Rnd1goKbu9Q", // [NEW]
+        "https://www.youtube.com/embed/LFE_DPE56BY"  // [NEW]
     ],
 
     // 3. 활기찬 아침
@@ -51,10 +60,15 @@ const CCM_PLAYLIST = {
         "https://www.youtube.com/embed/Av1z2P8tGN0",
         "https://www.youtube.com/embed/xokf7CBUGO4",
         "https://www.youtube.com/embed/VJqhRwD2vs0",
-        "https://www.youtube.com/embed/zNz3jJ-8s8A", // [NEW]
-        "https://www.youtube.com/embed/Nf93e2Kc61Y", // [NEW]
-        "https://www.youtube.com/embed/ZRHv4N-LpSY", // [NEW]
-        "https://www.youtube.com/embed/w-5WfXpddLU"  // [NEW]
+        "https://www.youtube.com/embed/zNz3jJ-8s8A",
+        "https://www.youtube.com/embed/Nf93e2Kc61Y",
+        "https://www.youtube.com/embed/ZRHv4N-LpSY",
+        "https://www.youtube.com/embed/w-5WfXpddLU",
+        "https://www.youtube.com/embed/t_hkY41s-98", // [NEW]
+        "https://www.youtube.com/embed/saYs_JGP9dE", // [NEW]
+        "https://www.youtube.com/embed/OBYtVepbQ7Q", // [NEW]
+        "https://www.youtube.com/embed/zF5FV8jSagc", // [NEW]
+        "https://www.youtube.com/embed/LiazYruNb3U"  // [NEW]
     ],
 
     // 4. 잠들기 전 평안
@@ -68,12 +82,15 @@ const CCM_PLAYLIST = {
         "https://www.youtube.com/embed/57eqKmCuIP4",
         "https://www.youtube.com/embed/E7d4TFxn5dY",
         "https://www.youtube.com/embed/gDS3Ar1ZQm4",
-        "https://www.youtube.com/embed/b1XiJeyFdWU", // [NEW]
-        "https://www.youtube.com/embed/2XE_lxZ5vgI", // [NEW]
-        "https://www.youtube.com/embed/pW9cPvgz7ME", // [NEW]
-        "https://www.youtube.com/embed/cUh8EjhWdbE", // [NEW]
-        "https://www.youtube.com/embed/dsN48ty2TKY", // [NEW]
-        "https://www.youtube.com/embed/jDoCHM2BMb4"  // [NEW]
+        "https://www.youtube.com/embed/b1XiJeyFdWU",
+        "https://www.youtube.com/embed/2XE_lxZ5vgI",
+        "https://www.youtube.com/embed/pW9cPvgz7ME",
+        "https://www.youtube.com/embed/cUh8EjhWdbE",
+        "https://www.youtube.com/embed/dsN48ty2TKY",
+        "https://www.youtube.com/embed/jDoCHM2BMb4",
+        "https://www.youtube.com/embed/z91F5RJcIUw", // [NEW]
+        "https://www.youtube.com/embed/bOtNmN4CgnM", // [NEW]
+        "https://www.youtube.com/embed/NmbZoKS0ZPE"  // [NEW]
     ],
 
     // 5. 신나는 노동요 & 드라이브
@@ -89,14 +106,19 @@ const CCM_PLAYLIST = {
         "https://www.youtube.com/embed/neqhNmR2kgY",
         "https://www.youtube.com/embed/DLcaLTsrCPI",
         "https://www.youtube.com/embed/11-btPv8-8c",
-        "https://www.youtube.com/embed/Xg-rjbC_fjI", // [NEW]
-        "https://www.youtube.com/embed/kBhMLA_vFgk", // [NEW]
-        "https://www.youtube.com/embed/fy9-fqTe16M", // [NEW]
-        "https://www.youtube.com/embed/6UVmBCaDSoI", // [NEW]
-        "https://www.youtube.com/embed/x20LnUjrIKA", // [NEW]
-        "https://www.youtube.com/embed/RoBEAr0EbcI", // [NEW]
-        "https://www.youtube.com/embed/Av1z2P8tGN0", // [NEW]
-        "https://www.youtube.com/embed/GhTd3RtoC00"  // [NEW]
+        "https://www.youtube.com/embed/Xg-rjbC_fjI",
+        "https://www.youtube.com/embed/kBhMLA_vFgk",
+        "https://www.youtube.com/embed/fy9-fqTe16M",
+        "https://www.youtube.com/embed/6UVmBCaDSoI",
+        "https://www.youtube.com/embed/x20LnUjrIKA",
+        "https://www.youtube.com/embed/RoBEAr0EbcI",
+        "https://www.youtube.com/embed/Av1z2P8tGN0",
+        "https://www.youtube.com/embed/GhTd3RtoC00",
+        "https://www.youtube.com/embed/jJ73qAR6mtg", // [NEW]
+        "https://www.youtube.com/embed/nmk57QB6pJQ", // [NEW]
+        "https://www.youtube.com/embed/77bY-Se8UYQ", // [NEW]
+        "https://www.youtube.com/embed/x3RtGW4neh8", // [NEW]
+        "https://www.youtube.com/embed/ZVYM7ui1jXk"  // [NEW]
     ],
 
     // 6. 카페에서 듣는 찬양
@@ -108,11 +130,14 @@ const CCM_PLAYLIST = {
         "https://www.youtube.com/embed/5M8XCiBTj8Y",
         "https://www.youtube.com/embed/2pCT3Nz_0u0",
         "https://www.youtube.com/embed/FptG0S6VTrQ",
-        "https://www.youtube.com/embed/nK-P0GveIuY", // [NEW]
-        "https://www.youtube.com/embed/42MllIvRXQc", // [NEW]
-        "https://www.youtube.com/embed/2OZX0_9OwAc", // [NEW]
-        "https://www.youtube.com/embed/z91F5RJcIUw", // [NEW]
-        "https://www.youtube.com/embed/PmqJZHWm7JA"  // [NEW]
+        "https://www.youtube.com/embed/nK-P0GveIuY",
+        "https://www.youtube.com/embed/42MllIvRXQc",
+        "https://www.youtube.com/embed/2OZX0_9OwAc",
+        "https://www.youtube.com/embed/z91F5RJcIUw",
+        "https://www.youtube.com/embed/PmqJZHWm7JA",
+        "https://www.youtube.com/embed/yH-yV4qJKI0", // [NEW]
+        "https://www.youtube.com/embed/uzH78u0TmwQ", // [NEW]
+        "https://www.youtube.com/embed/m8Gtej6PT_4"  // [NEW]
     ],
 
     // 7. 7080 베스트 찬양

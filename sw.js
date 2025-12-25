@@ -5,18 +5,17 @@ const CACHE_NAME = 'faiths-v146';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
-    './style.css?v=146', // (파일 내용 변경 없음, 버전만 올림)
-    './script.js?v=146',
-    './playlist.js?v=146', 
+    './style.css?v=145',
+    './script.js?v=145',
+    './playlist.js?v=145', 
     './manifest.json',
     './icon/0.png', 
     './icon/11.png',
     './ad/01.png',
-    './ad.css?v=146',
-    // 필요한 이미지나 아이콘 경로를 여기에 추가하세요
+    './ad.css?v=145',
 ];
 
-// 1. 설치 (Install): 캐시 저장
+// 1. 설치 (Install)
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
@@ -24,11 +23,10 @@ self.addEventListener('install', (event) => {
             return cache.addAll(ASSETS_TO_CACHE);
         })
     );
-    // 대기하지 않고 즉시 활성화
     self.skipWaiting();
 });
 
-// 2. 활성화 (Activate): 구버전 캐시 삭제
+// 2. 활성화 (Activate)
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keyList) => {
@@ -42,13 +40,16 @@ self.addEventListener('activate', (event) => {
             );
         })
     );
-    // 모든 탭에서 즉시 제어권 가져오기
     return self.clients.claim();
 });
 
-// 3. 요청 (Fetch): 네트워크 우선, 실패 시 캐시 사용 (항상 최신 버전 유지 전략)
+// 3. 요청 (Fetch): http/https 프로토콜 필터링 추가
 self.addEventListener('fetch', (event) => {
-    // 유튜브나 외부 링크는 캐싱하지 않고 바로 네트워크로 연결
+    // http 또는 https 요청만 처리 (chrome-extension 등 제외)
+    if (!event.request.url.startsWith('http')) {
+        return;
+    }
+
     if (event.request.url.includes('youtube.com') || event.request.url.includes('googlevideo.com')) {
         return; 
     }
@@ -56,7 +57,6 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         fetch(event.request)
             .then((response) => {
-                // 네트워크 요청 성공 시: 캐시를 최신 버전으로 업데이트하고 응답 반환
                 if (!response || response.status !== 200 || response.type !== 'basic') {
                     return response;
                 }
@@ -67,9 +67,7 @@ self.addEventListener('fetch', (event) => {
                 return response;
             })
             .catch(() => {
-                // 네트워크 실패(오프라인) 시: 캐시된 내용 반환
                 return caches.match(event.request);
             })
     );
-
 });
