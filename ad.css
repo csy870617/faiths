@@ -1,4 +1,4 @@
-/* ad.css - v141 */
+/* ad.css - v146 */
 
 /* 카드 뉴스 섹션 컨테이너 */
 .card-news-section { 
@@ -52,21 +52,34 @@
 .ad-theme .news-badge { background: #E8F5E9; color: #2E7D32; border: 1px solid rgba(46, 125, 50, 0.1); }
 
 /* 이미지/아이콘 영역 */
-.news-visual { flex-shrink: 0; }
-
-.news-icon-circle { 
-    width: 48px; height: 48px; 
-    background: #F3F0FF; 
-    color: var(--brand-color);
-    border-radius: 16px; 
-    display: flex; justify-content: center; align-items: center; 
-    font-size: 22px; 
+.news-visual {
+    flex-shrink: 0;
+    width: 60px;
+    min-width: 60px;
+    height: 86px;
+    display: flex; justify-content: center; align-items: center;
 }
-.news-img { 
-    width: 60px; height: 86px; 
-    border-radius: 8px; 
-    object-fit: cover; 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+.news-visual:has(.news-icon-circle) {
+    width: 48px; min-width: 48px; height: 48px;
+}
+
+.news-icon-circle {
+    width: 48px; height: 48px;
+    background: #F3F0FF;
+    color: var(--brand-color);
+    border-radius: 16px;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+.news-img {
+    display: block;
+    width: 60px; height: 86px;
+    max-width: 60px; max-height: 86px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    flex-shrink: 0;
 }
 
 /* 텍스트 영역 */
