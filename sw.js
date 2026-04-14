@@ -1,6 +1,6 @@
 // sw.js
-// [중요] 버전 업데이트: v147
-const CACHE_NAME = 'faiths-v147'; 
+// [중요] 버전 업데이트: v148
+const CACHE_NAME = 'faiths-v148';
 
 const ASSETS_TO_CACHE = [
     './',
@@ -13,7 +13,7 @@ const ASSETS_TO_CACHE = [
     './icon/11.png',
     './icon/12.png', // BINGO 아이콘 추가
     './ad/01.png',
-    './ad.css?v=145',
+    './ad.css?v=146',
 ];
 
 // 1. 설치 (Install)
