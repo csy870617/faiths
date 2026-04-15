@@ -1,4 +1,4 @@
-/* ad.css - v148 */
+/* cards.css - v149 (renamed from ad.css to avoid adblocker filters) */
 
 /* 카드 뉴스 섹션 컨테이너 */
 .card-news-section { 
@@ -47,9 +47,9 @@
 .notice-theme .news-badge { background: #E0E7FF; color: #5f27cd; border: 1px solid rgba(95, 39, 205, 0.1); }
 .notice-theme .news-icon-circle { background: #F3F0FF; color: #5f27cd; }
 
-/* 2. 추천도서 (Ad) 테마 */
-.ad-theme { background: white; }
-.ad-theme .news-badge { background: #E8F5E9; color: #2E7D32; border: 1px solid rgba(46, 125, 50, 0.1); }
+/* 2. 추천도서 (Promo) 테마 */
+.promo-theme { background: white; }
+.promo-theme .news-badge { background: #E8F5E9; color: #2E7D32; border: 1px solid rgba(46, 125, 50, 0.1); }
 
 /* 이미지/아이콘 영역 */
 .news-visual {
@@ -141,7 +141,7 @@
 }
 
 /* 보러가기 버튼 */
-.ad-cta {
+.promo-cta {
     font-size: 13px; font-weight: 700;
     color: var(--brand-color);
     display: inline-flex; align-items: center; gap: 4px;
