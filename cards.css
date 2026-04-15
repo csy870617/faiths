@@ -1,4 +1,4 @@
-/* ad.css - v147 */
+/* cards.css - v149 (renamed from ad.css to avoid adblocker filters) */
 
 /* 카드 뉴스 섹션 컨테이너 */
 .card-news-section { 
@@ -47,9 +47,9 @@
 .notice-theme .news-badge { background: #E0E7FF; color: #5f27cd; border: 1px solid rgba(95, 39, 205, 0.1); }
 .notice-theme .news-icon-circle { background: #F3F0FF; color: #5f27cd; }
 
-/* 2. 추천도서 (Ad) 테마 */
-.ad-theme { background: white; }
-.ad-theme .news-badge { background: #E8F5E9; color: #2E7D32; border: 1px solid rgba(46, 125, 50, 0.1); }
+/* 2. 추천도서 (Promo) 테마 */
+.promo-theme { background: white; }
+.promo-theme .news-badge { background: #E8F5E9; color: #2E7D32; border: 1px solid rgba(46, 125, 50, 0.1); }
 
 /* 이미지/아이콘 영역 */
 .news-visual {
@@ -141,10 +141,70 @@
 }
 
 /* 보러가기 버튼 */
-.ad-cta {
+.promo-cta {
     font-size: 13px; font-weight: 700;
     color: var(--brand-color);
     display: inline-flex; align-items: center; gap: 4px;
     background: #F3F0FF; padding: 6px 12px;
     border-radius: 12px; align-self: flex-start; margin-top: 8px;
+}
+
+/* 데스크톱(맥미니 등 넓은 화면)에서도 한 장씩 스와이프/스크롤되는 배너처럼 보이도록 */
+@media (min-width: 768px) {
+    .card-slider {
+        gap: 20px;
+        padding: 4px 4px 20px 4px;
+    }
+    .news-card {
+        flex: 0 0 calc(100% - 40px);
+        min-height: 180px;
+        padding: 28px;
+        gap: 24px;
+    }
+    .news-visual-img {
+        width: 100px;
+        min-width: 100px;
+        max-width: 100px;
+        height: 143px;
+        min-height: 143px;
+        max-height: 143px;
+    }
+    .news-card img.news-img,
+    .news-img {
+        width: 100px !important;
+        height: 143px !important;
+        min-width: 100px;
+        max-width: 100px;
+        min-height: 143px;
+        max-height: 143px;
+    }
+    .news-visual-icon {
+        width: 64px;
+        min-width: 64px;
+        max-width: 64px;
+        height: 64px;
+        min-height: 64px;
+        max-height: 64px;
+    }
+    .news-icon-circle {
+        width: 64px; height: 64px;
+        border-radius: 20px;
+        font-size: 28px;
+    }
+    .notice-theme h4 {
+        font-size: 22px !important;
+    }
+    .notice-theme p {
+        font-size: 15px !important;
+    }
+    .news-text-content h4 {
+        font-size: calc(20px * var(--text-scale));
+    }
+    .news-text-content p {
+        font-size: calc(14px * var(--text-scale));
+    }
+    .notice-bg-icon {
+        font-size: 120px;
+        bottom: -20px; right: -20px;
+    }
 }
