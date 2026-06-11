@@ -1,12 +1,24 @@
-// script.js - v146 (PC 드래그 최적화 버전)
+// script.js - v150 (안정성 개선 버전)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
 let isPlayerReady = false;
 let pendingPlay = null;
 let wakeLock = null;
-let currentCategory = null; 
-let lastVideoUrl = null; 
+let currentCategory = null;
+let lastVideoUrl = null;
+let currentModal = null;
+
+// localStorage에 손상된 JSON이 있어도 앱이 멈추지 않도록 안전하게 파싱
+function safeParseJSON(value, fallback) {
+    if (value === null || value === undefined) return fallback;
+    try {
+        const parsed = JSON.parse(value);
+        return parsed === null ? fallback : parsed;
+    } catch (e) {
+        return fallback;
+    }
+}
 
 // 인앱 브라우저 탈출
 (function() {
@@ -75,8 +87,8 @@ function getYouTubeIdInfo(url) {
     if (!url) return null;
     const listMatch = url.match(/[?&]list=([^#&?]+)/);
     if (listMatch) return { type: 'playlist', id: listMatch[1] };
-    const videoMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/)([^#&?]*))/);
-    if (videoMatch) return { type: 'video', id: videoMatch[1] };
+    const videoMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|shorts\/|live\/|v\/|watch\?.*v=))([^#&?\/]+)/);
+    if (videoMatch && videoMatch[1]) return { type: 'video', id: videoMatch[1] };
     return null;
 }
 
@@ -124,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cardSlider.addEventListener('wheel', (evt) => {
             evt.preventDefault();
             cardSlider.scrollLeft += evt.deltaY;
-        });
+        }, { passive: false });
     }
 
     if (window.YT && window.YT.Player && !player) {
@@ -132,17 +144,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').then(reg => {
-            reg.addEventListener('updatefound', () => {
-                const newWorker = reg.installing;
-                newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        window.location.reload();
-                    }
-                });
-            });
+        navigator.serviceWorker.register('sw.js').catch((err) => {
+            console.log('서비스워커 등록 실패:', err);
         });
+        // 새 서비스워커 활성화 시 1회만 새로고침 (중복/무한 리로드 방지)
+        let isRefreshing = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (isRefreshing) return;
+            isRefreshing = true;
             window.location.reload();
         });
     }
@@ -251,27 +260,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const listContainer = document.getElementById('main-list');
-    let isDragging = false; 
-    const savedOrder = JSON.parse(localStorage.getItem('menuOrder'));
-    if (savedOrder) {
+    let isDragging = false;
+    const savedOrder = safeParseJSON(localStorage.getItem('menuOrder'), null);
+    if (listContainer && Array.isArray(savedOrder)) {
         const currentCards = Array.from(listContainer.children);
         const cardMap = {};
         currentCards.forEach(card => cardMap[card.id] = card);
         savedOrder.forEach(id => { if (cardMap[id]) listContainer.appendChild(cardMap[id]); });
     }
 
-    new Sortable(listContainer, {
-        animation: 150, delay: 200, delayOnTouchOnly: true, touchStartThreshold: 5, 
-        ghostClass: 'sortable-ghost', dragClass: 'sortable-drag',
-        onStart: function() { isDragging = true; },
-        onEnd: function (evt) {
-            setTimeout(() => { isDragging = false; }, 100);
-            const order = [];
-            const cards = listContainer.querySelectorAll('.list-card');
-            cards.forEach(card => order.push(card.id));
-            localStorage.setItem('menuOrder', JSON.stringify(order));
-        }
-    });
+    // Sortable CDN 로드 실패 시에도 나머지 기능은 정상 동작하도록 가드
+    if (listContainer && typeof Sortable !== 'undefined') {
+        new Sortable(listContainer, {
+            animation: 150, delay: 200, delayOnTouchOnly: true, touchStartThreshold: 5,
+            ghostClass: 'sortable-ghost', dragClass: 'sortable-drag',
+            onStart: function() { isDragging = true; },
+            onEnd: function (evt) {
+                setTimeout(() => { isDragging = false; }, 100);
+                const order = [];
+                const cards = listContainer.querySelectorAll('.list-card');
+                cards.forEach(card => order.push(card.id));
+                localStorage.setItem('menuOrder', JSON.stringify(order));
+            }
+        });
+    }
 
     const viewListBtn = document.getElementById('view-list');
     const viewGridBtn = document.getElementById('view-grid');
@@ -404,9 +416,11 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { if(ccmPlayerView) ccmPlayerView.style.display = 'none'; if(ccmMenuView) ccmMenuView.style.display = 'block'; }, 300);
         }
         if (modal.id === 'internal-browser') { closeInternalBrowser(); return; }
-        
+
+        // popstate에서 closeModal이 중복 실행되지 않도록 즉시 초기화
+        if (currentModal === modal) currentModal = null;
         modal.classList.remove('show');
-        setTimeout(() => { modal.style.display = 'none'; if (currentModal === modal) currentModal = null; }, 300);
+        setTimeout(() => { modal.style.display = 'none'; }, 300);
     };
 
     const handleCloseBtnClick = (modal) => { closeModal(modal); if (history.state && (history.state.modalOpen || history.state.browserOpen)) history.back(); };
@@ -501,8 +515,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const dist = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
         totalMovedDistance = dist;
 
-        draggablePlayer.style.left = (clientX - shiftX) + 'px';
-        draggablePlayer.style.top = (clientY - shiftY) + 'px';
+        // 플레이어가 화면 밖으로 완전히 나가 복구 불가능해지지 않도록 뷰포트 안으로 제한
+        const maxLeft = Math.max(0, window.innerWidth - draggablePlayer.offsetWidth);
+        const maxTop = Math.max(0, window.innerHeight - draggablePlayer.offsetHeight);
+        const newLeft = Math.min(Math.max(0, clientX - shiftX), maxLeft);
+        const newTop = Math.min(Math.max(0, clientY - shiftY), maxTop);
+
+        draggablePlayer.style.left = newLeft + 'px';
+        draggablePlayer.style.top = newTop + 'px';
     };
 
     const endPlayerDrag = (e) => {
@@ -543,7 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hideModeBtn = document.getElementById('hide-mode-btn'); 
     let isHideMode = false;
     const applyHiddenStatus = () => {
-        const hiddenList = JSON.parse(localStorage.getItem('hiddenCards')) || [];
+        const hiddenList = safeParseJSON(localStorage.getItem('hiddenCards'), []);
         const cards = document.querySelectorAll('.list-card');
         cards.forEach(card => {
             if (hiddenList.includes(card.id)) card.classList.add('user-hidden'); 
@@ -567,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isDragging) return;
             if (isHideMode) {
                 if (card.id === 'card-share' || card.id === 'card-market') { alert("이 메뉴는 숨길 수 없습니다."); return; }
-                let hiddenList = JSON.parse(localStorage.getItem('hiddenCards')) || [];
+                let hiddenList = safeParseJSON(localStorage.getItem('hiddenCards'), []);
                 if (hiddenList.includes(card.id)) { hiddenList = hiddenList.filter(id => id !== card.id); card.classList.remove('user-hidden'); } 
                 else { hiddenList.push(card.id); card.classList.add('user-hidden'); }
                 localStorage.setItem('hiddenCards', JSON.stringify(hiddenList));
@@ -605,13 +625,15 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { if(installBanner) installBanner.classList.add('show'); }, 3000);
     };
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; showInstallBanner(); });
-    const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isIos) showInstallBanner();
+    // iPadOS 13+는 UA가 Mac으로 표기되므로 터치 지원 여부로 함께 판별
+    const isIosDevice = () => /iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/i.test(navigator.userAgent) && 'ontouchend' in document);
+    if (isIosDevice()) showInstallBanner();
     if (bannerInstallBtn) {
         bannerInstallBtn.onclick = () => {
             installBanner.classList.remove('show');
             if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((r) => { deferredPrompt = null; }); }
-            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); } else { alert("이미 설치되어 있거나 브라우저 메뉴에서 설치 가능합니다."); } }
+            else if (isIosDevice()) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); }
+            else { alert("이미 설치되어 있거나 브라우저 메뉴에서 설치 가능합니다."); }
         };
     }
     if (bannerCloseBtn) bannerCloseBtn.onclick = () => installBanner.classList.remove('show');
@@ -627,7 +649,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (installAppBtn) {
         installAppBtn.onclick = () => {
             if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((r) => { deferredPrompt = null; }); }
-            else { const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent); if (isIos) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 350); } else { alert("이미 설치되어 있거나 브라우저 메뉴에서 설치 가능합니다."); } }
+            else if (isIosDevice()) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 350); }
+            else { alert("이미 설치되어 있거나 브라우저 메뉴에서 설치 가능합니다."); }
         };
     }
     const tabs = document.querySelectorAll('.tab');
