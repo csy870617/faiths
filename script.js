@@ -179,6 +179,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const navReload = document.getElementById('nav-reload');
     const navHome = document.getElementById('nav-home');
 
+    // 내부 브라우저를 연 직후의 history 길이. 앱(iframe) 내부 이동으로 쌓인 history를
+    // 닫을 때 한 번에 정리하기 위해 사용한다.
+    let browserHistoryStart = null;
+
     function openInternalBrowser(url, mode = 'default') {
         if (!internalBrowser || !browserContentArea) { window.open(url, '_blank'); return; }
         
@@ -217,13 +221,23 @@ document.addEventListener('DOMContentLoaded', () => {
         browserContentArea.appendChild(newIframe);
         internalBrowser.classList.add('show');
         history.pushState({ browserOpen: true }, null, "");
+        // pushState 직후의 history 길이 기록. 이후 iframe 내부 이동마다 길이가 늘어난다.
+        browserHistoryStart = history.length;
     }
 
     function closeInternalBrowser() {
         if (internalBrowser && internalBrowser.classList.contains('show')) {
             internalBrowser.classList.remove('show');
             setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
-            if (history.state && history.state.browserOpen) { history.back(); }
+            // 앱(iframe) 내부에서 이동하며 쌓인 history 항목 + browserOpen 항목까지
+            // 한 번에 되돌려, 홈으로 돌아온 뒤 뒤로가기를 여러 번 눌러야 하는 문제를 막는다.
+            if (browserHistoryStart !== null) {
+                const steps = (history.length - browserHistoryStart) + 1;
+                browserHistoryStart = null;
+                if (steps > 0) history.go(-steps);
+            } else if (history.state && history.state.browserOpen) {
+                history.back();
+            }
         }
     }
 
@@ -427,8 +441,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     window.addEventListener('popstate', () => {
         if (internalBrowser.classList.contains('show')) {
+            // 기기 뒤로가기로 브라우저가 닫힐 때, 앱 내부 이동으로 남은 history도 함께 정리한다.
+            const remaining = (browserHistoryStart !== null) ? (history.length - browserHistoryStart) : 0;
             internalBrowser.classList.remove('show');
             if(browserContentArea) browserContentArea.innerHTML = '';
+            browserHistoryStart = null;
+            if (remaining > 0) history.go(-remaining);
             return;
         }
         if (currentModal) {
