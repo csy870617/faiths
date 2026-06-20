@@ -1,4 +1,4 @@
-// script.js - v150 (안정성 개선 버전)
+// script.js - v152 (안정성 개선 버전: 모달 스택 / WakeLock 누수 / history 정리)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -7,7 +7,12 @@ let pendingPlay = null;
 let wakeLock = null;
 let currentCategory = null;
 let lastVideoUrl = null;
-let currentModal = null;
+// 모달을 중첩해서 열 수 있으므로(예: 플레이어 위에 쿠키 가이드) 단일 변수 대신
+// 스택으로 관리한다. 뒤로가기/배경탭은 항상 "맨 위 모달"만 닫는다.
+let modalStack = [];
+// 닫기 버튼이 history 균형을 맞추려 호출하는 history.back()의 popstate가
+// 그 아래 모달까지 닫아버리지 않도록 1회 무시하기 위한 플래그.
+let suppressPopstateClose = false;
 
 // localStorage에 손상된 JSON이 있어도 앱이 멈추지 않도록 안전하게 파싱
 function safeParseJSON(value, fallback) {
@@ -34,7 +39,15 @@ function safeParseJSON(value, fallback) {
 })();
 
 // WakeLock 함수 (전역)
-const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
+const requestWakeLock = async () => {
+    try {
+        if (!('wakeLock' in navigator)) return;
+        if (wakeLock) return; // 이미 활성 상태면 중복 요청하지 않음(센티넬 누수 방지)
+        wakeLock = await navigator.wakeLock.request('screen');
+        // 브라우저가 탭 전환 등으로 자동 해제하면 참조를 비워 재요청이 가능하도록 함
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch (e) {}
+};
 const releaseWakeLock = async () => { try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {} };
 
 // 유튜브 API 콜백
@@ -378,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault(); 
             const link = btn.getAttribute('data-link');
             if(link) {
-                closeModal(bibleModal);
+                handleCloseBtnClick(bibleModal); // 모달 닫기 + history 항목 정리
                 window.open(link, '_blank'); // 외부 브라우저 호출
             }
         };
@@ -408,10 +421,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const openModal = (modal) => {
         if (!modal) return;
-        currentModal = modal;
+        if (!modalStack.includes(modal)) modalStack.push(modal);
         modal.style.display = 'flex';
         requestAnimationFrame(() => modal.classList.add('show'));
-        history.pushState({ modalOpen: true }, null, ""); 
+        history.pushState({ modalOpen: true }, null, "");
     };
 
     const closeModal = (modal) => {
@@ -431,16 +444,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (modal.id === 'internal-browser') { closeInternalBrowser(); return; }
 
-        // popstate에서 closeModal이 중복 실행되지 않도록 즉시 초기화
-        if (currentModal === modal) currentModal = null;
+        // popstate에서 같은 모달이 중복으로 닫히지 않도록 스택에서 제거
+        modalStack = modalStack.filter(m => m !== modal);
         modal.classList.remove('show');
         setTimeout(() => { modal.style.display = 'none'; }, 300);
     };
 
-    const handleCloseBtnClick = (modal) => { closeModal(modal); if (history.state && (history.state.modalOpen || history.state.browserOpen)) history.back(); };
-    
+    const handleCloseBtnClick = (modal) => {
+        closeModal(modal);
+        // openModal이 쌓은 history 항목 1개를 되돌린다. 이때 발생하는 popstate는
+        // 이미 닫기를 처리했으므로 아래 핸들러에서 1회 무시한다.
+        if (history.state && (history.state.modalOpen || history.state.browserOpen)) {
+            suppressPopstateClose = true;
+            history.back();
+        }
+    };
+
     window.addEventListener('popstate', () => {
-        if (internalBrowser.classList.contains('show')) {
+        if (internalBrowser && internalBrowser.classList.contains('show')) {
             // 기기 뒤로가기로 브라우저가 닫힐 때, 앱 내부 이동으로 남은 history도 함께 정리한다.
             const remaining = (browserHistoryStart !== null) ? (history.length - browserHistoryStart) : 0;
             internalBrowser.classList.remove('show');
@@ -449,9 +470,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (remaining > 0) history.go(-remaining);
             return;
         }
-        if (currentModal) {
-            if (currentModal === modalOverlay && modalOverlay.classList.contains('mini-mode')) { currentModal = null; return; }
-            closeModal(currentModal);
+        // 닫기 버튼이 유발한 history 균형용 popstate는 1회만 무시
+        if (suppressPopstateClose) { suppressPopstateClose = false; return; }
+        const topModal = modalStack[modalStack.length - 1];
+        if (topModal) {
+            // 미니 플레이어 상태에서는 뒤로가기로 닫지 않고 추적만 해제
+            if (topModal === modalOverlay && modalOverlay.classList.contains('mini-mode')) {
+                modalStack = modalStack.filter(m => m !== modalOverlay);
+                return;
+            }
+            closeModal(topModal);
         }
     });
 
