@@ -1,13 +1,13 @@
 // sw.js
-// [중요] 버전 업데이트: v158
+// [중요] 버전 업데이트: v159
 // [주의] 아래 ?v= 쿼리는 index.html에서 로드하는 버전과 항상 일치해야 합니다.
-const CACHE_NAME = 'faiths-v158';
+const CACHE_NAME = 'faiths-v159';
 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './style.css?v=153',
-    './script.js?v=155',
+    './script.js?v=156',
     './playlist.js?v=150',
     './manifest.json',
     './icon/0.png',

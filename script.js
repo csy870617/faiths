@@ -1,4 +1,4 @@
-// script.js - v155 (하단 닫기 버튼 위치 이동 지원)
+// script.js - v156 (닫기 버튼 더블탭으로 위치 초기화)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -312,8 +312,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (floatingCloseBtn) {
         let cbDragging = false, cbMoved = 0, cbShiftX = 0, cbShiftY = 0, cbStart = { x: 0, y: 0 };
+        let cbLastTouchTime = 0;   // 터치 직후 합성되는 마우스 이벤트를 무시하기 위한 시각
+        let cbLastTapTime = 0;     // 더블탭 판정용 직전 탭 시각
+        let cbCloseTimer = null;   // 옮겨진 상태에서 단일 탭 닫기를 지연시키는 타이머
 
         const cbStartDrag = (e) => {
+            if (e.touches) { cbLastTouchTime = Date.now(); }
+            else if (Date.now() - cbLastTouchTime < 600) { return; } // 합성 마우스 이벤트 무시
             cbDragging = true; cbMoved = 0;
             const cx = e.touches ? e.touches[0].clientX : e.clientX;
             const cy = e.touches ? e.touches[0].clientY : e.clientY;
@@ -344,11 +349,30 @@ document.addEventListener('DOMContentLoaded', () => {
             floatingCloseBtn.style.transition = '';
             const fr = document.getElementById('browser-frame');
             if (fr) fr.style.pointerEvents = '';
-            if (cbMoved < 6) {
-                closeInternalBrowser(); // 거의 안 움직였으면 탭으로 간주 → 닫기
-            } else {
+
+            if (cbMoved >= 6) { // 드래그 → 위치 저장
                 const rect = floatingCloseBtn.getBoundingClientRect();
                 localStorage.setItem('closeBtnPos', JSON.stringify({ left: rect.left, top: rect.top }));
+                return;
+            }
+
+            // 거의 안 움직임 = 탭
+            // 기본 위치에서는 즉시 닫고, 옮겨진 상태에서는 더블탭=초기화 / 단일탭=닫기로 구분
+            if (!floatingCloseBtn.classList.contains('dragged')) {
+                closeInternalBrowser();
+                return;
+            }
+            const now = Date.now();
+            if (now - cbLastTapTime < 300) {
+                // 더블탭 → 기본(하단 중앙) 위치로 초기화
+                if (cbCloseTimer) { clearTimeout(cbCloseTimer); cbCloseTimer = null; }
+                cbLastTapTime = 0;
+                localStorage.removeItem('closeBtnPos');
+                applyCloseBtnPosition(null);
+            } else {
+                // 단일 탭: 더블탭이 이어질 수 있으니 잠깐 기다렸다 닫는다
+                cbLastTapTime = now;
+                cbCloseTimer = setTimeout(() => { cbCloseTimer = null; cbLastTapTime = 0; closeInternalBrowser(); }, 300);
             }
         };
 
