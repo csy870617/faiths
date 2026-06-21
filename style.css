@@ -190,6 +190,11 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 
 .sortable-ghost { opacity: 0.4; background: #e9ecef; border: 2px dashed #ccc; box-shadow: none; }
 .sortable-drag { opacity: 1; background: white; box-shadow: 0 15px 30px rgba(0,0,0,0.2); transform: scale(1.05); z-index: 9999; }
+/* 아이콘(grid) 모드는 카드 배경이 투명하므로, 드래그 중인 클론과 놓일 자리가
+   보이도록 별도 스타일을 준다(리스트 모드 동일 셀렉터보다 뒤에 위치해 우선 적용). */
+.list-container.grid-view .sortable-fallback,
+.list-container.grid-view .sortable-drag { background: #fff; box-shadow: 0 15px 30px rgba(0,0,0,0.2); border-radius: 18px; opacity: 1; }
+.list-container.grid-view .sortable-ghost { background: #e9ecef; border: 2px dashed #ccc; border-radius: 18px; opacity: 0.4; }
 body.hide-mode .list-card { animation: wiggle 0.25s infinite alternate ease-in-out; }
 body.hide-mode .list-card { border: none; opacity: 1; }
 body.hide-mode .app-icon-img, body.hide-mode .icon-box { border: 2px dashed #ff6b6b; }
