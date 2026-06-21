@@ -136,6 +136,9 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
     transform: translateX(-50%) scale(0.9);
     background: rgba(0,0,0,0.5);
 }
+/* 사용자가 위치를 옮긴 상태: 중앙 정렬 transform을 해제하고 left/top 좌표를 따른다 */
+.floating-close-btn-bottom.dragged { transform: none; cursor: move; }
+.floating-close-btn-bottom.dragged:active { transform: scale(0.9); background: rgba(0,0,0,0.5); }
 
 .browser-content { flex: 1; position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #fff; }
 #browser-frame { width: 100%; height: 100%; border: none; background: #fff; position: relative; z-index: 2; }

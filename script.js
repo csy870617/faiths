@@ -1,4 +1,4 @@
-// script.js - v154 (재정렬 시 이미지 롱프레스 메뉴 차단)
+// script.js - v155 (하단 닫기 버튼 위치 이동 지원)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -205,7 +205,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if(browserUrlText) browserUrlText.innerText = url;
         } else {
             if(browserHeader) browserHeader.style.display = 'none';
-            if(floatingCloseBtn) floatingCloseBtn.style.display = 'flex';
+            if(floatingCloseBtn) {
+                floatingCloseBtn.style.display = 'flex';
+                applyCloseBtnPosition(safeParseJSON(localStorage.getItem('closeBtnPos'), null));
+            }
         }
 
         browserContentArea.innerHTML = '';
@@ -281,9 +284,80 @@ document.addEventListener('DOMContentLoaded', () => {
         navHome.onclick = () => { closeInternalBrowser(); };
     }
     
-    // 닫기 버튼 이벤트
+    // 닫기 버튼: 짧게 탭하면 닫고, 끌면 위치 이동(위치는 저장하여 다음에 복원)
+    const clampCloseBtn = (left, top) => {
+        if (!floatingCloseBtn) return { left: left, top: top };
+        const maxLeft = Math.max(0, window.innerWidth - floatingCloseBtn.offsetWidth);
+        const maxTop = Math.max(0, window.innerHeight - floatingCloseBtn.offsetHeight);
+        return { left: Math.min(Math.max(0, left), maxLeft), top: Math.min(Math.max(0, top), maxTop) };
+    };
+    const applyCloseBtnPosition = (pos) => {
+        if (!floatingCloseBtn) return;
+        if (pos && typeof pos.left === 'number' && typeof pos.top === 'number') {
+            const c = clampCloseBtn(pos.left, pos.top);
+            floatingCloseBtn.classList.add('dragged');
+            floatingCloseBtn.style.left = c.left + 'px';
+            floatingCloseBtn.style.top = c.top + 'px';
+            floatingCloseBtn.style.bottom = 'auto';
+            floatingCloseBtn.style.right = 'auto';
+        } else {
+            // 저장된 위치가 없으면 기본값(하단 중앙)으로 되돌린다(인라인 스타일 제거)
+            floatingCloseBtn.classList.remove('dragged');
+            floatingCloseBtn.style.left = '';
+            floatingCloseBtn.style.top = '';
+            floatingCloseBtn.style.bottom = '';
+            floatingCloseBtn.style.right = '';
+        }
+    };
+
     if (floatingCloseBtn) {
-        floatingCloseBtn.onclick = () => { closeInternalBrowser(); };
+        let cbDragging = false, cbMoved = 0, cbShiftX = 0, cbShiftY = 0, cbStart = { x: 0, y: 0 };
+
+        const cbStartDrag = (e) => {
+            cbDragging = true; cbMoved = 0;
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            cbStart = { x: cx, y: cy };
+            const rect = floatingCloseBtn.getBoundingClientRect();
+            cbShiftX = cx - rect.left; cbShiftY = cy - rect.top;
+            floatingCloseBtn.style.transition = 'none';
+            // 드래그 중 iframe이 마우스 이벤트를 가로채지 않도록 일시 비활성화
+            const fr = document.getElementById('browser-frame');
+            if (fr) fr.style.pointerEvents = 'none';
+        };
+        const cbOnDrag = (e) => {
+            if (!cbDragging) return;
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            cbMoved = Math.max(cbMoved, Math.hypot(cx - cbStart.x, cy - cbStart.y));
+            if (cbMoved > 3 && e.cancelable) e.preventDefault();
+            const c = clampCloseBtn(cx - cbShiftX, cy - cbShiftY);
+            floatingCloseBtn.classList.add('dragged');
+            floatingCloseBtn.style.left = c.left + 'px';
+            floatingCloseBtn.style.top = c.top + 'px';
+            floatingCloseBtn.style.bottom = 'auto';
+            floatingCloseBtn.style.right = 'auto';
+        };
+        const cbEndDrag = () => {
+            if (!cbDragging) return;
+            cbDragging = false;
+            floatingCloseBtn.style.transition = '';
+            const fr = document.getElementById('browser-frame');
+            if (fr) fr.style.pointerEvents = '';
+            if (cbMoved < 6) {
+                closeInternalBrowser(); // 거의 안 움직였으면 탭으로 간주 → 닫기
+            } else {
+                const rect = floatingCloseBtn.getBoundingClientRect();
+                localStorage.setItem('closeBtnPos', JSON.stringify({ left: rect.left, top: rect.top }));
+            }
+        };
+
+        floatingCloseBtn.addEventListener('mousedown', cbStartDrag);
+        floatingCloseBtn.addEventListener('touchstart', cbStartDrag, { passive: false });
+        document.addEventListener('mousemove', cbOnDrag);
+        document.addEventListener('touchmove', cbOnDrag, { passive: false });
+        document.addEventListener('mouseup', cbEndDrag);
+        document.addEventListener('touchend', cbEndDrag);
     }
 
     const listContainer = document.getElementById('main-list');
