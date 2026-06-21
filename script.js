@@ -1,4 +1,4 @@
-// script.js - v152 (안정성 개선 버전: 모달 스택 / WakeLock 누수 / history 정리)
+// script.js - v153 (아이콘 모드 재정렬 지원: Sortable 포인터 폴백)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -301,6 +301,9 @@ document.addEventListener('DOMContentLoaded', () => {
         new Sortable(listContainer, {
             animation: 150, delay: 200, delayOnTouchOnly: true, touchStartThreshold: 5,
             ghostClass: 'sortable-ghost', dragClass: 'sortable-drag',
+            // 아이콘(grid) 모드의 2D 배치 + 모바일 터치에서도 재정렬이 안정적으로
+            // 동작하도록 포인터 기반 폴백 드래그를 사용한다. (리스트 모드 동작은 동일)
+            forceFallback: true, fallbackClass: 'sortable-fallback', fallbackTolerance: 5,
             onStart: function() { isDragging = true; },
             onEnd: function (evt) {
                 setTimeout(() => { isDragging = false; }, 100);
