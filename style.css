@@ -195,6 +195,15 @@ body { background-color: #F5F6F8; display: flex; justify-content: center; min-he
 .list-container.grid-view .sortable-fallback,
 .list-container.grid-view .sortable-drag { background: #fff; box-shadow: 0 15px 30px rgba(0,0,0,0.2); border-radius: 18px; opacity: 1; }
 .list-container.grid-view .sortable-ghost { background: #e9ecef; border: 2px dashed #ccc; border-radius: 18px; opacity: 0.4; }
+/* 길게 눌러 재정렬할 때 브라우저의 이미지 공유/저장 롱프레스 메뉴가 뜨지 않도록 */
+.list-card, .news-card { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.app-icon-img, .icon-box, .news-img {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    user-select: none;
+    pointer-events: none; /* 이미지가 롱프레스 대상이 되지 않게 함(클릭·드래그는 카드 단위로 처리) */
+}
 body.hide-mode .list-card { animation: wiggle 0.25s infinite alternate ease-in-out; }
 body.hide-mode .list-card { border: none; opacity: 1; }
 body.hide-mode .app-icon-img, body.hide-mode .icon-box { border: 2px dashed #ff6b6b; }

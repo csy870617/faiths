@@ -1,4 +1,4 @@
-// script.js - v153 (아이콘 모드 재정렬 지원: Sortable 포인터 폴백)
+// script.js - v154 (재정렬 시 이미지 롱프레스 메뉴 차단)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -314,6 +314,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // 일부 브라우저(안드로이드/삼성·웨일 등)는 CSS 콜아웃을 무시하므로,
+    // 카드 영역의 롱프레스 컨텍스트 메뉴(이미지 공유/저장 등)를 직접 차단한다.
+    document.addEventListener('contextmenu', (e) => {
+        if (e.target.closest && e.target.closest('.list-card, .card-slider')) e.preventDefault();
+    });
 
     const viewListBtn = document.getElementById('view-list');
     const viewGridBtn = document.getElementById('view-grid');
