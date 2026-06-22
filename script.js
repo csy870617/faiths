@@ -1,4 +1,4 @@
-// script.js - v156 (닫기 버튼 더블탭으로 위치 초기화)
+// script.js - v157 (닫기 버튼 위치를 세션 한정으로 저장: 앱 재실행 시 초기화)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(browserHeader) browserHeader.style.display = 'none';
             if(floatingCloseBtn) {
                 floatingCloseBtn.style.display = 'flex';
-                applyCloseBtnPosition(safeParseJSON(localStorage.getItem('closeBtnPos'), null));
+                applyCloseBtnPosition(safeParseJSON(sessionStorage.getItem('closeBtnPos'), null));
             }
         }
 
@@ -352,7 +352,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (cbMoved >= 6) { // 드래그 → 위치 저장
                 const rect = floatingCloseBtn.getBoundingClientRect();
-                localStorage.setItem('closeBtnPos', JSON.stringify({ left: rect.left, top: rect.top }));
+                // 세션 저장소를 사용해, 같은 실행 중에는 위치를 유지하되 앱을 껐다 켜면 초기화되게 한다
+                sessionStorage.setItem('closeBtnPos', JSON.stringify({ left: rect.left, top: rect.top }));
                 return;
             }
 
@@ -367,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 더블탭 → 기본(하단 중앙) 위치로 초기화
                 if (cbCloseTimer) { clearTimeout(cbCloseTimer); cbCloseTimer = null; }
                 cbLastTapTime = 0;
-                localStorage.removeItem('closeBtnPos');
+                sessionStorage.removeItem('closeBtnPos');
                 applyCloseBtnPosition(null);
             } else {
                 // 단일 탭: 더블탭이 이어질 수 있으니 잠깐 기다렸다 닫는다
