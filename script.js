@@ -1,4 +1,4 @@
-// script.js - v157 (닫기 버튼 위치를 세션 한정으로 저장: 앱 재실행 시 초기화)
+// script.js - v158 (기도일기 앱 추가 / 새 카드 위치 보정)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -392,7 +392,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentCards = Array.from(listContainer.children);
         const cardMap = {};
         currentCards.forEach(card => cardMap[card.id] = card);
+        // 1) 저장된 순서대로 재배치
         savedOrder.forEach(id => { if (cardMap[id]) listContainer.appendChild(cardMap[id]); });
+        // 2) 저장 순서에 없던(나중에 새로 추가된) 카드는 맨 위로 튀지 않도록
+        //    원래 HTML에서의 다음 카드 앞 위치로 되돌린다.
+        const known = new Set(savedOrder);
+        currentCards.forEach((card, i) => {
+            if (known.has(card.id)) return;
+            let ref = null;
+            for (let j = i + 1; j < currentCards.length; j++) {
+                if (currentCards[j].parentNode === listContainer) { ref = currentCards[j]; break; }
+            }
+            listContainer.insertBefore(card, ref);
+        });
     }
 
     // Sortable CDN 로드 실패 시에도 나머지 기능은 정상 동작하도록 가드
