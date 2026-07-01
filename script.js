@@ -1,4 +1,4 @@
-// script.js - v159 (구글 통합 로그인 허브 + SSO 브리지)
+// script.js - v160 (구글 로그인 버튼을 홈 헤더로 이동: 원형 아이콘)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -849,21 +849,31 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { return null; }
     };
 
-    const googleSigninArea = document.getElementById('google-signin-area');
-    const googleAccountInfo = document.getElementById('google-account-info');
-    const googleAccountEmail = document.getElementById('google-account-email');
-    const googleSignoutBtn = document.getElementById('google-signout-btn');
+    const googleSigninArea = document.getElementById('google-login-area'); // GIS 원형 아이콘 버튼 렌더 위치(로그아웃 상태)
+    const googleStatusBtn = document.getElementById('google-status-btn');   // 연결됨 표시 버튼(로그인 상태)
+    let currentGoogleEmail = null;
 
     const updateGoogleUI = (payload) => {
-        if (payload && payload.email) {
-            if (googleAccountEmail) googleAccountEmail.innerText = payload.email;
-            if (googleAccountInfo) googleAccountInfo.style.display = 'block';
-            if (googleSigninArea) googleSigninArea.style.display = 'none';
-        } else {
-            if (googleAccountInfo) googleAccountInfo.style.display = 'none';
-            if (googleSigninArea) googleSigninArea.style.display = 'block';
+        const loggedIn = !!(payload && payload.email);
+        currentGoogleEmail = loggedIn ? payload.email : null;
+        if (googleSigninArea) googleSigninArea.style.display = loggedIn ? 'none' : 'flex';
+        if (googleStatusBtn) {
+            googleStatusBtn.style.display = loggedIn ? 'flex' : 'none';
+            googleStatusBtn.title = loggedIn ? payload.email : '';
         }
     };
+
+    // 연결됨 버튼을 누르면 계정/연결 해제 안내
+    if (googleStatusBtn) {
+        googleStatusBtn.onclick = () => {
+            if (confirm('구글 계정 연결을 해제할까요?\n' + (currentGoogleEmail || ''))) {
+                currentGoogleIdToken = null;
+                localStorage.removeItem('googleLinked');
+                try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) {}
+                updateGoogleUI(null);
+            }
+        };
+    }
 
     // GIS 로그인 콜백: Google ID 토큰(JWT) 수신
     window.handleGoogleCredential = (response) => {
@@ -877,15 +887,6 @@ document.addEventListener('DOMContentLoaded', () => {
             try { frame.contentWindow.postMessage({ type: 'faiths-google-idtoken', idToken: currentGoogleIdToken }, 'https://csy870617.github.io'); } catch (e) {}
         }
     };
-
-    if (googleSignoutBtn) {
-        googleSignoutBtn.onclick = () => {
-            currentGoogleIdToken = null;
-            localStorage.removeItem('googleLinked');
-            try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) {}
-            updateGoogleUI(null);
-        };
-    }
 
     // 연결 앱(iframe)이 토큰을 요청하면, origin을 검증한 뒤 전달한다
     window.addEventListener('message', (e) => {
@@ -908,7 +909,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (googleSigninArea) {
             googleSigninArea.innerHTML = '';
             try {
-                google.accounts.id.renderButton(googleSigninArea, { type: 'standard', theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill', locale: 'ko' });
+                // 숨기기/설정 버튼처럼 동그란 아이콘 형태의 구글 버튼
+                google.accounts.id.renderButton(googleSigninArea, { type: 'icon', shape: 'circle', theme: 'outline', size: 'large' });
             } catch (e) {}
         }
         // 이전에 연결한 사용자면 페이지 로드시 조용히 토큰 재발급 시도(신규 사용자는 방해하지 않음)
