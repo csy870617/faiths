@@ -1,13 +1,13 @@
 // sw.js
-// [중요] 버전 업데이트: v167
+// [중요] 버전 업데이트: v168
 // [주의] 아래 ?v= 쿼리는 index.html에서 로드하는 버전과 항상 일치해야 합니다.
-const CACHE_NAME = 'faiths-v167';
+const CACHE_NAME = 'faiths-v168';
 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './style.css?v=156',
-    './script.js?v=161',
+    './script.js?v=162',
     './playlist.js?v=150',
     './manifest.json',
     './icon/0.png',
@@ -57,6 +57,15 @@ self.addEventListener('fetch', (event) => {
     }
 
     if (event.request.url.includes('youtube.com') || event.request.url.includes('googlevideo.com')) {
+        return;
+    }
+
+    // 구글 로그인/파이어베이스(실시간 채널 포함)는 서비스워커가 건드리지 않고 네트워크로 통과
+    if (event.request.url.includes('googleapis.com') ||
+        event.request.url.includes('gstatic.com') ||
+        event.request.url.includes('accounts.google.com') ||
+        event.request.url.includes('firebaseio.com') ||
+        event.request.url.includes('identitytoolkit')) {
         return;
     }
 

@@ -1,4 +1,4 @@
-// script.js - v161 (헤더 아이콘 SVG 교체 + 구글 로그인 무음 유지)
+// script.js - v162 (기기 간 설정/순서 동기화: Firebase Firestore)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -422,6 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cards = listContainer.querySelectorAll('.list-card');
                 cards.forEach(card => order.push(card.id));
                 localStorage.setItem('menuOrder', JSON.stringify(order));
+                if (window.scheduleSettingsSync) window.scheduleSettingsSync();
             }
         });
     }
@@ -447,6 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(shareTitle) shareTitle.innerText = '함께 성장할 친구 초대';
         }
         localStorage.setItem('viewMode', mode);
+        if (window.scheduleSettingsSync) window.scheduleSettingsSync();
     };
     const savedViewMode = localStorage.getItem('viewMode') || 'list';
     setViewMode(savedViewMode);
@@ -759,6 +761,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (hiddenList.includes(card.id)) { hiddenList = hiddenList.filter(id => id !== card.id); card.classList.remove('user-hidden'); } 
                 else { hiddenList.push(card.id); card.classList.add('user-hidden'); }
                 localStorage.setItem('hiddenCards', JSON.stringify(hiddenList));
+                if (window.scheduleSettingsSync) window.scheduleSettingsSync();
                 return;
             }
 
@@ -811,7 +814,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (fontSizeSlider) {
         const savedScale = localStorage.getItem('textScale');
         if (savedScale) { document.documentElement.style.setProperty('--text-scale', savedScale); fontSizeSlider.value = savedScale; }
-        fontSizeSlider.oninput = (e) => { const scale = e.target.value; document.documentElement.style.setProperty('--text-scale', scale); localStorage.setItem('textScale', scale); };
+        fontSizeSlider.oninput = (e) => { const scale = e.target.value; document.documentElement.style.setProperty('--text-scale', scale); localStorage.setItem('textScale', scale); if (window.scheduleSettingsSync) window.scheduleSettingsSync(); };
     }
     const installAppBtn = document.getElementById('install-app-btn');
     if (installAppBtn) {
@@ -872,6 +875,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentGoogleIdToken = null;
                 localStorage.removeItem('googleLinked');
                 try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) {}
+                try { if (window.firebase && firebase.auth) firebase.auth().signOut(); } catch (e) {}
                 updateGoogleUI(null);
             }
         };
@@ -886,6 +890,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lastTokenTime = Date.now();
         localStorage.setItem('googleLinked', 'true');
         updateGoogleUI(parseJwt(currentGoogleIdToken));
+        if (window.ensureFirebaseSignedIn) window.ensureFirebaseSignedIn(); // 설정 동기화용 Firebase 로그인
         // 이미 열려 있는 연결 앱(iframe)에도 즉시 밀어넣어 준다
         const frame = document.getElementById('browser-frame');
         if (frame && frame.contentWindow) {
@@ -945,5 +950,108 @@ document.addEventListener('DOMContentLoaded', () => {
         if (initGoogleSSO()) return;
         if (ssoTries++ > 50) return; // 약 10초 후 포기
         setTimeout(waitForGIS, 200);
+    })();
+
+    // ===== 기기 간 설정/순서 동기화 (Firebase Firestore) =====
+    // 로그인하면 클라우드에 저장된 순서/설정을 이 기기에 적용하고, 변경 시 자동 업로드한다.
+    const FIREBASE_CONFIG = {
+        apiKey: 'AIzaSyB0SJWqE-ecZ3uV9cW3TdYU8Kgmxw2LrYM',
+        authDomain: 'faiths-93c4c.firebaseapp.com',
+        projectId: 'faiths-93c4c',
+        storageBucket: 'faiths-93c4c.firebasestorage.app',
+        messagingSenderId: '269816120372',
+        appId: '1:269816120372:web:f7848e2bd3693069c17661'
+    };
+    let fbDb = null, fbAuthReady = false, syncApplying = false, syncTimer = null;
+
+    // 클라우드 값을 이 기기에 적용(중복 업로드 방지 플래그 syncApplying 사용)
+    const applySyncedSettings = (data) => {
+        if (!data) return;
+        syncApplying = true;
+        try {
+            if (Array.isArray(data.menuOrder) && listContainer) {
+                localStorage.setItem('menuOrder', JSON.stringify(data.menuOrder));
+                const map = {};
+                Array.from(listContainer.children).forEach(c => { map[c.id] = c; });
+                data.menuOrder.forEach(id => { if (map[id]) listContainer.appendChild(map[id]); });
+            }
+            if (Array.isArray(data.hiddenCards)) {
+                localStorage.setItem('hiddenCards', JSON.stringify(data.hiddenCards));
+                applyHiddenStatus();
+            }
+            if (data.viewMode === 'grid' || data.viewMode === 'list') {
+                setViewMode(data.viewMode);
+            }
+            if (data.textScale) {
+                document.documentElement.style.setProperty('--text-scale', data.textScale);
+                localStorage.setItem('textScale', data.textScale);
+                if (fontSizeSlider) fontSizeSlider.value = data.textScale;
+            }
+        } catch (e) {} finally { syncApplying = false; }
+    };
+
+    const gatherSettings = () => {
+        const s = {
+            hiddenCards: safeParseJSON(localStorage.getItem('hiddenCards'), []),
+            viewMode: localStorage.getItem('viewMode') || 'list',
+            textScale: localStorage.getItem('textScale') || '1',
+            updatedAt: Date.now()
+        };
+        const order = safeParseJSON(localStorage.getItem('menuOrder'), null);
+        if (Array.isArray(order)) s.menuOrder = order;
+        return s;
+    };
+
+    const pushSettings = () => {
+        if (!fbDb || !fbAuthReady || !window.firebase) return;
+        const user = firebase.auth().currentUser;
+        if (!user) return;
+        fbDb.collection('users').doc(user.uid).set(gatherSettings(), { merge: true }).catch(() => {});
+    };
+
+    // 변경 발생 시 1초 디바운스로 업로드(동기화 적용 중에는 무시)
+    window.scheduleSettingsSync = () => {
+        if (syncApplying) return;
+        clearTimeout(syncTimer);
+        syncTimer = setTimeout(pushSettings, 1000);
+    };
+
+    const pullSettings = (uid) => {
+        if (!fbDb) return;
+        fbDb.collection('users').doc(uid).get().then(doc => {
+            if (doc.exists) applySyncedSettings(doc.data());
+            else pushSettings(); // 클라우드에 처음이면 현재 로컬 설정을 올려둔다
+        }).catch(() => {});
+    };
+
+    // 구글 로그인 토큰으로 FAITHS Firebase 세션 생성(설정 저장용)
+    window.ensureFirebaseSignedIn = () => {
+        if (!(window.firebase && firebase.auth)) return;
+        if (!currentGoogleIdToken) return;
+        try {
+            if (firebase.auth().currentUser) return;
+            const cred = firebase.auth.GoogleAuthProvider.credential(currentGoogleIdToken);
+            firebase.auth().signInWithCredential(cred).catch((e) => { console.log('FAITHS Firebase 로그인 실패:', e && e.code); });
+        } catch (e) {}
+    };
+
+    const initFirebaseSync = () => {
+        if (!(window.firebase && firebase.initializeApp && firebase.firestore)) return false;
+        try {
+            if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+            fbDb = firebase.firestore();
+            firebase.auth().onAuthStateChanged((user) => {
+                fbAuthReady = true;
+                if (user) pullSettings(user.uid);
+            });
+            return true;
+        } catch (e) { return false; }
+    };
+
+    let fbTries = 0;
+    (function waitForFirebase() {
+        if (initFirebaseSync()) { window.ensureFirebaseSignedIn(); return; }
+        if (fbTries++ > 50) return; // 약 10초 후 포기
+        setTimeout(waitForFirebase, 200);
     })();
 });
