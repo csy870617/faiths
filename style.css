@@ -313,6 +313,12 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 
 
 /* ---- 7. 설정 및 기타 ---- */
+.setting-desc { font-size: 12px; color: #888; margin: -2px 0 10px 0; }
+#google-signin-area { display: flex; }
+.google-account-row { display: flex; align-items: center; gap: 8px; background: #f1f3f5; padding: 12px 14px; border-radius: 14px; }
+.google-account-check { font-size: 14px; flex-shrink: 0; }
+#google-account-email { flex: 1; font-size: 13px; font-weight: 600; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#google-signout-btn { flex-shrink: 0; }
 .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
 .mood-btn { background: #F5F7FA; border: 1px solid #EEF0F5; border-radius: 20px; padding: 20px 10px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .mood-btn:hover { background: #E0E7FF; border-color: #5f27cd; transform: translateY(-2px); }

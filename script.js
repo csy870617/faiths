@@ -1,4 +1,4 @@
-// script.js - v158 (기도일기 앱 추가 / 새 카드 위치 보정)
+// script.js - v159 (구글 통합 로그인 허브 + SSO 브리지)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -833,4 +833,96 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
     });
+
+    // ===== 구글 통합 로그인 (SSO 허브) =====
+    // FAITHS에서 한 번 로그인하면, 같은 origin의 연결 앱(iframe)에 Google ID 토큰을
+    // 넘겨줘 각 앱이 자기 Firebase 프로젝트에 자동 로그인하도록 한다.
+    const GOOGLE_CLIENT_ID = '702745292814-3982jsolqu1lv3q68fmcqbue2c4af3gg.apps.googleusercontent.com';
+    const SSO_ALLOWED_ORIGINS = ['https://csy870617.github.io']; // 토큰을 전달할 자식 앱 origin
+    let currentGoogleIdToken = null;
+
+    const parseJwt = (token) => {
+        try {
+            const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+            const json = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            return JSON.parse(json);
+        } catch (e) { return null; }
+    };
+
+    const googleSigninArea = document.getElementById('google-signin-area');
+    const googleAccountInfo = document.getElementById('google-account-info');
+    const googleAccountEmail = document.getElementById('google-account-email');
+    const googleSignoutBtn = document.getElementById('google-signout-btn');
+
+    const updateGoogleUI = (payload) => {
+        if (payload && payload.email) {
+            if (googleAccountEmail) googleAccountEmail.innerText = payload.email;
+            if (googleAccountInfo) googleAccountInfo.style.display = 'block';
+            if (googleSigninArea) googleSigninArea.style.display = 'none';
+        } else {
+            if (googleAccountInfo) googleAccountInfo.style.display = 'none';
+            if (googleSigninArea) googleSigninArea.style.display = 'block';
+        }
+    };
+
+    // GIS 로그인 콜백: Google ID 토큰(JWT) 수신
+    window.handleGoogleCredential = (response) => {
+        if (!response || !response.credential) return;
+        currentGoogleIdToken = response.credential;
+        localStorage.setItem('googleLinked', 'true');
+        updateGoogleUI(parseJwt(currentGoogleIdToken));
+        // 이미 열려 있는 연결 앱(iframe)에도 즉시 밀어넣어 준다
+        const frame = document.getElementById('browser-frame');
+        if (frame && frame.contentWindow) {
+            try { frame.contentWindow.postMessage({ type: 'faiths-google-idtoken', idToken: currentGoogleIdToken }, 'https://csy870617.github.io'); } catch (e) {}
+        }
+    };
+
+    if (googleSignoutBtn) {
+        googleSignoutBtn.onclick = () => {
+            currentGoogleIdToken = null;
+            localStorage.removeItem('googleLinked');
+            try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) {}
+            updateGoogleUI(null);
+        };
+    }
+
+    // 연결 앱(iframe)이 토큰을 요청하면, origin을 검증한 뒤 전달한다
+    window.addEventListener('message', (e) => {
+        if (!SSO_ALLOWED_ORIGINS.includes(e.origin)) return;
+        if (!e.data || e.data.type !== 'faiths-request-idtoken') return;
+        if (currentGoogleIdToken && e.source) {
+            try { e.source.postMessage({ type: 'faiths-google-idtoken', idToken: currentGoogleIdToken }, e.origin); } catch (err) {}
+        }
+    });
+
+    const initGoogleSSO = () => {
+        if (!(window.google && google.accounts && google.accounts.id)) return false;
+        google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: window.handleGoogleCredential,
+            auto_select: true,
+            use_fedcm_for_prompt: true,
+            cancel_on_tap_outside: false
+        });
+        if (googleSigninArea) {
+            googleSigninArea.innerHTML = '';
+            try {
+                google.accounts.id.renderButton(googleSigninArea, { type: 'standard', theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill', locale: 'ko' });
+            } catch (e) {}
+        }
+        // 이전에 연결한 사용자면 페이지 로드시 조용히 토큰 재발급 시도(신규 사용자는 방해하지 않음)
+        if (localStorage.getItem('googleLinked') === 'true') {
+            try { google.accounts.id.prompt(); } catch (e) {}
+        }
+        return true;
+    };
+
+    // GIS 라이브러리는 async 로드되므로 준비될 때까지 잠깐 폴링
+    let ssoTries = 0;
+    (function waitForGIS() {
+        if (initGoogleSSO()) return;
+        if (ssoTries++ > 50) return; // 약 10초 후 포기
+        setTimeout(waitForGIS, 200);
+    })();
 });
