@@ -1,4 +1,4 @@
-// script.js - v160 (구글 로그인 버튼을 홈 헤더로 이동: 원형 아이콘)
+// script.js - v161 (헤더 아이콘 SVG 교체 + 구글 로그인 무음 유지)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -726,8 +726,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (miniCloseBtn) { miniCloseBtn.onclick = (e) => { e.stopPropagation(); closeModal(modalOverlay); }; }
 
-    const hideModeBtn = document.getElementById('hide-mode-btn'); 
+    const hideModeBtn = document.getElementById('hide-mode-btn');
     let isHideMode = false;
+    const ICON_EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+    const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     const applyHiddenStatus = () => {
         const hiddenList = safeParseJSON(localStorage.getItem('hiddenCards'), []);
         const cards = document.querySelectorAll('.list-card');
@@ -741,8 +743,8 @@ document.addEventListener('DOMContentLoaded', () => {
         hideModeBtn.onclick = () => {
             isHideMode = !isHideMode;
             document.body.classList.toggle('hide-mode', isHideMode);
-            if (isHideMode) { hideModeBtn.innerHTML = '✅'; hideModeBtn.classList.add('active'); } 
-            else { hideModeBtn.innerHTML = '🙈'; hideModeBtn.classList.remove('active'); }
+            if (isHideMode) { hideModeBtn.innerHTML = ICON_CHECK; hideModeBtn.classList.add('active'); }
+            else { hideModeBtn.innerHTML = ICON_EYE_OFF; hideModeBtn.classList.remove('active'); }
         };
     }
 
@@ -875,10 +877,13 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    let lastTokenTime = 0; // 마지막으로 Google ID 토큰을 받은 시각(무음 갱신 판단용)
+
     // GIS 로그인 콜백: Google ID 토큰(JWT) 수신
     window.handleGoogleCredential = (response) => {
         if (!response || !response.credential) return;
         currentGoogleIdToken = response.credential;
+        lastTokenTime = Date.now();
         localStorage.setItem('googleLinked', 'true');
         updateGoogleUI(parseJwt(currentGoogleIdToken));
         // 이미 열려 있는 연결 앱(iframe)에도 즉시 밀어넣어 준다
@@ -888,6 +893,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // 로그인 유지: Google ID 토큰은 약 1시간 후 만료되므로, 연결된 사용자에 한해
+    // 만료 전에 조용히(auto_select) 재발급받아 세션이 끊기지 않게 한다.
+    const refreshGoogleTokenIfStale = () => {
+        if (localStorage.getItem('googleLinked') !== 'true') return;
+        if (Date.now() - lastTokenTime < 45 * 60 * 1000) return; // 아직 신선하면 스킵
+        if (!(window.google && google.accounts && google.accounts.id)) return;
+        try { google.accounts.id.prompt(); } catch (e) {} // auto_select면 UI 없이 새 토큰 콜백
+    };
+    setInterval(refreshGoogleTokenIfStale, 5 * 60 * 1000); // 5분마다 만료 임박 여부 확인
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') refreshGoogleTokenIfStale();
+    });
+
     // 연결 앱(iframe)이 토큰을 요청하면, origin을 검증한 뒤 전달한다
     window.addEventListener('message', (e) => {
         if (!SSO_ALLOWED_ORIGINS.includes(e.origin)) return;
@@ -895,6 +913,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentGoogleIdToken && e.source) {
             try { e.source.postMessage({ type: 'faiths-google-idtoken', idToken: currentGoogleIdToken }, e.origin); } catch (err) {}
         }
+        refreshGoogleTokenIfStale(); // 다음 요청을 위해 만료 임박 시 미리 갱신
     });
 
     const initGoogleSSO = () => {
