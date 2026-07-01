@@ -1,4 +1,4 @@
-// script.js - v162 (기기 간 설정/순서 동기화: Firebase Firestore)
+// script.js - v163 (안정성 패치: 재생 오류 처리, DOM 가드, 동기화 순서 로직 통합)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -120,23 +120,25 @@ window.playRandomVideo = (category, title) => {
         let availableList = list.filter(url => url !== lastVideoUrl);
         if (availableList.length === 0) availableList = list;
         const randomUrl = availableList[Math.floor(Math.random() * availableList.length)];
-        lastVideoUrl = randomUrl;
-
         const idInfo = getYouTubeIdInfo(randomUrl);
+
+        // URL 파싱에 실패하면 플레이어 화면으로 전환하지 않고 여기서 바로 중단한다.
+        // (전환 이후에 실패를 알아채면 화면 꺼짐 방지만 켜진 빈 플레이어가 남는다)
+        if (!idInfo) { alert("재생 목록이 없습니다."); return; }
+
+        lastVideoUrl = randomUrl;
 
         if(playerTitle && title) playerTitle.innerText = title;
         if(ccmMenuView) ccmMenuView.style.display = 'none';
         if(ccmPlayerView) ccmPlayerView.style.display = 'block';
         requestWakeLock();
 
-        if (idInfo) {
-            if (player && isPlayerReady) {
-                if (idInfo.type === 'playlist') { player.loadPlaylist({list: idInfo.id, listType: 'playlist'}); } 
-                else { player.loadVideoById(idInfo.id); }
-            } else {
-                console.log("Player not ready. Queuing...");
-                pendingPlay = { category: category, title: title }; 
-            }
+        if (player && isPlayerReady) {
+            if (idInfo.type === 'playlist') { player.loadPlaylist({list: idInfo.id, listType: 'playlist'}); }
+            else { player.loadVideoById(idInfo.id); }
+        } else {
+            console.log("Player not ready. Queuing...");
+            pendingPlay = { category: category, title: title };
         }
     } else { alert("재생 목록이 없습니다."); }
 };
@@ -387,16 +389,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const listContainer = document.getElementById('main-list');
     let isDragging = false;
-    const savedOrder = safeParseJSON(localStorage.getItem('menuOrder'), null);
-    if (listContainer && Array.isArray(savedOrder)) {
+
+    // 저장된 순서(로컬 또는 클라우드 동기화)를 리스트에 적용한다.
+    // 저장 순서에 없던(나중에 새로 추가된) 카드는 맨 위로 튀지 않도록
+    // 원래 위치의 다음 카드 앞으로 되돌린다.
+    const applyMenuOrder = (order) => {
+        if (!listContainer || !Array.isArray(order)) return;
         const currentCards = Array.from(listContainer.children);
         const cardMap = {};
         currentCards.forEach(card => cardMap[card.id] = card);
         // 1) 저장된 순서대로 재배치
-        savedOrder.forEach(id => { if (cardMap[id]) listContainer.appendChild(cardMap[id]); });
-        // 2) 저장 순서에 없던(나중에 새로 추가된) 카드는 맨 위로 튀지 않도록
-        //    원래 HTML에서의 다음 카드 앞 위치로 되돌린다.
-        const known = new Set(savedOrder);
+        order.forEach(id => { if (cardMap[id]) listContainer.appendChild(cardMap[id]); });
+        // 2) 저장 순서에 없던 카드 보정
+        const known = new Set(order);
         currentCards.forEach((card, i) => {
             if (known.has(card.id)) return;
             let ref = null;
@@ -405,7 +410,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             listContainer.insertBefore(card, ref);
         });
-    }
+    };
+
+    const savedOrder = safeParseJSON(localStorage.getItem('menuOrder'), null);
+    applyMenuOrder(savedOrder);
 
     // Sortable CDN 로드 실패 시에도 나머지 기능은 정상 동작하도록 가드
     if (listContainer && typeof Sortable !== 'undefined') {
@@ -438,6 +446,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const shareTitle = document.querySelector('#card-share .text-box h3');
 
     const setViewMode = (mode) => {
+        // 요소 하나라도 없으면 여기서 조용히 멈춘다. 이 가드가 없으면 예외가 던져져
+        // DOMContentLoaded 콜백의 나머지 초기화(모달, 구글 로그인, 동기화 등)가 전부 실행되지 않는다.
+        if (!listContainer || !viewGridBtn || !viewListBtn) return;
         if (mode === 'grid') {
             listContainer.classList.add('grid-view');
             viewGridBtn.classList.add('active'); viewListBtn.classList.remove('active');
@@ -500,7 +511,8 @@ document.addEventListener('DOMContentLoaded', () => {
     moodBtns.forEach(btn => {
         btn.onclick = () => {
             const key = btn.getAttribute('data-key');
-            const title = btn.querySelector('span:last-child').innerText;
+            const titleSpan = btn.querySelector('span:last-child');
+            const title = titleSpan ? titleSpan.innerText : '';
             currentCategory = key;
             lastVideoUrl = null; 
             playRandomVideo(key, title); 
@@ -638,6 +650,7 @@ document.addEventListener('DOMContentLoaded', () => {
              if (typeof e.preventDefault === 'function') e.preventDefault();
              if (typeof e.stopPropagation === 'function') e.stopPropagation();
          }
+         if (!modalOverlay || !ccmMenuView || !ccmPlayerView || !draggablePlayer) return;
          modalOverlay.classList.remove('mini-mode');
          if(maximizeOverlay) maximizeOverlay.style.display = 'none';
          
@@ -652,6 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const startPlayerDrag = (e) => {
+        if (!modalOverlay || !draggablePlayer) return;
         if (!modalOverlay.classList.contains('mini-mode')) return;
         if (e.target.closest('.mini-btn')) return;
 
@@ -971,9 +985,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (Array.isArray(data.menuOrder) && listContainer) {
                 localStorage.setItem('menuOrder', JSON.stringify(data.menuOrder));
-                const map = {};
-                Array.from(listContainer.children).forEach(c => { map[c.id] = c; });
-                data.menuOrder.forEach(id => { if (map[id]) listContainer.appendChild(map[id]); });
+                applyMenuOrder(data.menuOrder);
             }
             if (Array.isArray(data.hiddenCards)) {
                 localStorage.setItem('hiddenCards', JSON.stringify(data.hiddenCards));
