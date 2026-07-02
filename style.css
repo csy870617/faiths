@@ -314,8 +314,12 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 
 
 /* 헤더의 원형 구글 로그인 버튼 (숨기기/설정 버튼 옆) */
+.google-login-wrap { position: relative; display: inline-flex; flex-shrink: 0; }
 .google-login-area { width: 36px; height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 50%; }
 .google-login-area > div { transform: scale(0.9); transform-origin: center; }
+/* 재로그인이 필요할 때 팝업 대신 버튼 위에 살짝 표시만 하는 점 */
+.google-reauth-dot { position: absolute; top: -1px; right: -1px; width: 10px; height: 10px; border-radius: 50%; background: #f5a623; box-shadow: 0 0 0 2px #fff; display: none; pointer-events: none; }
+.google-reauth-dot.show { display: block; }
 .google-status-btn { position: relative; }
 .google-status-btn .google-badge { position: absolute; top: -1px; right: -1px; width: 15px; height: 15px; border-radius: 50%; background: #2ecc71; color: #fff; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 

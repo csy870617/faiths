@@ -1,4 +1,4 @@
-// script.js - v163 (안정성 패치: 재생 오류 처리, DOM 가드, 동기화 순서 로직 통합)
+// script.js - v164 (구글 로그인: 자동 팝업 대신 버튼에 살짝 표시만)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -870,7 +870,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const googleSigninArea = document.getElementById('google-login-area'); // GIS 원형 아이콘 버튼 렌더 위치(로그아웃 상태)
     const googleStatusBtn = document.getElementById('google-status-btn');   // 연결됨 표시 버튼(로그인 상태)
+    const googleReauthDot = document.getElementById('google-reauth-dot');   // 재로그인 필요 시 버튼 위에 살짝 표시하는 점
     let currentGoogleEmail = null;
+
+    // 자동 팝업 대신 로그인 버튼 위에 작은 점만 표시해 재로그인이 필요함을 알린다.
+    const setReauthHint = (show) => {
+        if (googleReauthDot) googleReauthDot.classList.toggle('show', !!show);
+    };
 
     const updateGoogleUI = (payload) => {
         const loggedIn = !!(payload && payload.email);
@@ -880,6 +886,7 @@ document.addEventListener('DOMContentLoaded', () => {
             googleStatusBtn.style.display = loggedIn ? 'flex' : 'none';
             googleStatusBtn.title = loggedIn ? payload.email : '';
         }
+        if (loggedIn) setReauthHint(false);
     };
 
     // 연결됨 버튼을 누르면 계정/연결 해제 안내
@@ -888,6 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (confirm('구글 계정 연결을 해제할까요?\n' + (currentGoogleEmail || ''))) {
                 currentGoogleIdToken = null;
                 localStorage.removeItem('googleLinked');
+                setReauthHint(false);
                 try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) {}
                 try { if (window.firebase && firebase.auth) firebase.auth().signOut(); } catch (e) {}
                 updateGoogleUI(null);
@@ -912,13 +920,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // 로그인 유지: Google ID 토큰은 약 1시간 후 만료되므로, 연결된 사용자에 한해
-    // 만료 전에 조용히(auto_select) 재발급받아 세션이 끊기지 않게 한다.
+    // 로그인 유지: Google ID 토큰은 약 1시간 후 만료된다. 예전에는 만료 전에
+    // google.accounts.id.prompt()로 재발급을 시도했으나, 이 방식은 기기에 따라
+    // 화면 하단에 로그인 창(One Tap/FedCM UI)이 뜨는 문제가 있었다. 이제는 팝업을
+    // 띄우지 않고, 로그인 버튼 위에 살짝 표시(점)만 해서 사용자가 직접 눌러
+    // 재연결하도록 안내한다.
     const refreshGoogleTokenIfStale = () => {
         if (localStorage.getItem('googleLinked') !== 'true') return;
         if (Date.now() - lastTokenTime < 45 * 60 * 1000) return; // 아직 신선하면 스킵
-        if (!(window.google && google.accounts && google.accounts.id)) return;
-        try { google.accounts.id.prompt(); } catch (e) {} // auto_select면 UI 없이 새 토큰 콜백
+        setReauthHint(true);
     };
     setInterval(refreshGoogleTokenIfStale, 5 * 60 * 1000); // 5분마다 만료 임박 여부 확인
     document.addEventListener('visibilitychange', () => {
@@ -951,9 +961,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 google.accounts.id.renderButton(googleSigninArea, { type: 'icon', shape: 'circle', theme: 'outline', size: 'large' });
             } catch (e) {}
         }
-        // 이전에 연결한 사용자면 페이지 로드시 조용히 토큰 재발급 시도(신규 사용자는 방해하지 않음)
-        if (localStorage.getItem('googleLinked') === 'true') {
-            try { google.accounts.id.prompt(); } catch (e) {}
+        // 이전에 연결한 사용자면 페이지 로드시 팝업을 띄우지 않고, 아직 토큰을
+        // 못 받은 상태에 한해 로그인 버튼 위에 살짝 표시만 해서 재연결을 안내한다.
+        if (localStorage.getItem('googleLinked') === 'true' && !currentGoogleIdToken) {
+            setReauthHint(true);
         }
         return true;
     };
