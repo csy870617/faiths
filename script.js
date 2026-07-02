@@ -1,4 +1,4 @@
-// script.js - v164 (구글 로그인: 자동 팝업 대신 버튼에 살짝 표시만)
+// script.js - v165 (파이어베이스 세션이 남아있으면 팝업 없이 자동으로 로그인 상태 표시)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -1065,7 +1065,12 @@ document.addEventListener('DOMContentLoaded', () => {
             fbDb = firebase.firestore();
             firebase.auth().onAuthStateChanged((user) => {
                 fbAuthReady = true;
-                if (user) pullSettings(user.uid);
+                if (user) {
+                    pullSettings(user.uid);
+                    // 브라우저에 파이어베이스 로그인 세션이 남아있으면(재방문), 구글 팝업 없이도
+                    // 헤더에 로그인 상태를 바로 표시해 매번 다시 로그인할 필요가 없게 한다.
+                    if (user.email) updateGoogleUI({ email: user.email });
+                }
             });
             return true;
         } catch (e) { return false; }
