@@ -1,4 +1,4 @@
-// script.js - v165 (파이어베이스 세션이 남아있으면 팝업 없이 자동으로 로그인 상태 표시)
+// script.js - v166 (안정성 패치 2차: 설정값 검증, history 중복 방지, 닫기 버튼 위치 보정)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -385,6 +385,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('touchmove', cbOnDrag, { passive: false });
         document.addEventListener('mouseup', cbEndDrag);
         document.addEventListener('touchend', cbEndDrag);
+
+        // 화면 회전/창 크기 변경으로 옮겨둔 닫기 버튼이 화면 밖에 갇히지 않도록
+        // 뷰포트가 바뀔 때 저장된 위치를 다시 화면 안으로 클램프한다.
+        window.addEventListener('resize', () => {
+            if (cbDragging) return;
+            if (!floatingCloseBtn.classList.contains('dragged')) return;
+            const pos = safeParseJSON(sessionStorage.getItem('closeBtnPos'), null);
+            if (pos) applyCloseBtnPosition(pos);
+        });
     }
 
     const listContainer = document.getElementById('main-list');
@@ -555,10 +564,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const openModal = (modal) => {
         if (!modal) return;
-        if (!modalStack.includes(modal)) modalStack.push(modal);
+        // 이미 열린 모달을 다시 열어도 history 항목이 중복으로 쌓여
+        // 뒤로가기 횟수가 어긋나지 않도록, 새로 열릴 때만 push한다.
+        const isNew = !modalStack.includes(modal);
+        if (isNew) modalStack.push(modal);
         modal.style.display = 'flex';
         requestAnimationFrame(() => modal.classList.add('show'));
-        history.pushState({ modalOpen: true }, null, "");
+        if (isNew) history.pushState({ modalOpen: true }, null, "");
     };
 
     const closeModal = (modal) => {
@@ -746,11 +758,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let isHideMode = false;
     const ICON_EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
     const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    // 숨기기 UI에서 금지된 카드(친구 초대 등)는 클라우드 동기화나 손상된 저장값에
+    // 들어 있어도 숨겨지지 않도록 적용 시점에 한 번 더 거른다.
+    const UNHIDEABLE_CARDS = ['card-share', 'card-market'];
     const applyHiddenStatus = () => {
-        const hiddenList = safeParseJSON(localStorage.getItem('hiddenCards'), []);
+        const raw = safeParseJSON(localStorage.getItem('hiddenCards'), []);
+        const hiddenList = (Array.isArray(raw) ? raw : []).filter(id => !UNHIDEABLE_CARDS.includes(id));
         const cards = document.querySelectorAll('.list-card');
         cards.forEach(card => {
-            if (hiddenList.includes(card.id)) card.classList.add('user-hidden'); 
+            if (hiddenList.includes(card.id)) card.classList.add('user-hidden');
             else card.classList.remove('user-hidden');
         });
     };
@@ -770,7 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!card) return;
             if (isDragging) return;
             if (isHideMode) {
-                if (card.id === 'card-share' || card.id === 'card-market') { alert("이 메뉴는 숨길 수 없습니다."); return; }
+                if (UNHIDEABLE_CARDS.includes(card.id)) { alert("이 메뉴는 숨길 수 없습니다."); return; }
                 let hiddenList = safeParseJSON(localStorage.getItem('hiddenCards'), []);
                 if (hiddenList.includes(card.id)) { hiddenList = hiddenList.filter(id => id !== card.id); card.classList.remove('user-hidden'); } 
                 else { hiddenList.push(card.id); card.classList.add('user-hidden'); }
@@ -825,8 +841,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bannerNeverBtn) bannerNeverBtn.onclick = () => { installBanner.classList.remove('show'); localStorage.setItem('installBannerHidden', 'true'); };
 
     const fontSizeSlider = document.getElementById('font-size-slider');
+    // 저장소(로컬/클라우드)에 손상된 값이 있어도 글자 크기가 깨지지 않도록
+    // 슬라이더 범위(0.9~1.3) 안의 숫자만 통과시킨다. 범위 밖/비숫자는 null.
+    const sanitizeTextScale = (value) => {
+        const n = parseFloat(value);
+        if (isNaN(n) || n < 0.9 || n > 1.3) return null;
+        return String(n);
+    };
     if (fontSizeSlider) {
-        const savedScale = localStorage.getItem('textScale');
+        const savedScale = sanitizeTextScale(localStorage.getItem('textScale'));
         if (savedScale) { document.documentElement.style.setProperty('--text-scale', savedScale); fontSizeSlider.value = savedScale; }
         fontSizeSlider.oninput = (e) => { const scale = e.target.value; document.documentElement.style.setProperty('--text-scale', scale); localStorage.setItem('textScale', scale); if (window.scheduleSettingsSync) window.scheduleSettingsSync(); };
     }
@@ -1005,10 +1028,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.viewMode === 'grid' || data.viewMode === 'list') {
                 setViewMode(data.viewMode);
             }
-            if (data.textScale) {
-                document.documentElement.style.setProperty('--text-scale', data.textScale);
-                localStorage.setItem('textScale', data.textScale);
-                if (fontSizeSlider) fontSizeSlider.value = data.textScale;
+            const cloudScale = sanitizeTextScale(data.textScale);
+            if (cloudScale) {
+                document.documentElement.style.setProperty('--text-scale', cloudScale);
+                localStorage.setItem('textScale', cloudScale);
+                if (fontSizeSlider) fontSizeSlider.value = cloudScale;
             }
         } catch (e) {} finally { syncApplying = false; }
     };
@@ -1017,7 +1041,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const s = {
             hiddenCards: safeParseJSON(localStorage.getItem('hiddenCards'), []),
             viewMode: localStorage.getItem('viewMode') || 'list',
-            textScale: localStorage.getItem('textScale') || '1',
+            textScale: sanitizeTextScale(localStorage.getItem('textScale')) || '1',
             updatedAt: Date.now()
         };
         const order = safeParseJSON(localStorage.getItem('menuOrder'), null);
