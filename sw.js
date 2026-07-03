@@ -1,13 +1,13 @@
 // sw.js
-// [중요] 버전 업데이트: v171
+// [중요] 버전 업데이트: v172
 // [주의] 아래 ?v= 쿼리는 index.html에서 로드하는 버전과 항상 일치해야 합니다.
-const CACHE_NAME = 'faiths-v171';
+const CACHE_NAME = 'faiths-v172';
 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './style.css?v=157',
-    './script.js?v=165',
+    './script.js?v=166',
     './playlist.js?v=150',
     './manifest.json',
     './icon/0.png',
@@ -30,6 +30,8 @@ self.addEventListener('install', (event) => {
 
 // 2. 활성화 (Activate)
 self.addEventListener('activate', (event) => {
+    // clients.claim()도 waitUntil 안에 포함해, 캐시 정리와 클라이언트 장악이
+    // 모두 끝날 때까지 activate 단계가 유지되도록 한다.
     event.waitUntil(
         caches.keys().then((keyList) => {
             return Promise.all(
@@ -40,9 +42,8 @@ self.addEventListener('activate', (event) => {
                     }
                 })
             );
-        })
+        }).then(() => self.clients.claim())
     );
-    return self.clients.claim();
 });
 
 // 3. 요청 (Fetch)
