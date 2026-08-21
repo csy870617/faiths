@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     
-    <link rel="stylesheet" href="style.css?v=157">
+    <link rel="stylesheet" href="style.css?v=158">
     <link rel="stylesheet" href="cards.css?v=150">
     
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
@@ -188,7 +188,10 @@
                 </div>
                 <div class="player-info"><p class="copyright-notice">이 콘텐츠는 제작자의 유튜브 채널을 통해 재생되며,<br>저작권과 모든 권리는 원 제작자에게 있습니다.</p></div>
                 <div class="player-buttons"><button id="shuffle-play-btn" class="action-btn">🔄 다른 플리 듣기</button><button id="back-to-menu-btn" class="action-btn secondary">📂 다른 주제 고르기</button></div>
-                <button id="float-mode-btn" class="float-icon-btn"><span>📺</span> 화면 작게 보기</button>
+                <div class="player-bottom-row">
+                    <button id="float-mode-btn" class="float-icon-btn"><span>📺</span> 화면 작게 보기</button>
+                    <button id="youtube-open-btn" class="float-icon-btn youtube-btn"><span>▶</span> 유튜브에서 보기</button>
+                </div>
             </div>
         </div>
     </div>
@@ -276,7 +279,7 @@
     </div>
 
     <script src="playlist.js?v=153"></script>
-    <script src="script.js?v=168"></script>
+    <script src="script.js?v=169"></script>
 
     <script>
         // script.js 로드 실패 시에도 로딩 화면이 영원히 남지 않도록 하는 안전장치
