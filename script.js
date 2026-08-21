@@ -1,4 +1,4 @@
-// script.js - v168 (CCM: 재생 불가 영상 자동 건너뛰기)
+// script.js - v169 (CCM: 유튜브에서 보기 버튼 추가)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -635,6 +635,41 @@ document.addEventListener('DOMContentLoaded', () => {
         floatModeBtn.onclick = () => {
             modalOverlay.classList.add('mini-mode');
             if (maximizeOverlay) maximizeOverlay.style.display = 'block';
+        };
+    }
+
+    // 유튜브에서 보기: 현재 주제의 재생목록을 유튜브에서 바로 연다.
+    // 현재 재생 중인 곡을 알 수 있으면 그 곡부터 재생목록으로 이어서 열고,
+    // 아니면 재생목록 페이지를 연다.
+    const youtubeOpenBtn = document.getElementById('youtube-open-btn');
+    if (youtubeOpenBtn) {
+        youtubeOpenBtn.onclick = () => {
+            if (!currentCategory || typeof CCM_PLAYLIST === 'undefined') return;
+            const entry = CCM_PLAYLIST[currentCategory];
+            const info = (typeof entry === 'string') ? getYouTubeIdInfo(entry) : null;
+            let url = null;
+
+            // 현재 재생 중인 영상 ID(가능하면)로 그 지점부터 이어보게 한다.
+            let videoId = null;
+            try {
+                if (player && typeof player.getVideoData === 'function') {
+                    const d = player.getVideoData();
+                    if (d && d.video_id) videoId = d.video_id;
+                }
+            } catch (e) {}
+
+            if (info && info.type === 'playlist') {
+                url = videoId
+                    ? 'https://www.youtube.com/watch?v=' + videoId + '&list=' + info.id
+                    : 'https://www.youtube.com/playlist?list=' + info.id;
+            } else if (videoId) {
+                url = 'https://www.youtube.com/watch?v=' + videoId;
+            }
+
+            if (!url) return;
+            // 앱 내 플레이어는 멈춰 소리가 겹치지 않게 한다.
+            try { if (player && typeof player.pauseVideo === 'function') player.pauseVideo(); } catch (e) {}
+            window.open(url, '_blank');
         };
     }
 

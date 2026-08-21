@@ -263,6 +263,12 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 }
 .float-icon-btn:hover { background: #d0dbfc; }
 
+/* 화면 작게 보기 + 유튜브에서 보기 버튼을 나란히 배치 */
+.player-bottom-row { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
+.player-bottom-row .float-icon-btn { flex: 1; width: auto; margin-top: 0; }
+.youtube-btn { background: #FDE7E9; color: #c4302b; box-shadow: 0 2px 8px rgba(196, 48, 43, 0.25); }
+.youtube-btn:hover { background: #fbd0d4; }
+
 .header-settings-btn {
     background: none;
     border: none;
@@ -289,7 +295,8 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 .modal-overlay.mini-mode .modal-close-btn,
 .modal-overlay.mini-mode #player-title,
 .modal-overlay.mini-mode .player-header,
-.modal-overlay.mini-mode .float-icon-btn { display: none !important; }
+.modal-overlay.mini-mode .float-icon-btn,
+.modal-overlay.mini-mode .player-bottom-row { display: none !important; }
 
 .modal-overlay.mini-mode .video-container { margin-bottom: 0 !important; border-radius: 0; }
 
