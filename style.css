@@ -247,27 +247,15 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 .player-info p { margin-bottom: 8px; }
 .copyright-notice { font-size: 13px; color: #999; letter-spacing: -0.5px; margin-top: 10px; }
 
-.player-buttons { display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: 20px; }
-.action-btn { flex: 1; padding: 14px; border-radius: 20px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+/* 플레이어 하단 4버튼을 한 줄로 (다른 플리 · 다른 주제 · 최소화 · 유튜브) */
+.player-buttons { display: flex; gap: 8px; justify-content: center; width: 100%; margin-top: 20px; }
+.action-btn { flex: 1; min-width: 0; padding: 12px 4px; border-radius: 14px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
 #shuffle-play-btn { background: var(--brand-color); color: white; box-shadow: 0 4px 12px rgba(95, 39, 205, 0.3); }
 #shuffle-play-btn:hover { background: #4a1eb8; transform: translateY(-2px); }
-#back-to-menu-btn { background: #F1F3F5; color: #444; border: 1px solid #E9ECEF; }
-#back-to-menu-btn:hover { background: #E9ECEF; }
-
-.float-icon-btn {
-    width: 100%; height: 40px; margin-top: 10px;
-    background: #E0E7FF; color: var(--brand-color);
-    border: none; border-radius: 12px;
-    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
-    font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px rgba(95, 39, 205, 0.3); transition: background 0.2s;
-}
-.float-icon-btn:hover { background: #d0dbfc; }
-
-/* 화면 작게 보기 + 유튜브에서 보기 버튼을 나란히 배치 */
-.player-bottom-row { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
-.player-bottom-row .float-icon-btn { flex: 1; width: auto; margin-top: 0; }
-.youtube-btn { background: #FDE7E9; color: #c4302b; box-shadow: 0 2px 8px rgba(196, 48, 43, 0.25); }
-.youtube-btn:hover { background: #fbd0d4; }
+.action-btn.secondary { background: #F1F3F5; color: #444; border: 1px solid #E9ECEF; }
+.action-btn.secondary:hover { background: #E9ECEF; }
+.action-btn.youtube-btn { background: #FF0000; color: #fff; box-shadow: 0 4px 12px rgba(255, 0, 0, 0.25); }
+.action-btn.youtube-btn:hover { background: #d90000; transform: translateY(-2px); }
 
 .header-settings-btn {
     background: none;
@@ -280,44 +268,40 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 }
 .header-settings-btn:hover { color: #111; transform: rotate(45deg); }
 
-/* 미니 모드 스타일 */
-.modal-overlay.mini-mode { background: transparent; pointer-events: none; align-items: flex-end; justify-content: flex-end; }
+/* 최소화 모드: 화면 하단 재생바만 표시하고 홈 화면은 그대로 사용 가능 */
+.modal-overlay.mini-mode { background: transparent; pointer-events: none; align-items: flex-end; justify-content: center; }
 .modal-overlay.mini-mode .modal-content {
-    width: 280px; padding: 0 !important; border-radius: 12px; margin: 0;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-    pointer-events: auto; position: fixed; bottom: 20px; right: 20px;
-    touch-action: none; border: none; overflow: hidden;
+    width: 100%; max-width: 480px; margin: 0 auto; padding: 0 !important;
+    background: transparent; box-shadow: none; border: none; border-radius: 0;
+    pointer-events: none;
 }
 
-/* 미니 모드일 때 숨길 요소들 */
+/* 재생바 외 요소는 모두 숨긴다 */
 .modal-overlay.mini-mode .player-info,
 .modal-overlay.mini-mode .player-buttons,
 .modal-overlay.mini-mode .modal-close-btn,
-.modal-overlay.mini-mode #player-title,
-.modal-overlay.mini-mode .player-header,
-.modal-overlay.mini-mode .float-icon-btn,
-.modal-overlay.mini-mode .player-bottom-row { display: none !important; }
+.modal-overlay.mini-mode .player-header { display: none !important; }
 
-.modal-overlay.mini-mode .video-container { margin-bottom: 0 !important; border-radius: 0; }
-
-.mini-controls { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; }
-.modal-overlay.mini-mode .mini-controls { display: block; }
-
-.mini-btn {
-    position: absolute;
-    background: transparent;
-    color: white;
-    border: none;
-    width: 36px; height: 36px;
-    font-size: 18px;
-    cursor: pointer;
-    z-index: 1002;
-    display: flex; justify-content: center; align-items: center;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+/* iframe은 소리를 유지하기 위해 제거하지 않고, 재생바 뒤에 숨겨 계속 재생되게 한다 */
+.modal-overlay.mini-mode .video-container {
+    position: fixed; left: 0; right: 0; bottom: 0; margin: 0 auto;
+    width: 100%; max-width: 480px; height: 60px; min-height: 60px;
+    padding: 0; overflow: hidden; border-radius: 0; z-index: 1; pointer-events: none;
 }
-.mini-btn.left-top { top: 5px; left: 5px; }
-.mini-btn.right-top { top: 5px; right: 5px; }
-#maximize-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1001; cursor: move; }
+.modal-overlay.mini-mode .playbar { display: flex; }
+
+/* 하단 재생바 */
+.playbar {
+    display: none; align-items: center; gap: 6px;
+    position: fixed; left: 0; right: 0; bottom: 0; margin: 0 auto;
+    width: 100%; max-width: 480px; height: 60px; padding: 0 8px 0 14px;
+    box-sizing: border-box; z-index: 2; pointer-events: auto;
+    background: #1f1f1f; color: #fff; box-shadow: 0 -4px 18px rgba(0,0,0,0.28);
+}
+.playbar-info { flex: 1; min-width: 0; display: flex; align-items: center; height: 100%; background: none; border: none; color: inherit; cursor: pointer; text-align: left; padding: 0; }
+.playbar-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 700; }
+.playbar-btn { flex-shrink: 0; background: none; border: none; color: #fff; font-size: 17px; width: 42px; height: 42px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+.playbar-btn:hover { background: rgba(255, 255, 255, 0.14); }
 
 
 /* 헤더의 원형 구글 로그인 버튼 (숨기기/설정 버튼 옆) */

@@ -1,4 +1,4 @@
-// script.js - v169 (CCM: 유튜브에서 보기 버튼 추가)
+// script.js - v170 (CCM: 최소화 시 하단 재생바 + 버튼 4개 한 줄)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -96,7 +96,7 @@ function onPlayerReady(event) {
 }
 
 function onPlayerStateChange(event) {
-    const playPauseBtn = document.getElementById('mini-play-pause');
+    const playPauseBtn = document.getElementById('playbar-play');
     if (playPauseBtn) {
         if (event.data == YT.PlayerState.PLAYING) { playPauseBtn.innerText = "⏸"; } else { playPauseBtn.innerText = "▶"; }
     }
@@ -163,6 +163,9 @@ window.playRandomVideo = (category, title) => {
     // 플레이어 화면으로 전환하는 공통 처리
     const showPlayer = () => {
         if (playerTitle && title) playerTitle.innerText = title;
+        // 하단 재생바 제목도 함께 갱신
+        const pbTitle = document.getElementById('playbar-title');
+        if (pbTitle && title) pbTitle.innerText = title;
         if (ccmMenuView) ccmMenuView.style.display = 'none';
         if (ccmPlayerView) ccmPlayerView.style.display = 'block';
         requestWakeLock();
@@ -549,10 +552,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const ccmPlayerView = document.getElementById('ccm-player-view');
     const backToMenuBtn = document.getElementById('back-to-menu-btn');
     const shufflePlayBtn = document.getElementById('shuffle-play-btn');
-    const floatModeBtn = document.getElementById('float-mode-btn'); 
-    const maximizeOverlay = document.getElementById('maximize-overlay'); 
-    const miniPlayPauseBtn = document.getElementById('mini-play-pause');
-    const miniCloseBtn = document.getElementById('mini-close');
+    const floatModeBtn = document.getElementById('float-mode-btn'); // 최소화 버튼
+    const playbarExpandBtn = document.getElementById('playbar-expand');
+    const playbarPlayBtn = document.getElementById('playbar-play');
+    const playbarCloseBtn = document.getElementById('playbar-close');
+    const playbarTitle = document.getElementById('playbar-title');
     
     const ccmBtn = document.getElementById('ccm-btn');
     const settingsBtn = document.getElementById('settings-btn');
@@ -634,7 +638,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (floatModeBtn) {
         floatModeBtn.onclick = () => {
             modalOverlay.classList.add('mini-mode');
-            if (maximizeOverlay) maximizeOverlay.style.display = 'block';
         };
     }
 
@@ -687,12 +690,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModal = (modal) => {
         if (!modal) return;
         modal.classList.remove('mini-mode');
-        if (maximizeOverlay) maximizeOverlay.style.display = 'none';
-        
-        if(modal === modalOverlay && draggablePlayer) {
-            draggablePlayer.style.top = ''; draggablePlayer.style.left = '';
-            draggablePlayer.style.bottom = '20px'; draggablePlayer.style.right = '20px';
-        }
 
         if (modal === modalOverlay) {
             if(player && typeof player.stopVideo === 'function') { player.stopVideo(); }
@@ -763,107 +760,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- 드래그 기능 수정 (PC 지원 최적화) ---
-    let isPlayerDragging = false;
-    let shiftX, shiftY;
-    let dragStartPos = { x: 0, y: 0 };
-    let totalMovedDistance = 0; // 드래그한 총 거리
-
+    // 최소화 상태를 풀고 전체 플레이어 화면으로 되돌린다.
     const maximizePlayer = (e) => {
          if (e) {
              if (typeof e.preventDefault === 'function') e.preventDefault();
              if (typeof e.stopPropagation === 'function') e.stopPropagation();
          }
-         if (!modalOverlay || !ccmMenuView || !ccmPlayerView || !draggablePlayer) return;
+         if (!modalOverlay || !ccmMenuView || !ccmPlayerView) return;
          modalOverlay.classList.remove('mini-mode');
-         if(maximizeOverlay) maximizeOverlay.style.display = 'none';
-         
          ccmMenuView.style.display = 'none';
          ccmPlayerView.style.display = 'block';
-
-         draggablePlayer.style.top = '';
-         draggablePlayer.style.left = '';
-         draggablePlayer.style.bottom = '20px';
-         draggablePlayer.style.right = '20px';
-         draggablePlayer.style.transition = ''; 
     };
 
-    const startPlayerDrag = (e) => {
-        if (!modalOverlay || !draggablePlayer) return;
-        if (!modalOverlay.classList.contains('mini-mode')) return;
-        if (e.target.closest('.mini-btn')) return;
-
-        isPlayerDragging = true;
-        totalMovedDistance = 0; // 초기화
-
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        dragStartPos = { x: clientX, y: clientY };
-
-        const rect = draggablePlayer.getBoundingClientRect();
-        shiftX = clientX - rect.left;
-        shiftY = clientY - rect.top;
-        
-        draggablePlayer.style.transition = 'none';
-        draggablePlayer.style.bottom = 'auto';
-        draggablePlayer.style.right = 'auto';
-        draggablePlayer.style.left = rect.left + 'px';
-        draggablePlayer.style.top = rect.top + 'px';
-    };
-
-    const onPlayerDrag = (e) => {
-        if (!isPlayerDragging) return;
-        
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-        // 드래그 거리 누적 계산
-        const dist = Math.sqrt(Math.pow(clientX - dragStartPos.x, 2) + Math.pow(clientY - dragStartPos.y, 2));
-        totalMovedDistance = dist;
-
-        // 플레이어가 화면 밖으로 완전히 나가 복구 불가능해지지 않도록 뷰포트 안으로 제한
-        const maxLeft = Math.max(0, window.innerWidth - draggablePlayer.offsetWidth);
-        const maxTop = Math.max(0, window.innerHeight - draggablePlayer.offsetHeight);
-        const newLeft = Math.min(Math.max(0, clientX - shiftX), maxLeft);
-        const newTop = Math.min(Math.max(0, clientY - shiftY), maxTop);
-
-        draggablePlayer.style.left = newLeft + 'px';
-        draggablePlayer.style.top = newTop + 'px';
-    };
-
-    const endPlayerDrag = (e) => {
-        if (!isPlayerDragging) return;
-        isPlayerDragging = false;
-        
-        // 드래그 거리가 10px 미만일 때만 클릭으로 간주하여 최대화
-        if (totalMovedDistance < 10) {
-             maximizePlayer(e);
-        }
-    };
-
-    if (draggablePlayer) {
-        draggablePlayer.addEventListener('mousedown', startPlayerDrag);
-        draggablePlayer.addEventListener('touchstart', startPlayerDrag, {passive: false});
-        document.addEventListener('mousemove', onPlayerDrag);
-        document.addEventListener('touchmove', onPlayerDrag, {passive: false});
-        document.addEventListener('mouseup', endPlayerDrag);
-        document.addEventListener('touchend', endPlayerDrag);
-    }
-    
-    // PC에서 드래그와 클릭 충돌을 방지하기 위해 onclick 대신 드래그 로직 내에서 판단함
-    if (maximizeOverlay) {
-        // 기존의 maximizeOverlay.onclick = maximizePlayer; 코드는 삭제됨
-    }
-
-    if (miniPlayPauseBtn) {
-        miniPlayPauseBtn.onclick = (e) => {
-            e.stopPropagation(); 
+    // 하단 재생바 조작: 제목(펼치기) / 재생·일시정지 / 닫기
+    if (playbarExpandBtn) { playbarExpandBtn.onclick = (e) => { e.stopPropagation(); maximizePlayer(e); }; }
+    if (playbarPlayBtn) {
+        playbarPlayBtn.onclick = (e) => {
+            e.stopPropagation();
             if (player && typeof player.getPlayerState === 'function') {
                 const state = player.getPlayerState();
                 if (state === YT.PlayerState.PLAYING) player.pauseVideo(); else player.playVideo();
             }
         };
     }
-    if (miniCloseBtn) { miniCloseBtn.onclick = (e) => { e.stopPropagation(); closeModal(modalOverlay); }; }
+    if (playbarCloseBtn) { playbarCloseBtn.onclick = (e) => { e.stopPropagation(); closeModal(modalOverlay); }; }
 
     const hideModeBtn = document.getElementById('hide-mode-btn');
     let isHideMode = false;
