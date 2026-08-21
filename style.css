@@ -290,18 +290,30 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 }
 .modal-overlay.mini-mode .playbar { display: flex; }
 
-/* 하단 재생바 */
+/* 하단 재생바 (썸네일 + 곡 정보 + 시크바) */
 .playbar {
-    display: none; align-items: center; gap: 6px;
+    display: none; flex-direction: column;
     position: fixed; left: 0; right: 0; bottom: 0; margin: 0 auto;
-    width: 100%; max-width: 480px; height: 60px; padding: 0 8px 0 14px;
-    box-sizing: border-box; z-index: 2; pointer-events: auto;
-    background: #1f1f1f; color: #fff; box-shadow: 0 -4px 18px rgba(0,0,0,0.28);
+    width: 100%; max-width: 480px; z-index: 2; pointer-events: auto;
+    background: #1f1f1f; color: #fff; box-shadow: 0 -4px 18px rgba(0,0,0,0.3);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-.playbar-info { flex: 1; min-width: 0; display: flex; align-items: center; height: 100%; background: none; border: none; color: inherit; cursor: pointer; text-align: left; padding: 0; }
-.playbar-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 700; }
-.playbar-btn { flex-shrink: 0; background: none; border: none; color: #fff; font-size: 17px; width: 42px; height: 42px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+.playbar-body { display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 8px 0 10px; box-sizing: border-box; }
+.playbar-thumb { width: 44px; height: 44px; flex-shrink: 0; border-radius: 8px; object-fit: cover; background: #3a3a3a; }
+.playbar-info { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; height: 100%; gap: 2px; background: none; border: none; color: inherit; cursor: pointer; text-align: left; padding: 0; }
+.playbar-title { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 700; }
+.playbar-sub { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: rgba(255, 255, 255, 0.55); }
+.playbar-btn { flex-shrink: 0; background: none; border: none; color: #fff; font-size: 18px; width: 42px; height: 42px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
 .playbar-btn:hover { background: rgba(255, 255, 255, 0.14); }
+
+/* 상단 시크바 (진행률 표시 + 탭하여 이동) */
+.playbar-seek {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 4px; margin: 0; padding: 0; cursor: pointer;
+    background: rgba(255, 255, 255, 0.22); /* JS가 진행률에 따라 gradient로 덮어씀 */
+}
+.playbar-seek::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+.playbar-seek::-moz-range-thumb { width: 12px; height: 12px; border: none; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
 
 
 /* 헤더의 원형 구글 로그인 버튼 (숨기기/설정 버튼 옆) */
