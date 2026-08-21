@@ -1,30 +1,16 @@
 // ==========================================
 // CCM 유튜브 주소 관리 (랜덤 재생 지원)
 // ==========================================
+//
+// 각 주제 값은 두 가지 형식을 지원합니다.
+//  1) 유튜브 재생목록 링크 문자열 (권장): 해당 재생목록 안에서 랜덤으로 재생
+//     예) comfort: "https://www.youtube.com/watch?v=xxxx&list=PLxxxxxxxx"
+//  2) 개별 영상 URL 배열 (기존 방식): 배열에서 무작위로 한 곡 재생
+// 재생목록 링크로 바꾸려면 아래처럼 배열을 링크 문자열로 교체하면 됩니다.
 
 const CCM_PLAYLIST = {
-    // 1. 힘들고 지칠 때
-    comfort: [
-        "https://www.youtube.com/embed/8lkLZFE0ly8",
-        "https://www.youtube.com/embed/-NGkYW74oKQ",
-        "https://www.youtube.com/embed/n-_TY_Gnp0w",
-        "https://www.youtube.com/embed/Jyzf5Q3A0cs",
-        "https://www.youtube.com/embed/1XhTOE7S1lg",
-        "https://www.youtube.com/embed/mSUxUWYfq4I",
-        "https://www.youtube.com/embed/J9mNIr99RqQ",
-        "https://www.youtube.com/embed/eWGehATN8Xk",
-        "https://www.youtube.com/embed/FAa_oQo_tms",
-        "https://www.youtube.com/embed/zHfp71hwO2g",
-        "https://www.youtube.com/embed/RcmyhEvaYWA",
-        "https://www.youtube.com/embed/OTTWQ8ePxBQ",
-        "https://www.youtube.com/embed/Rc_QHVrUlx8",
-        "https://www.youtube.com/embed/SJwVH-Agzbw",
-        "https://www.youtube.com/embed/1GL8skLUhdM", // [NEW]
-        "https://www.youtube.com/embed/MRPqLfK2vZI", // [NEW]
-        "https://www.youtube.com/embed/wNem2P_0VHY", // [NEW]
-        "https://www.youtube.com/embed/fZ3-ysdNl24", // [NEW]
-        "https://www.youtube.com/embed/KgaIHEIFmK0"  // [NEW]
-    ],
+    // 1. 힘들고 지칠 때 (유튜브 재생목록 안에서 랜덤 재생)
+    comfort: "https://www.youtube.com/watch?v=-b1bWVeZ808&list=PLf0S0SzAlW99lw1tHvzPMJSWPKUGrG3gz",
 
     // 2. 깊은 기도의 시간
     prayer: [
