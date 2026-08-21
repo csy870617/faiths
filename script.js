@@ -1,4 +1,4 @@
-// script.js - v166 (안정성 패치 2차: 설정값 검증, history 중복 방지, 닫기 버튼 위치 보정)
+// script.js - v167 (CCM: 유튜브 재생목록 링크 안에서 랜덤 재생 지원)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -7,6 +7,9 @@ let pendingPlay = null;
 let wakeLock = null;
 let currentCategory = null;
 let lastVideoUrl = null;
+// 유튜브 재생목록을 불러온 직후, 목록 정보가 준비되면 셔플을 켜고 임의의 곡부터
+// 재생하기 위한 1회성 플래그(항상 첫 곡만 나오지 않도록).
+let pendingPlaylistShuffle = false;
 // 모달을 중첩해서 열 수 있으므로(예: 플레이어 위에 쿠키 가이드) 단일 변수 대신
 // 스택으로 관리한다. 뒤로가기/배경탭은 항상 "맨 위 모달"만 닫는다.
 let modalStack = [];
@@ -94,6 +97,15 @@ function onPlayerStateChange(event) {
     if (playPauseBtn) {
         if (event.data == YT.PlayerState.PLAYING) { playPauseBtn.innerText = "⏸"; } else { playPauseBtn.innerText = "▶"; }
     }
+    // 재생목록을 막 불러온 경우: 목록 정보가 준비되면 셔플을 켜고 임의의 곡부터 재생한다.
+    if (pendingPlaylistShuffle && player && typeof player.getPlaylist === 'function') {
+        const pl = player.getPlaylist();
+        if (pl && pl.length) {
+            pendingPlaylistShuffle = false;
+            try { player.setShuffle(true); } catch (e) {}
+            try { player.playVideoAt(Math.floor(Math.random() * pl.length)); } catch (e) {}
+        }
+    }
 }
 
 function getYouTubeIdInfo(url) {
@@ -115,32 +127,55 @@ window.playRandomVideo = (category, title) => {
         window.onYouTubeIframeAPIReady();
     }
 
-    if (typeof CCM_PLAYLIST !== 'undefined' && CCM_PLAYLIST[category]) {
-        const list = CCM_PLAYLIST[category];
-        let availableList = list.filter(url => url !== lastVideoUrl);
-        if (availableList.length === 0) availableList = list;
+    if (typeof CCM_PLAYLIST === 'undefined' || !CCM_PLAYLIST[category]) {
+        alert("재생 목록이 없습니다."); return;
+    }
+    const entry = CCM_PLAYLIST[category];
+
+    // 플레이어 화면으로 전환하는 공통 처리
+    const showPlayer = () => {
+        if (playerTitle && title) playerTitle.innerText = title;
+        if (ccmMenuView) ccmMenuView.style.display = 'none';
+        if (ccmPlayerView) ccmPlayerView.style.display = 'block';
+        requestWakeLock();
+    };
+
+    // (신규) 주제 값이 유튜브 재생목록 링크 1개인 경우 → 목록 안에서 랜덤 재생
+    if (typeof entry === 'string') {
+        const idInfo = getYouTubeIdInfo(entry);
+        // URL 파싱에 실패(재생목록이 아님)하면 화면 전환 없이 바로 중단
+        if (!idInfo || idInfo.type !== 'playlist') { alert("재생 목록이 없습니다."); return; }
+        showPlayer();
+        if (player && isPlayerReady) {
+            pendingPlaylistShuffle = true;
+            player.loadPlaylist({ list: idInfo.id, listType: 'playlist' });
+        } else {
+            console.log("Player not ready. Queuing...");
+            pendingPlay = { category: category, title: title };
+        }
+        return;
+    }
+
+    // (기존) 주제 값이 개별 영상 URL 배열인 경우 → 배열에서 랜덤 1곡 (동작 동일)
+    if (Array.isArray(entry)) {
+        let availableList = entry.filter(url => url !== lastVideoUrl);
+        if (availableList.length === 0) availableList = entry;
         const randomUrl = availableList[Math.floor(Math.random() * availableList.length)];
         const idInfo = getYouTubeIdInfo(randomUrl);
-
-        // URL 파싱에 실패하면 플레이어 화면으로 전환하지 않고 여기서 바로 중단한다.
-        // (전환 이후에 실패를 알아채면 화면 꺼짐 방지만 켜진 빈 플레이어가 남는다)
         if (!idInfo) { alert("재생 목록이 없습니다."); return; }
-
         lastVideoUrl = randomUrl;
-
-        if(playerTitle && title) playerTitle.innerText = title;
-        if(ccmMenuView) ccmMenuView.style.display = 'none';
-        if(ccmPlayerView) ccmPlayerView.style.display = 'block';
-        requestWakeLock();
-
+        showPlayer();
         if (player && isPlayerReady) {
-            if (idInfo.type === 'playlist') { player.loadPlaylist({list: idInfo.id, listType: 'playlist'}); }
+            if (idInfo.type === 'playlist') { pendingPlaylistShuffle = true; player.loadPlaylist({ list: idInfo.id, listType: 'playlist' }); }
             else { player.loadVideoById(idInfo.id); }
         } else {
             console.log("Player not ready. Queuing...");
             pendingPlay = { category: category, title: title };
         }
-    } else { alert("재생 목록이 없습니다."); }
+        return;
+    }
+
+    alert("재생 목록이 없습니다.");
 };
 
 // DOM 로드 후 실행
@@ -542,7 +577,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (shufflePlayBtn) {
         shufflePlayBtn.onclick = () => {
-            if (currentCategory) playRandomVideo(currentCategory, null);
+            if (!currentCategory) return;
+            // 현재 주제가 재생목록이고 이미 로드돼 있으면, 재로딩 없이 목록 안에서
+            // 곧바로 다른 랜덤 곡으로 이동한다(반응이 빠르고 화면 깜빡임이 없다).
+            const entry = (typeof CCM_PLAYLIST !== 'undefined') ? CCM_PLAYLIST[currentCategory] : null;
+            const info = (typeof entry === 'string') ? getYouTubeIdInfo(entry) : null;
+            if (info && info.type === 'playlist' && player && typeof player.getPlaylist === 'function') {
+                const pl = player.getPlaylist();
+                if (pl && pl.length) {
+                    try { player.setShuffle(true); } catch (e) {}
+                    try { player.playVideoAt(Math.floor(Math.random() * pl.length)); } catch (e) {}
+                    return;
+                }
+            }
+            playRandomVideo(currentCategory, null);
         };
     }
 
