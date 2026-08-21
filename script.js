@@ -1,4 +1,4 @@
-// script.js - v167 (CCM: 유튜브 재생목록 링크 안에서 랜덤 재생 지원)
+// script.js - v168 (CCM: 재생 불가 영상 자동 건너뛰기)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -10,6 +10,9 @@ let lastVideoUrl = null;
 // 유튜브 재생목록을 불러온 직후, 목록 정보가 준비되면 셔플을 켜고 임의의 곡부터
 // 재생하기 위한 1회성 플래그(항상 첫 곡만 나오지 않도록).
 let pendingPlaylistShuffle = false;
+// 재생할 수 없는 영상(비공개/삭제/임베드 차단 등)이 연속으로 나올 때 무한 반복을
+// 막기 위한 카운터. 정상 재생(PLAYING)되면 0으로 초기화된다.
+let playbackErrorCount = 0;
 // 모달을 중첩해서 열 수 있으므로(예: 플레이어 위에 쿠키 가이드) 단일 변수 대신
 // 스택으로 관리한다. 뒤로가기/배경탭은 항상 "맨 위 모달"만 닫는다.
 let modalStack = [];
@@ -76,7 +79,7 @@ window.onYouTubeIframeAPIReady = function() {
             'autoplay': 0, 
             'disablekb': 1 
         },
-        events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
+        events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange, 'onError': onPlayerError }
     });
 };
 
@@ -97,6 +100,8 @@ function onPlayerStateChange(event) {
     if (playPauseBtn) {
         if (event.data == YT.PlayerState.PLAYING) { playPauseBtn.innerText = "⏸"; } else { playPauseBtn.innerText = "▶"; }
     }
+    // 정상 재생이 시작되면 연속 오류 카운터를 초기화한다.
+    if (event.data == YT.PlayerState.PLAYING) { playbackErrorCount = 0; }
     // 재생목록을 막 불러온 경우: 목록 정보가 준비되면 셔플을 켜고 임의의 곡부터 재생한다.
     if (pendingPlaylistShuffle && player && typeof player.getPlaylist === 'function') {
         const pl = player.getPlaylist();
@@ -105,6 +110,29 @@ function onPlayerStateChange(event) {
             try { player.setShuffle(true); } catch (e) {}
             try { player.playVideoAt(Math.floor(Math.random() * pl.length)); } catch (e) {}
         }
+    }
+}
+
+// 재생 오류(비공개/삭제/임베드 차단 등, 코드 2·5·100·101·150) 발생 시
+// 자동으로 다른 곡으로 넘어간다. 재생목록이면 목록 안에서 다른 임의의 곡으로,
+// 개별 영상(기존 배열)이면 같은 주제에서 다른 곡을 다시 고른다.
+function onPlayerError(event) {
+    if (!player) return;
+    playbackErrorCount++;
+    // 목록 전체가 재생 불가일 때 무한 반복을 막는다.
+    if (playbackErrorCount > 10) { playbackErrorCount = 0; return; }
+
+    const pl = (typeof player.getPlaylist === 'function') ? player.getPlaylist() : null;
+    if (pl && pl.length > 1) {
+        // 현재 곡을 가급적 제외하고 다른 임의의 곡으로 이동
+        const cur = (typeof player.getPlaylistIndex === 'function') ? player.getPlaylistIndex() : -1;
+        let idx = Math.floor(Math.random() * pl.length);
+        let guard = 0;
+        while (idx === cur && guard++ < 5) idx = Math.floor(Math.random() * pl.length);
+        try { player.playVideoAt(idx); } catch (e) {}
+    } else if (currentCategory) {
+        // 재생목록이 아니거나 곡이 하나뿐이면 같은 주제에서 다시 고른다.
+        playRandomVideo(currentCategory, null);
     }
 }
 
