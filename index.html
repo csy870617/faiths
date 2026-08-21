@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     
-    <link rel="stylesheet" href="style.css?v=159">
+    <link rel="stylesheet" href="style.css?v=160">
     <link rel="stylesheet" href="cards.css?v=150">
     
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
@@ -190,11 +190,16 @@
                 </div>
                 <!-- 최소화 시 화면 하단에 표시되는 재생바 -->
                 <div id="playbar" class="playbar">
-                    <button id="playbar-expand" class="playbar-info" aria-label="펼치기">
-                        <span id="playbar-title" class="playbar-title">재생 중</span>
-                    </button>
-                    <button id="playbar-play" class="playbar-btn" aria-label="재생/일시정지">⏸</button>
-                    <button id="playbar-close" class="playbar-btn" aria-label="닫기">✕</button>
+                    <input id="playbar-seek" class="playbar-seek" type="range" min="0" max="1000" value="0" aria-label="재생 위치">
+                    <div class="playbar-body">
+                        <img id="playbar-thumb" class="playbar-thumb" alt="">
+                        <button id="playbar-expand" class="playbar-info" aria-label="펼치기">
+                            <span id="playbar-title" class="playbar-title">재생 중</span>
+                            <span id="playbar-sub" class="playbar-sub">CCM 재생목록</span>
+                        </button>
+                        <button id="playbar-play" class="playbar-btn" aria-label="재생/일시정지">⏸</button>
+                        <button id="playbar-close" class="playbar-btn" aria-label="닫기">✕</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -283,7 +288,7 @@
     </div>
 
     <script src="playlist.js?v=153"></script>
-    <script src="script.js?v=170"></script>
+    <script src="script.js?v=171"></script>
 
     <script>
         // script.js 로드 실패 시에도 로딩 화면이 영원히 남지 않도록 하는 안전장치

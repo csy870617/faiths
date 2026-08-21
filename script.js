@@ -1,4 +1,4 @@
-// script.js - v170 (CCM: 최소화 시 하단 재생바 + 버튼 4개 한 줄)
+// script.js - v171 (CCM: 하단 재생바 - 썸네일/곡정보/시크바)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -100,8 +100,24 @@ function onPlayerStateChange(event) {
     if (playPauseBtn) {
         if (event.data == YT.PlayerState.PLAYING) { playPauseBtn.innerText = "⏸"; } else { playPauseBtn.innerText = "▶"; }
     }
-    // 정상 재생이 시작되면 연속 오류 카운터를 초기화한다.
-    if (event.data == YT.PlayerState.PLAYING) { playbackErrorCount = 0; }
+    // 정상 재생이 시작되면 연속 오류 카운터를 초기화하고, 하단 재생바의
+    // 곡 제목과 썸네일을 현재 영상 기준으로 갱신한다.
+    if (event.data == YT.PlayerState.PLAYING) {
+        playbackErrorCount = 0;
+        try {
+            const d = (typeof player.getVideoData === 'function') ? player.getVideoData() : null;
+            if (d) {
+                const t = document.getElementById('playbar-title');
+                if (t && d.title) t.innerText = d.title;
+                const th = document.getElementById('playbar-thumb');
+                if (th && d.video_id) {
+                    th.onerror = () => { th.style.visibility = 'hidden'; };
+                    th.style.visibility = 'visible';
+                    th.src = 'https://img.youtube.com/vi/' + d.video_id + '/mqdefault.jpg';
+                }
+            }
+        } catch (e) {}
+    }
     // 재생목록을 막 불러온 경우: 목록 정보가 준비되면 셔플을 켜고 임의의 곡부터 재생한다.
     if (pendingPlaylistShuffle && player && typeof player.getPlaylist === 'function') {
         const pl = player.getPlaylist();
@@ -163,9 +179,14 @@ window.playRandomVideo = (category, title) => {
     // 플레이어 화면으로 전환하는 공통 처리
     const showPlayer = () => {
         if (playerTitle && title) playerTitle.innerText = title;
-        // 하단 재생바 제목도 함께 갱신
-        const pbTitle = document.getElementById('playbar-title');
-        if (pbTitle && title) pbTitle.innerText = title;
+        // 하단 재생바: 부제(주제명)와 임시 제목을 갱신한다.
+        // (실제 곡 제목은 재생이 시작되면 onPlayerStateChange에서 덮어쓴다)
+        if (title) {
+            const pbTitle = document.getElementById('playbar-title');
+            const pbSub = document.getElementById('playbar-sub');
+            if (pbTitle) pbTitle.innerText = title;
+            if (pbSub) pbSub.innerText = title;
+        }
         if (ccmMenuView) ccmMenuView.style.display = 'none';
         if (ccmPlayerView) ccmPlayerView.style.display = 'block';
         requestWakeLock();
@@ -784,6 +805,39 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     if (playbarCloseBtn) { playbarCloseBtn.onclick = (e) => { e.stopPropagation(); closeModal(modalOverlay); }; }
+
+    // 하단 재생바 시크바: 진행률 표시 + 탭/드래그로 위치 이동
+    const playbarSeek = document.getElementById('playbar-seek');
+    const SEEK_ACCENT = ((getComputedStyle(document.documentElement).getPropertyValue('--brand-color') || '#5f27cd').trim()) || '#5f27cd';
+    let seekDragging = false;
+    const paintSeek = (pct) => {
+        if (!playbarSeek) return;
+        const p = Math.max(0, Math.min(100, pct));
+        playbarSeek.style.background = 'linear-gradient(to right, ' + SEEK_ACCENT + ' 0%, ' + SEEK_ACCENT + ' ' + p + '%, rgba(255,255,255,0.22) ' + p + '%, rgba(255,255,255,0.22) 100%)';
+    };
+    const updatePlaybarProgress = () => {
+        // 최소화(재생바) 상태에서만, 드래그 중이 아닐 때 진행률을 갱신한다.
+        if (!playbarSeek || !modalOverlay || !modalOverlay.classList.contains('mini-mode')) return;
+        if (seekDragging || !player || typeof player.getDuration !== 'function') return;
+        let dur = 0, cur = 0;
+        try { dur = player.getDuration() || 0; cur = player.getCurrentTime() || 0; } catch (e) { return; }
+        if (dur > 0) {
+            const pct = (cur / dur) * 100;
+            playbarSeek.value = Math.round(pct * 10); // max=1000
+            paintSeek(pct);
+        }
+    };
+    setInterval(updatePlaybarProgress, 500);
+    if (playbarSeek) {
+        playbarSeek.addEventListener('input', () => { seekDragging = true; paintSeek(playbarSeek.value / 10); });
+        const commitSeek = () => {
+            let dur = 0;
+            try { if (player && typeof player.getDuration === 'function') dur = player.getDuration() || 0; } catch (e) {}
+            if (dur > 0) { try { player.seekTo((playbarSeek.value / 1000) * dur, true); } catch (e) {} }
+            seekDragging = false;
+        };
+        playbarSeek.addEventListener('change', commitSeek);
+    }
 
     const hideModeBtn = document.getElementById('hide-mode-btn');
     let isHideMode = false;
