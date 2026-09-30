@@ -213,6 +213,8 @@ body.hide-mode .list-card { border: none; opacity: 1; }
 body.hide-mode .app-icon-img, body.hide-mode .icon-box { border: 2px dashed #ff6b6b; }
 body.hide-mode .btn-go { display: none; }
 .list-card.user-hidden { display: none !important; }
+/* 탭 필터로 걸러진 카드는 숨기기 모드에서도 숨긴다(위 규칙보다 구체적으로 지정) */
+html body .list-container .list-card.tab-filtered { display: none !important; }
 body.hide-mode .list-card.user-hidden { display: flex !important; opacity: 0.4; filter: grayscale(100%); animation: none; }
 body.hide-mode #card-share, body.hide-mode #card-market { animation: none; opacity: 1; filter: none; cursor: default; }
 body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, body.hide-mode #card-market .app-icon-img, body.hide-mode #card-market .icon-box { border: none; }

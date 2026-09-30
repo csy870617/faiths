@@ -1,4 +1,4 @@
-// script.js - v171 (CCM: 하단 재생바 - 썸네일/곡정보/시크바)
+// script.js - v172 (안정성 패치 3차: 첫 방문 새로고침, 최소화 플레이어 history, 탭 필터, 재로그인 점)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -236,6 +236,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const cardSlider = document.getElementById('card-slider');
     if (cardSlider) {
         cardSlider.addEventListener('wheel', (evt) => {
+            // 세로 휠만 가로 스크롤로 바꾼다. 가로 스와이프(트랙패드)는 기본 동작에 맡긴다.
+            if (Math.abs(evt.deltaY) <= Math.abs(evt.deltaX)) return;
             evt.preventDefault();
             cardSlider.scrollLeft += evt.deltaY;
         }, { passive: false });
@@ -250,9 +252,12 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('서비스워커 등록 실패:', err);
         });
         // 새 서비스워커 활성화 시 1회만 새로고침 (중복/무한 리로드 방지)
+        // 첫 방문(기존 서비스워커 없음)에는 clients.claim()으로도 controllerchange가
+        // 발생하므로, 이미 제어 중인 서비스워커가 있었던 "업데이트" 때만 새로고침한다.
+        const hadController = !!navigator.serviceWorker.controller;
         let isRefreshing = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (isRefreshing) return;
+            if (!hadController || isRefreshing) return;
             isRefreshing = true;
             window.location.reload();
         });
@@ -336,11 +341,14 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { if(browserContentArea) browserContentArea.innerHTML = ''; }, 300);
             // 앱(iframe) 내부에서 이동하며 쌓인 history 항목 + browserOpen 항목까지
             // 한 번에 되돌려, 홈으로 돌아온 뒤 뒤로가기를 여러 번 눌러야 하는 문제를 막는다.
+            // 이때 발생하는 popstate는 여기서 이미 처리했으므로, 아래 모달(최소화 플레이어 등)이
+            // 잘못 닫히거나 추적에서 빠지지 않도록 1회 무시한다.
             if (browserHistoryStart !== null) {
                 const steps = (history.length - browserHistoryStart) + 1;
                 browserHistoryStart = null;
-                if (steps > 0) history.go(-steps);
+                if (steps > 0) { suppressPopstateClose = true; history.go(-steps); }
             } else if (history.state && history.state.browserOpen) {
+                suppressPopstateClose = true;
                 history.back();
             }
         }
@@ -742,7 +750,8 @@ document.addEventListener('DOMContentLoaded', () => {
             internalBrowser.classList.remove('show');
             if(browserContentArea) browserContentArea.innerHTML = '';
             browserHistoryStart = null;
-            if (remaining > 0) history.go(-remaining);
+            // 남은 항목 정리로 생기는 popstate는 아래 모달을 닫지 않도록 1회 무시
+            if (remaining > 0) { suppressPopstateClose = true; history.go(-remaining); }
             return;
         }
         // 닫기 버튼이 유발한 history 균형용 popstate는 1회만 무시
@@ -791,6 +800,11 @@ document.addEventListener('DOMContentLoaded', () => {
          modalOverlay.classList.remove('mini-mode');
          ccmMenuView.style.display = 'none';
          ccmPlayerView.style.display = 'block';
+         // 최소화 중 뒤로가기로 추적에서 빠졌다면 다시 등록해, 펼친 뒤 뒤로가기로 닫히게 한다.
+         if (!modalStack.includes(modalOverlay)) {
+             modalStack.push(modalOverlay);
+             history.pushState({ modalOpen: true }, null, "");
+         }
     };
 
     // 하단 재생바 조작: 제목(펼치기) / 재생·일시정지 / 닫기
@@ -804,7 +818,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
     }
-    if (playbarCloseBtn) { playbarCloseBtn.onclick = (e) => { e.stopPropagation(); closeModal(modalOverlay); }; }
+    // 닫기: 아직 history 항목이 남아 있으면(뒤로가기로 최소화를 해제하지 않은 경우) 함께 정리한다.
+    if (playbarCloseBtn) {
+        playbarCloseBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (modalStack.includes(modalOverlay)) handleCloseBtnClick(modalOverlay);
+            else closeModal(modalOverlay);
+        };
+    }
 
     // 하단 재생바 시크바: 진행률 표시 + 탭/드래그로 위치 이동
     const playbarSeek = document.getElementById('playbar-seek');
@@ -846,9 +867,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // 숨기기 UI에서 금지된 카드(친구 초대 등)는 클라우드 동기화나 손상된 저장값에
     // 들어 있어도 숨겨지지 않도록 적용 시점에 한 번 더 거른다.
     const UNHIDEABLE_CARDS = ['card-share', 'card-market'];
-    const applyHiddenStatus = () => {
+    // 저장값이 손상돼 배열이 아니어도(.includes 오류 방지) 항상 배열로 읽는다.
+    const readHiddenCards = () => {
         const raw = safeParseJSON(localStorage.getItem('hiddenCards'), []);
-        const hiddenList = (Array.isArray(raw) ? raw : []).filter(id => !UNHIDEABLE_CARDS.includes(id));
+        return Array.isArray(raw) ? raw : [];
+    };
+    const applyHiddenStatus = () => {
+        const hiddenList = readHiddenCards().filter(id => !UNHIDEABLE_CARDS.includes(id));
         const cards = document.querySelectorAll('.list-card');
         cards.forEach(card => {
             if (hiddenList.includes(card.id)) card.classList.add('user-hidden');
@@ -872,7 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isDragging) return;
             if (isHideMode) {
                 if (UNHIDEABLE_CARDS.includes(card.id)) { alert("이 메뉴는 숨길 수 없습니다."); return; }
-                let hiddenList = safeParseJSON(localStorage.getItem('hiddenCards'), []);
+                let hiddenList = readHiddenCards();
                 if (hiddenList.includes(card.id)) { hiddenList = hiddenList.filter(id => id !== card.id); card.classList.remove('user-hidden'); } 
                 else { hiddenList.push(card.id); card.classList.add('user-hidden'); }
                 localStorage.setItem('hiddenCards', JSON.stringify(hiddenList));
@@ -918,7 +943,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bannerInstallBtn.onclick = () => {
             installBanner.classList.remove('show');
             if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((r) => { deferredPrompt = null; }); }
-            else if (isIosDevice()) { handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); }
+            else if (isIosDevice()) { if (modalStack.includes(settingsModal)) handleCloseBtnClick(settingsModal); setTimeout(() => openModal(iosModal), 300); }
             else { alert("이미 설치되어 있거나 브라우저 메뉴에서 설치 가능합니다."); }
         };
     }
@@ -952,11 +977,12 @@ document.addEventListener('DOMContentLoaded', () => {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             const filterValue = tab.getAttribute('data-filter');
+            // 인라인 display 대신 클래스로 거른다. (숨기기 모드의 !important 규칙에
+            // 덮여 다른 탭의 숨긴 카드가 보이던 문제 방지)
             const cards = document.querySelectorAll('.list-card');
             cards.forEach(card => {
                 const cardCategory = card.getAttribute('data-category');
-                if (filterValue === 'all' || filterValue === cardCategory) card.style.display = 'flex';
-                else card.style.display = 'none';
+                card.classList.toggle('tab-filtered', !(filterValue === 'all' || filterValue === cardCategory));
             });
         };
     });
@@ -982,8 +1008,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentGoogleEmail = null;
 
     // 자동 팝업 대신 로그인 버튼 위에 작은 점만 표시해 재로그인이 필요함을 알린다.
+    // 이미 로그인 상태로 표시 중이면(예: 파이어베이스 세션 복원) 점을 띄우지 않는다.
     const setReauthHint = (show) => {
-        if (googleReauthDot) googleReauthDot.classList.toggle('show', !!show);
+        if (googleReauthDot) googleReauthDot.classList.toggle('show', !!show && !currentGoogleEmail);
     };
 
     const updateGoogleUI = (payload) => {
@@ -1124,7 +1151,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const gatherSettings = () => {
         const s = {
-            hiddenCards: safeParseJSON(localStorage.getItem('hiddenCards'), []),
+            hiddenCards: readHiddenCards(),
             viewMode: localStorage.getItem('viewMode') || 'list',
             textScale: sanitizeTextScale(localStorage.getItem('textScale')) || '1',
             updatedAt: Date.now()
