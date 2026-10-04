@@ -1,4 +1,4 @@
-// script.js - v172 (안정성 패치 3차: 첫 방문 새로고침, 최소화 플레이어 history, 탭 필터, 재로그인 점)
+// script.js - v173 (ENGO 앱 iframe 마이크 허용)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -290,7 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 닫을 때 한 번에 정리하기 위해 사용한다.
     let browserHistoryStart = null;
 
-    function openInternalBrowser(url, mode = 'default') {
+    // allow: iframe에 줄 권한(예: 'microphone'). 카드의 data-allow 값으로 전달된다.
+    function openInternalBrowser(url, mode = 'default', allow = null) {
         if (!internalBrowser || !browserContentArea) { window.open(url, '_blank'); return; }
         
         if (mode === 'bible') {
@@ -316,6 +317,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const newIframe = document.createElement('iframe');
         newIframe.id = 'browser-frame';
+        // 다른 사이트 iframe은 기본적으로 마이크 등이 차단되므로, 필요한 앱만
+        // 권한을 허용한다. (src보다 먼저 지정해야 첫 로드부터 적용됨)
+        if (allow) newIframe.setAttribute('allow', allow);
         newIframe.src = url;
         newIframe.frameBorder = '0';
         newIframe.style.width = '100%';
@@ -918,7 +922,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const target = card.getAttribute('data-target');
                 if (link) {
                     if (target === 'external') { window.open(link, '_blank'); } else { 
-                        openInternalBrowser(link, 'default'); 
+                        openInternalBrowser(link, 'default', card.getAttribute('data-allow'));
                     }
                 }
             }
