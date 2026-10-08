@@ -32,12 +32,14 @@
 
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     
-    <link rel="stylesheet" href="style.css?v=161">
+    <link rel="stylesheet" href="style.css?v=162">
     <link rel="stylesheet" href="cards.css?v=150">
-    
+
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
+    <!-- async: 유튜브 연결이 느리거나 막힌 환경에서도 첫 화면이 멈추지 않게 함
+         (준비되면 onYouTubeIframeAPIReady 콜백/DOMContentLoaded 폴백으로 플레이어 생성) -->
+    <script src="https://www.youtube.com/iframe_api" async></script>
     <script src="https://accounts.google.com/gsi/client" async></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -290,7 +292,7 @@
     </div>
 
     <script src="playlist.js?v=153"></script>
-    <script src="script.js?v=173"></script>
+    <script src="script.js?v=174"></script>
 
     <script>
         // script.js 로드 실패 시에도 로딩 화면이 영원히 남지 않도록 하는 안전장치
