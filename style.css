@@ -224,7 +224,7 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 .install-banner { position: fixed; bottom: -150px; left: 0; right: 0; width: 100%; max-width: 500px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-top-left-radius: 24px; border-top-right-radius: 24px; box-shadow: 0 -5px 30px rgba(0,0,0,0.15); padding: 20px; z-index: 9000; transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid rgba(0,0,0,0.05); }
 .install-banner.show { bottom: 0; }
 .install-content { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.install-text { strong { display: block; font-size: 16px; font-weight: 800; color: #111; margin-bottom: 4px; } }
+.install-text strong { display: block; font-size: 16px; font-weight: 800; color: #111; margin-bottom: 4px; }
 .install-text p { font-size: 13px; color: #666; margin: 0; }
 .banner-btn { padding: 10px 20px; border-radius: 20px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; }
 .banner-btn.primary { background: var(--brand-color); color: white; box-shadow: 0 4px 12px rgba(95, 39, 205, 0.3); }
@@ -235,7 +235,8 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 /* ---- 6. 모달 및 플레이어 ---- */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 20000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
 .modal-overlay.show { opacity: 1; pointer-events: auto; }
-.modal-content { background: white; width: 90%; max-width: 400px; border-radius: 32px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; transform: translateY(20px); transition: transform 0.3s ease; }
+/* 화면보다 키가 큰 모달(작은 화면·가로 모드)은 위아래가 잘리지 않고 안에서 스크롤되게 한다 */
+.modal-content { background: white; width: 90%; max-width: 400px; max-height: calc(100% - 32px); overflow-y: auto; border-radius: 32px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; transform: translateY(20px); transition: transform 0.3s ease; }
 .modal-overlay.show .modal-content { transform: translateY(0); }
 .modal-header h3 { font-size: 20px; font-weight: 800; color: #111; margin-bottom: 8px; }
 .modal-header p { font-size: 14px; color: #666; margin-bottom: 24px; }
@@ -276,6 +277,9 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
     width: 100%; max-width: 480px; margin: 0 auto; padding: 0 !important;
     background: transparent; box-shadow: none; border: none; border-radius: 0;
     pointer-events: none;
+    /* transform 때문에 재생바(fixed)의 기준 박스가 이 요소가 되므로, 스크롤 처리가
+       재생바를 잘라내지 않도록 최소화 상태에서는 해제한다 */
+    max-height: none; overflow: visible;
 }
 
 /* 재생바 외 요소는 모두 숨긴다 */
@@ -316,6 +320,12 @@ body.hide-mode #card-share .app-icon-img, body.hide-mode #card-share .icon-box, 
 }
 .playbar-seek::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
 .playbar-seek::-moz-range-thumb { width: 12px; height: 12px; border: none; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+
+/* 재생바가 떠 있는 동안 앱 화면(인앱 브라우저)·닫기 버튼·설치 배너가
+   재생바(64px + 하단 안전영역)에 가려지지 않도록 그 위로 올린다 */
+body.ccm-mini .internal-browser { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+body.ccm-mini .floating-close-btn-bottom { bottom: calc(89px + env(safe-area-inset-bottom, 0px)); }
+body.ccm-mini .install-banner.show { bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
 
 
 /* 헤더의 원형 구글 로그인 버튼 (숨기기/설정 버튼 옆) */

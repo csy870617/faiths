@@ -1,4 +1,4 @@
-// script.js - v173 (ENGO 앱 iframe 마이크 허용)
+// script.js - v174 (최소화 재생바가 앱 닫기 버튼을 가리던 문제 수정)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -388,8 +388,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // 닫기 버튼: 짧게 탭하면 닫고, 끌면 위치 이동(위치는 저장하여 다음에 복원)
     const clampCloseBtn = (left, top) => {
         if (!floatingCloseBtn) return { left: left, top: top };
-        const maxLeft = Math.max(0, window.innerWidth - floatingCloseBtn.offsetWidth);
-        const maxTop = Math.max(0, window.innerHeight - floatingCloseBtn.offsetHeight);
+        // 브라우저가 열리기 직전(숨김 상태)에는 크기가 0으로 읽히므로 기본 크기(36px)로 계산
+        const bw = floatingCloseBtn.offsetWidth || 36, bh = floatingCloseBtn.offsetHeight || 36;
+        // 최소화 재생바가 떠 있으면 버튼이 그 뒤에 가려지지 않도록 재생바 위까지만 허용
+        const playbar = document.body.classList.contains('ccm-mini') ? document.getElementById('playbar') : null;
+        const reserved = playbar ? playbar.offsetHeight : 0;
+        const maxLeft = Math.max(0, window.innerWidth - bw);
+        const maxTop = Math.max(0, window.innerHeight - reserved - bh);
         return { left: Math.min(Math.max(0, left), maxLeft), top: Math.min(Math.max(0, top), maxTop) };
     };
     const applyCloseBtnPosition = (pos) => {
@@ -671,6 +676,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (floatModeBtn) {
         floatModeBtn.onclick = () => {
             modalOverlay.classList.add('mini-mode');
+            document.body.classList.add('ccm-mini'); // 앱 화면·닫기 버튼을 재생바 위로 올림(style.css)
         };
     }
 
@@ -725,6 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.remove('mini-mode');
 
         if (modal === modalOverlay) {
+            document.body.classList.remove('ccm-mini');
             if(player && typeof player.stopVideo === 'function') { player.stopVideo(); }
             releaseWakeLock(); 
             setTimeout(() => { if(ccmPlayerView) ccmPlayerView.style.display = 'none'; if(ccmMenuView) ccmMenuView.style.display = 'block'; }, 300);
@@ -802,6 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
          }
          if (!modalOverlay || !ccmMenuView || !ccmPlayerView) return;
          modalOverlay.classList.remove('mini-mode');
+         document.body.classList.remove('ccm-mini');
          ccmMenuView.style.display = 'none';
          ccmPlayerView.style.display = 'block';
          // 최소화 중 뒤로가기로 추적에서 빠졌다면 다시 등록해, 펼친 뒤 뒤로가기로 닫히게 한다.
