@@ -453,6 +453,9 @@ input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
 .memo-card { position: relative; max-width: 100%; min-width: min(160px, 100%); border-radius: 20px; padding: 10px 12px 12px 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; transition: background-color 0.2s; }
 .memo-card.resizing { box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
 .memo-tools { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+/* 길게 눌러 옮기는 손잡이(⠿): 글자 선택·길게 누르기 메뉴가 끼어들지 않게 함 */
+.memo-grip { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 22px; height: 28px; margin-left: -6px; color: rgba(0,0,0,0.3); cursor: grab; touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.memo-grip svg { pointer-events: none; }
 .memo-title { flex: 1; min-width: 0; height: 28px; border: none; outline: none; background: transparent; color: #111; font-size: calc(15px * var(--text-scale)); font-weight: 800; padding: 0; }
 .memo-title::placeholder { color: rgba(0,0,0,0.3); font-weight: 700; }
 .memo-tool { flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 5px; height: 28px; min-width: 28px; padding: 0 10px; border: none; border-radius: 14px; background: rgba(0,0,0,0.06); color: #444; font-size: 12px; font-weight: 700; cursor: pointer; }
