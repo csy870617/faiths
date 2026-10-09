@@ -1,4 +1,4 @@
-// script.js - v179 (메모 영역 숨기기, 새 메모 절반 크기, 선택 시 버튼 표시)
+// script.js - v180 (메모 옮기기 손잡이: 실제 휴대폰에서 길게 눌러 이동)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -1083,7 +1083,13 @@ document.addEventListener('DOMContentLoaded', () => {
             delBtn.className = 'memo-tool';
             delBtn.setAttribute('aria-label', '메모 삭제');
             delBtn.innerText = '✕';
-            tools.append(title, colorBtn, delBtn);
+            // 순서 이동 손잡이: 입력칸을 길게 누르면 휴대폰의 글자 선택이 먼저 동작해
+            // 끌기가 취소되므로, 글자 칸이 아닌 이 손잡이를 길게 눌러 옮긴다.
+            const grip = document.createElement('span');
+            grip.className = 'memo-grip';
+            grip.setAttribute('aria-label', '길게 눌러 순서 이동');
+            grip.innerHTML = '<svg viewBox="0 0 10 16" width="10" height="16" fill="currentColor"><circle cx="2" cy="2" r="1.6"/><circle cx="8" cy="2" r="1.6"/><circle cx="2" cy="8" r="1.6"/><circle cx="8" cy="8" r="1.6"/><circle cx="2" cy="14" r="1.6"/><circle cx="8" cy="14" r="1.6"/></svg>';
+            tools.append(grip, title, colorBtn, delBtn);
 
             const palette = document.createElement('div');
             palette.className = 'memo-palette';
@@ -1178,20 +1184,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }, true);
     }
 
-    // 메모 순서 바꾸기: 길게 눌러(마우스는 잠깐 누른 채) 끌어서 옮긴다.
-    // 버튼·색상·크기 손잡이, 그리고 지금 입력 중인 칸에서는 끌기가 시작되지 않는다.
+    // 메모 순서 바꾸기: 메모 왼쪽 위 손잡이(⠿)를 길게 눌러(마우스는 바로) 끌어서 옮긴다.
     if (memoList && typeof Sortable !== 'undefined') {
         new Sortable(memoList, {
-            draggable: '.memo-card',
-            delay: 350, touchStartThreshold: 6,
+            draggable: '.memo-card', handle: '.memo-grip',
+            delay: 300, delayOnTouchOnly: true, touchStartThreshold: 8,
             animation: 150, ghostClass: 'memo-ghost', chosenClass: 'memo-chosen',
             forceFallback: true, fallbackClass: 'memo-drag', fallbackTolerance: 5,
-            filter: (evt, target) => {
-                const t = evt.target;
-                if (t.closest && t.closest('.memo-tool, .memo-palette, .memo-resize')) return true;
-                return t === document.activeElement && (t.classList.contains('memo-text') || t.classList.contains('memo-title'));
-            },
-            preventOnFilter: false,
             onStart: () => { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); },
             onEnd: () => {
                 const order = Array.from(memoList.querySelectorAll('.memo-card')).map(c => c.dataset.id);
