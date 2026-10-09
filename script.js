@@ -1,4 +1,4 @@
-// script.js - v175 (홈 화면 메모장 추가)
+// script.js - v176 (메모 구글 로그인 동기화)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -1010,9 +1010,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const newMemo = () => ({ id: 'm' + Date.now() + Math.floor(Math.random() * 1000), text: '', color: MEMO_COLORS[0], size: 'm' });
 
     // 처음 방문하면 빈 메모 1장을 보여주고, 저장값이 손상돼도 안전한 값만 사용한다.
-    const readMemos = () => {
-        const raw = safeParseJSON(localStorage.getItem('memos'), null);
-        if (raw === null) return [newMemo()];
+    const sanitizeMemos = (raw) => {
         if (!Array.isArray(raw)) return [];
         return raw.filter(m => m && typeof m === 'object').slice(0, MEMO_MAX).map(m => ({
             id: typeof m.id === 'string' ? m.id : newMemo().id,
@@ -1021,8 +1019,20 @@ document.addEventListener('DOMContentLoaded', () => {
             size: MEMO_SIZES.includes(m.size) ? m.size : 'm'
         }));
     };
+    const readMemos = () => {
+        const raw = safeParseJSON(localStorage.getItem('memos'), null);
+        if (raw === null) return [newMemo()];
+        return sanitizeMemos(raw);
+    };
     let memos = readMemos();
-    const saveMemos = () => { try { localStorage.setItem('memos', JSON.stringify(memos)); } catch (e) {} };
+    // 사용자가 메모를 바꾼 시각을 함께 기록해, 기기 간 동기화 때 더 최근 쪽을 기준으로 삼는다.
+    const saveMemos = () => {
+        try {
+            localStorage.setItem('memos', JSON.stringify(memos));
+            localStorage.setItem('memosUpdatedAt', String(Date.now()));
+        } catch (e) {}
+        if (window.scheduleSettingsSync) window.scheduleSettingsSync();
+    };
 
     const renderMemos = () => {
         if (!memoList) return;
@@ -1259,8 +1269,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('textScale', cloudScale);
                 if (fontSizeSlider) fontSizeSlider.value = cloudScale;
             }
+            // 메모: 클라우드 쪽이 더 최근이면 받아오고, 이 기기가 더 최근이면 아래에서 올린다.
+            // 지금 메모를 입력 중이면 덮어쓰지 않고 다음 동기화 때 반영한다.
+            const cloudMemosAt = Number(data.memosUpdatedAt) || 0;
+            const localMemosAt = Number(localStorage.getItem('memosUpdatedAt')) || 0;
+            const editingMemo = document.activeElement && document.activeElement.classList.contains('memo-text');
+            if (Array.isArray(data.memos) && cloudMemosAt > localMemosAt && !editingMemo) {
+                memos = sanitizeMemos(data.memos);
+                localStorage.setItem('memos', JSON.stringify(memos));
+                localStorage.setItem('memosUpdatedAt', String(cloudMemosAt));
+                renderMemos();
+            } else if (localMemosAt > cloudMemosAt) {
+                memosNeedUpload = true;
+            }
         } catch (e) {} finally { syncApplying = false; }
+        if (memosNeedUpload) { memosNeedUpload = false; window.scheduleSettingsSync(); }
     };
+    let memosNeedUpload = false;
 
     const gatherSettings = () => {
         const s = {
@@ -1271,6 +1296,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const order = safeParseJSON(localStorage.getItem('menuOrder'), null);
         if (Array.isArray(order)) s.menuOrder = order;
+        // 메모는 사용자가 한 번이라도 수정한 경우에만 올린다(처음 보이는 빈 메모로 클라우드를 덮지 않도록).
+        const memosAt = Number(localStorage.getItem('memosUpdatedAt')) || 0;
+        if (memosAt > 0) { s.memos = memos; s.memosUpdatedAt = memosAt; }
         return s;
     };
 
@@ -1324,6 +1352,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         } catch (e) { return false; }
     };
+
+    // 다른 기기에서 고친 메모·설정이 보이도록, 앱으로 돌아올 때마다 클라우드 값을 다시 확인한다.
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible' || !fbDb || !window.firebase) return;
+        try { const u = firebase.auth().currentUser; if (u) pullSettings(u.uid); } catch (e) {}
+    });
 
     let fbTries = 0;
     (function waitForFirebase() {
