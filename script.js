@@ -1,4 +1,4 @@
-// script.js - v174 (최소화 재생바가 앱 닫기 버튼을 가리던 문제 수정)
+// script.js - v175 (홈 화면 메모장 추가)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -998,6 +998,107 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
     });
+
+    // ===== 홈 화면 메모장 =====
+    // 메모는 [{ id, text, color, size }] 형태로 이 기기의 localStorage('memos')에 저장한다.
+    const MEMO_COLORS = ['#FFF4B8', '#FFD6E0', '#D6EBFF', '#D7F5DD', '#E8DEFF', '#FFFFFF'];
+    const MEMO_SIZES = ['s', 'm', 'l'];
+    const MEMO_SIZE_LABELS = { s: '작게', m: '보통', l: '크게' };
+    const MEMO_MAX = 20;
+    const memoList = document.getElementById('memo-list');
+    const memoAddBtn = document.getElementById('memo-add-btn');
+    const newMemo = () => ({ id: 'm' + Date.now() + Math.floor(Math.random() * 1000), text: '', color: MEMO_COLORS[0], size: 'm' });
+
+    // 처음 방문하면 빈 메모 1장을 보여주고, 저장값이 손상돼도 안전한 값만 사용한다.
+    const readMemos = () => {
+        const raw = safeParseJSON(localStorage.getItem('memos'), null);
+        if (raw === null) return [newMemo()];
+        if (!Array.isArray(raw)) return [];
+        return raw.filter(m => m && typeof m === 'object').slice(0, MEMO_MAX).map(m => ({
+            id: typeof m.id === 'string' ? m.id : newMemo().id,
+            text: typeof m.text === 'string' ? m.text : '',
+            color: MEMO_COLORS.includes(m.color) ? m.color : MEMO_COLORS[0],
+            size: MEMO_SIZES.includes(m.size) ? m.size : 'm'
+        }));
+    };
+    let memos = readMemos();
+    const saveMemos = () => { try { localStorage.setItem('memos', JSON.stringify(memos)); } catch (e) {} };
+
+    const renderMemos = () => {
+        if (!memoList) return;
+        memoList.innerHTML = '';
+        if (memos.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = 'memo-empty';
+            empty.innerText = "'+ 메모 추가'를 눌러 메모를 남겨보세요.";
+            memoList.appendChild(empty);
+            return;
+        }
+        memos.forEach(memo => {
+            const card = document.createElement('div');
+            card.className = 'memo-card memo-' + memo.size;
+            card.style.background = memo.color;
+
+            const tools = document.createElement('div');
+            tools.className = 'memo-tools';
+            const colorBtn = document.createElement('button');
+            colorBtn.className = 'memo-tool';
+            colorBtn.setAttribute('aria-label', '색 바꾸기');
+            colorBtn.innerHTML = '<span class="memo-color-dot"></span>색';
+            colorBtn.querySelector('.memo-color-dot').style.background = memo.color;
+            const sizeBtn = document.createElement('button');
+            sizeBtn.className = 'memo-tool';
+            sizeBtn.setAttribute('aria-label', '크기 바꾸기');
+            sizeBtn.innerText = MEMO_SIZE_LABELS[memo.size];
+            const delBtn = document.createElement('button');
+            delBtn.className = 'memo-tool';
+            delBtn.setAttribute('aria-label', '메모 삭제');
+            delBtn.innerText = '✕';
+            tools.append(colorBtn, sizeBtn, delBtn);
+
+            const palette = document.createElement('div');
+            palette.className = 'memo-palette';
+            MEMO_COLORS.forEach(c => {
+                const sw = document.createElement('button');
+                sw.className = 'memo-swatch' + (c === memo.color ? ' active' : '');
+                sw.style.background = c;
+                sw.setAttribute('aria-label', '메모 색 ' + c);
+                sw.onclick = () => { memo.color = c; saveMemos(); renderMemos(); };
+                palette.appendChild(sw);
+            });
+
+            const text = document.createElement('textarea');
+            text.className = 'memo-text';
+            text.placeholder = '메모를 입력하세요';
+            text.value = memo.text;
+            text.oninput = () => { memo.text = text.value; saveMemos(); };
+
+            colorBtn.onclick = () => palette.classList.toggle('show');
+            sizeBtn.onclick = () => {
+                memo.size = MEMO_SIZES[(MEMO_SIZES.indexOf(memo.size) + 1) % MEMO_SIZES.length];
+                saveMemos(); renderMemos();
+            };
+            delBtn.onclick = () => {
+                if (memo.text.trim() && !confirm('이 메모를 삭제할까요?')) return;
+                memos = memos.filter(m => m !== memo);
+                saveMemos(); renderMemos();
+            };
+
+            card.append(tools, palette, text);
+            memoList.appendChild(card);
+        });
+    };
+    renderMemos();
+
+    if (memoAddBtn) {
+        memoAddBtn.onclick = () => {
+            if (memos.length >= MEMO_MAX) { alert('메모는 최대 ' + MEMO_MAX + '개까지 만들 수 있습니다.'); return; }
+            memos.push(newMemo());
+            saveMemos(); renderMemos();
+            const last = memoList && memoList.querySelector('.memo-card:last-child .memo-text');
+            if (last) last.focus();
+        };
+    }
 
     // ===== 구글 통합 로그인 (SSO 허브) =====
     // FAITHS에서 한 번 로그인하면, 같은 origin의 연결 앱(iframe)에 Google ID 토큰을

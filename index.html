@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     
-    <link rel="stylesheet" href="style.css?v=162">
+    <link rel="stylesheet" href="style.css?v=163">
     <link rel="stylesheet" href="cards.css?v=150">
 
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
@@ -154,6 +154,15 @@
             <div class="list-card" id="card-youdown" data-category="tools" data-link="https://csy870617.github.io/youdown/"><img src="icon/20.png" alt="Youdown" class="app-icon-img"><div class="text-box"><h3>Youdown</h3><p>유튜브 영상·음원을 내 컴퓨터에 저장</p></div><button class="btn-go">→</button></div>
             <div class="list-card share-card" id="card-share" data-category="share"><div class="icon-box" style="background: #FEE500; color: #3b1e1e;">💌</div><div class="text-box"><h3>함께 성장할 친구 초대</h3><p>이 플랫폼을 친구에게 공유하기</p></div><button class="btn-go">📤</button></div>
         </div>
+
+        <!-- 홈 화면 메모장: 추가/삭제, 크기·색 변경 (내용은 이 기기에 자동 저장) -->
+        <section class="memo-section" id="memo-section">
+            <div class="memo-header">
+                <h2>메모</h2>
+                <button id="memo-add-btn" class="memo-add-btn">+ 메모 추가</button>
+            </div>
+            <div class="memo-list" id="memo-list"></div>
+        </section>
     </div>
 
     <div id="install-banner" class="install-banner">
@@ -292,7 +301,7 @@
     </div>
 
     <script src="playlist.js?v=153"></script>
-    <script src="script.js?v=174"></script>
+    <script src="script.js?v=175"></script>
 
     <script>
         // script.js 로드 실패 시에도 로딩 화면이 영원히 남지 않도록 하는 안전장치

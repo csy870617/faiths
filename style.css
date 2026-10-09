@@ -443,6 +443,33 @@ input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
     pointer-events: none;
 }
 
+/* ---- 8. 홈 화면 메모장 ---- */
+.memo-section { width: 100%; margin-top: 4px; }
+.memo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; }
+.memo-header h2 { font-size: calc(17px * var(--text-scale)); font-weight: 800; color: #111; }
+.memo-add-btn { background: #111; color: #fff; border: none; border-radius: 20px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.memo-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.memo-card { border-radius: 20px; padding: 10px 12px 12px 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; transition: background-color 0.2s; }
+.memo-tools { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-bottom: 6px; }
+.memo-tool { display: flex; align-items: center; justify-content: center; gap: 5px; height: 28px; min-width: 28px; padding: 0 10px; border: none; border-radius: 14px; background: rgba(0,0,0,0.06); color: #444; font-size: 12px; font-weight: 700; cursor: pointer; }
+.memo-tool:hover { background: rgba(0,0,0,0.12); }
+.memo-color-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.3); }
+.memo-palette { display: none; justify-content: flex-end; gap: 8px; margin-bottom: 8px; }
+.memo-palette.show { display: flex; }
+.memo-swatch { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.15); cursor: pointer; }
+.memo-swatch.active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111; }
+.memo-text { width: 100%; border: none; outline: none; resize: none; background: transparent; color: #222; font-size: calc(15px * var(--text-scale)); line-height: 1.5; }
+.memo-text::placeholder { color: rgba(0,0,0,0.35); }
+.memo-s .memo-text { height: 80px; }
+.memo-m .memo-text { height: 150px; }
+.memo-l .memo-text { height: 260px; }
+.memo-empty { text-align: center; color: #8898AA; font-size: 13px; padding: 16px 0; }
+
+@media (min-width: 768px) {
+    .memo-list { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .memo-l { grid-column: 1 / -1; } /* 크게: 가로 한 줄 전체 */
+}
+@media (min-width: 1200px) { .memo-list { grid-template-columns: repeat(3, 1fr); } }
 
 @media (min-width: 768px) {
     body { background-color: #E9ECEF; padding: 40px 0; align-items: flex-start; }
