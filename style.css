@@ -445,9 +445,9 @@ input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
 
 /* ---- 8. 홈 화면 메모장 ---- */
 .memo-section { width: 100%; margin-top: 4px; }
-.memo-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 0 4px; }
+.memo-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; padding: 0 4px; }
 .memo-header h2 { font-size: calc(17px * var(--text-scale)); font-weight: 800; color: #111; }
-/* '메모' 제목 옆의 둥근 + 버튼 */
+/* '메모' 줄 오른쪽 끝의 둥근 + 버튼 */
 .memo-add-btn { width: 26px; height: 26px; padding: 0 0 2px; border: none; border-radius: 50%; background: #111; color: #fff; font-size: 18px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 /* 메모마다 너비가 달라 좁은 메모끼리는 한 줄에 나란히 놓인다(간격 12px은 script.js의 MEMO_GAP과 같음) */
 .memo-list { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }

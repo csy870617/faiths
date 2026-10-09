@@ -1,4 +1,4 @@
-// script.js - v181 (메모 추가 버튼을 제목 옆 + 버튼으로)
+// script.js - v182 (메모 + 버튼을 오른쪽으로)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -1053,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (memos.length === 0) {
             const empty = document.createElement('p');
             empty.className = 'memo-empty';
-            empty.innerText = "'메모' 옆의 + 버튼을 눌러 메모를 남겨보세요.";
+            empty.innerText = "오른쪽 위 + 버튼을 눌러 메모를 남겨보세요.";
             memoList.appendChild(empty);
             return;
         }
