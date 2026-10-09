@@ -1,4 +1,4 @@
-// script.js - v177 (메모 제목, 가로·세로 크기 조절)
+// script.js - v178 (메모 순서 끌어서 바꾸기, 크기 단계 고정)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -1001,10 +1001,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== 홈 화면 메모장 =====
     // 메모는 [{ id, title, text, color, w, h }] 형태로 localStorage('memos')에 저장한다.
-    // w: 메모 목록 너비 대비 비율(0.2~1, 기기 화면 폭이 달라도 비율로 유지), h: 입력칸 높이(px)
+    // w: 메모 목록 너비 대비 비율, h: 입력칸 높이(px). 크기는 아래 정해진 단계 중 하나로만 바뀐다.
     const MEMO_COLORS = ['#FFF4B8', '#FFD6E0', '#D6EBFF', '#D7F5DD', '#E8DEFF', '#FFFFFF'];
     const MEMO_LEGACY_H = { s: 80, m: 150, l: 260 }; // 이전 버전의 작게/보통/크게
-    const MEMO_MIN_W = 160, MEMO_MIN_H = 60, MEMO_MAX_H = 800, MEMO_GAP = 12;
+    const MEMO_W_STEPS = [1 / 3, 1 / 2, 1];       // 너비: 1/3, 절반, 한 줄 전체
+    const MEMO_H_STEPS = [80, 150, 260, 400];     // 높이: 작게, 보통, 크게, 아주 크게
+    const MEMO_MIN_W = 160, MEMO_GAP = 12;
+    // 가장 가까운 단계로 맞춘다
+    const snapTo = (v, steps) => steps.reduce((best, s) => Math.abs(s - v) < Math.abs(best - v) ? s : best, steps[0]);
     const MEMO_MAX = 20;
     const memoList = document.getElementById('memo-list');
     const memoAddBtn = document.getElementById('memo-add-btn');
@@ -1019,8 +1023,8 @@ document.addEventListener('DOMContentLoaded', () => {
             title: typeof m.title === 'string' ? m.title.slice(0, 100) : '',
             text: typeof m.text === 'string' ? m.text : '',
             color: MEMO_COLORS.includes(m.color) ? m.color : MEMO_COLORS[0],
-            w: clampNum(m.w, 0.2, 1, 1),
-            h: clampNum(m.h, MEMO_MIN_H, MEMO_MAX_H, MEMO_LEGACY_H[m.size] || 150)
+            w: snapTo(clampNum(m.w, 0, 1, 1), MEMO_W_STEPS),
+            h: snapTo(clampNum(m.h, 0, 2000, MEMO_LEGACY_H[m.size] || 150), MEMO_H_STEPS)
         }));
     };
     const readMemos = () => {
@@ -1054,6 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
         memos.forEach(memo => {
             const card = document.createElement('div');
             card.className = 'memo-card';
+            card.dataset.id = memo.id;
             card.style.background = memo.color;
             card.style.width = memoWidthCss(memo.w);
 
@@ -1095,7 +1100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             text.style.height = memo.h + 'px';
             text.oninput = () => { memo.text = text.value; saveMemos(); };
 
-            // 오른쪽 아래 모서리 손잡이: 끌어서 가로·세로 크기 조절 (마우스·터치 공통)
+            // 오른쪽 아래 모서리 손잡이: 끌면 가로·세로가 정해진 크기 단계로 바뀐다 (마우스·터치 공통)
             const handle = document.createElement('div');
             handle.className = 'memo-resize';
             handle.setAttribute('aria-label', '크기 조절');
@@ -1104,15 +1109,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const listW = memoList.clientWidth;
                 const startX = e.clientX, startY = e.clientY;
                 const startW = card.offsetWidth, startH = text.offsetHeight;
-                const minW = Math.min(MEMO_MIN_W, listW);
+                // 이 화면에서 너무 좁아지는 너비 단계(160px 미만)는 제외한다
+                const wSteps = MEMO_W_STEPS.filter(r => r === 1 || r * (listW + MEMO_GAP) - MEMO_GAP >= MEMO_MIN_W);
                 try { handle.setPointerCapture(e.pointerId); } catch (err) {}
                 card.classList.add('resizing');
                 const onMove = (ev) => {
-                    const wPx = Math.min(listW, Math.max(minW, startW + ev.clientX - startX));
-                    const hPx = Math.min(MEMO_MAX_H, Math.max(MEMO_MIN_H, startH + ev.clientY - startY));
-                    // 목록 너비에 거의 닿으면 한 줄 전체로 맞춘다
-                    memo.w = (wPx >= listW - 4) ? 1 : (wPx + MEMO_GAP) / (listW + MEMO_GAP);
-                    memo.h = Math.round(hPx);
+                    const wPx = startW + ev.clientX - startX;
+                    const hPx = startH + ev.clientY - startY;
+                    memo.w = snapTo((wPx + MEMO_GAP) / (listW + MEMO_GAP), wSteps);
+                    memo.h = snapTo(hPx, MEMO_H_STEPS);
                     card.style.width = memoWidthCss(memo.w);
                     text.style.height = memo.h + 'px';
                 };
@@ -1121,7 +1126,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     handle.removeEventListener('pointerup', onUp);
                     handle.removeEventListener('pointercancel', onUp);
                     card.classList.remove('resizing');
-                    memo.w = Math.round(memo.w * 1000) / 1000;
                     saveMemos();
                 };
                 handle.addEventListener('pointermove', onMove);
@@ -1141,6 +1145,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
     renderMemos();
+
+    // 메모 순서 바꾸기: 길게 눌러(마우스는 잠깐 누른 채) 끌어서 옮긴다.
+    // 버튼·색상·크기 손잡이, 그리고 지금 입력 중인 칸에서는 끌기가 시작되지 않는다.
+    if (memoList && typeof Sortable !== 'undefined') {
+        new Sortable(memoList, {
+            draggable: '.memo-card',
+            delay: 350, touchStartThreshold: 6,
+            animation: 150, ghostClass: 'memo-ghost', chosenClass: 'memo-chosen',
+            forceFallback: true, fallbackClass: 'memo-drag', fallbackTolerance: 5,
+            filter: (evt, target) => {
+                const t = evt.target;
+                if (t.closest && t.closest('.memo-tool, .memo-palette, .memo-resize')) return true;
+                return t === document.activeElement && (t.classList.contains('memo-text') || t.classList.contains('memo-title'));
+            },
+            preventOnFilter: false,
+            onStart: () => { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); },
+            onEnd: () => {
+                const order = Array.from(memoList.querySelectorAll('.memo-card')).map(c => c.dataset.id);
+                const byId = {};
+                memos.forEach(m => { byId[m.id] = m; });
+                const reordered = order.map(id => byId[id]).filter(Boolean);
+                if (reordered.length === memos.length) { memos = reordered; saveMemos(); }
+            }
+        });
+    }
 
     if (memoAddBtn) {
         memoAddBtn.onclick = () => {

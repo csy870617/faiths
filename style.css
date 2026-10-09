@@ -450,7 +450,7 @@ input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
 .memo-add-btn { background: #111; color: #fff; border: none; border-radius: 20px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; }
 /* 메모마다 너비가 달라 좁은 메모끼리는 한 줄에 나란히 놓인다(간격 12px은 script.js의 MEMO_GAP과 같음) */
 .memo-list { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
-.memo-card { position: relative; max-width: 100%; min-width: 0; border-radius: 20px; padding: 10px 12px 12px 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; transition: background-color 0.2s; }
+.memo-card { position: relative; max-width: 100%; min-width: min(160px, 100%); border-radius: 20px; padding: 10px 12px 12px 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; transition: background-color 0.2s; }
 .memo-card.resizing { box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
 .memo-tools { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
 .memo-title { flex: 1; min-width: 0; height: 28px; border: none; outline: none; background: transparent; color: #111; font-size: calc(15px * var(--text-scale)); font-weight: 800; padding: 0; }
@@ -467,6 +467,9 @@ input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
 /* 오른쪽 아래 크기 조절 손잡이(빗금 모양) */
 .memo-resize { position: absolute; right: 4px; bottom: 4px; width: 24px; height: 24px; cursor: nwse-resize; touch-action: none; border-radius: 0 0 16px 0;
     background: linear-gradient(135deg, transparent 0 55%, rgba(0,0,0,0.28) 55% 62%, transparent 62% 72%, rgba(0,0,0,0.28) 72% 79%, transparent 79%); }
+/* 길게 눌러 순서 바꾸기: 놓일 자리(ghost)와 끌고 있는 메모 */
+.memo-ghost { opacity: 0.35; }
+.memo-drag { opacity: 1 !important; box-shadow: 0 15px 30px rgba(0,0,0,0.2); transform: rotate(1.5deg); }
 .memo-empty { width: 100%; text-align: center; color: #8898AA; font-size: 13px; padding: 16px 0; }
 
 @media (min-width: 768px) {
