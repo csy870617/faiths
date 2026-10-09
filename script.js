@@ -1,4 +1,4 @@
-// script.js - v176 (메모 구글 로그인 동기화)
+// script.js - v177 (메모 제목, 가로·세로 크기 조절)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -1000,23 +1000,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ===== 홈 화면 메모장 =====
-    // 메모는 [{ id, text, color, size }] 형태로 이 기기의 localStorage('memos')에 저장한다.
+    // 메모는 [{ id, title, text, color, w, h }] 형태로 localStorage('memos')에 저장한다.
+    // w: 메모 목록 너비 대비 비율(0.2~1, 기기 화면 폭이 달라도 비율로 유지), h: 입력칸 높이(px)
     const MEMO_COLORS = ['#FFF4B8', '#FFD6E0', '#D6EBFF', '#D7F5DD', '#E8DEFF', '#FFFFFF'];
-    const MEMO_SIZES = ['s', 'm', 'l'];
-    const MEMO_SIZE_LABELS = { s: '작게', m: '보통', l: '크게' };
+    const MEMO_LEGACY_H = { s: 80, m: 150, l: 260 }; // 이전 버전의 작게/보통/크게
+    const MEMO_MIN_W = 160, MEMO_MIN_H = 60, MEMO_MAX_H = 800, MEMO_GAP = 12;
     const MEMO_MAX = 20;
     const memoList = document.getElementById('memo-list');
     const memoAddBtn = document.getElementById('memo-add-btn');
-    const newMemo = () => ({ id: 'm' + Date.now() + Math.floor(Math.random() * 1000), text: '', color: MEMO_COLORS[0], size: 'm' });
+    const newMemo = () => ({ id: 'm' + Date.now() + Math.floor(Math.random() * 1000), title: '', text: '', color: MEMO_COLORS[0], w: 1, h: 150 });
+    const clampNum = (v, min, max, fallback) => { const n = Number(v); return isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback; };
 
     // 처음 방문하면 빈 메모 1장을 보여주고, 저장값이 손상돼도 안전한 값만 사용한다.
     const sanitizeMemos = (raw) => {
         if (!Array.isArray(raw)) return [];
         return raw.filter(m => m && typeof m === 'object').slice(0, MEMO_MAX).map(m => ({
             id: typeof m.id === 'string' ? m.id : newMemo().id,
+            title: typeof m.title === 'string' ? m.title.slice(0, 100) : '',
             text: typeof m.text === 'string' ? m.text : '',
             color: MEMO_COLORS.includes(m.color) ? m.color : MEMO_COLORS[0],
-            size: MEMO_SIZES.includes(m.size) ? m.size : 'm'
+            w: clampNum(m.w, 0.2, 1, 1),
+            h: clampNum(m.h, MEMO_MIN_H, MEMO_MAX_H, MEMO_LEGACY_H[m.size] || 150)
         }));
     };
     const readMemos = () => {
@@ -1034,6 +1038,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.scheduleSettingsSync) window.scheduleSettingsSync();
     };
 
+    // 비율 w만큼의 너비. 같은 줄에 놓인 메모 사이 간격(gap)까지 고려해 1/w개가 한 줄에 들어가게 한다.
+    const memoWidthCss = (w) => w >= 1 ? '100%' : 'calc(' + (w * 100) + '% - ' + ((1 - w) * MEMO_GAP) + 'px)';
+
     const renderMemos = () => {
         if (!memoList) return;
         memoList.innerHTML = '';
@@ -1046,25 +1053,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         memos.forEach(memo => {
             const card = document.createElement('div');
-            card.className = 'memo-card memo-' + memo.size;
+            card.className = 'memo-card';
             card.style.background = memo.color;
+            card.style.width = memoWidthCss(memo.w);
 
             const tools = document.createElement('div');
             tools.className = 'memo-tools';
+            const title = document.createElement('input');
+            title.className = 'memo-title';
+            title.type = 'text';
+            title.placeholder = '제목';
+            title.maxLength = 100;
+            title.value = memo.title;
+            title.oninput = () => { memo.title = title.value; saveMemos(); };
             const colorBtn = document.createElement('button');
             colorBtn.className = 'memo-tool';
             colorBtn.setAttribute('aria-label', '색 바꾸기');
             colorBtn.innerHTML = '<span class="memo-color-dot"></span>색';
             colorBtn.querySelector('.memo-color-dot').style.background = memo.color;
-            const sizeBtn = document.createElement('button');
-            sizeBtn.className = 'memo-tool';
-            sizeBtn.setAttribute('aria-label', '크기 바꾸기');
-            sizeBtn.innerText = MEMO_SIZE_LABELS[memo.size];
             const delBtn = document.createElement('button');
             delBtn.className = 'memo-tool';
             delBtn.setAttribute('aria-label', '메모 삭제');
             delBtn.innerText = '✕';
-            tools.append(colorBtn, sizeBtn, delBtn);
+            tools.append(title, colorBtn, delBtn);
 
             const palette = document.createElement('div');
             palette.className = 'memo-palette';
@@ -1081,20 +1092,51 @@ document.addEventListener('DOMContentLoaded', () => {
             text.className = 'memo-text';
             text.placeholder = '메모를 입력하세요';
             text.value = memo.text;
+            text.style.height = memo.h + 'px';
             text.oninput = () => { memo.text = text.value; saveMemos(); };
 
-            colorBtn.onclick = () => palette.classList.toggle('show');
-            sizeBtn.onclick = () => {
-                memo.size = MEMO_SIZES[(MEMO_SIZES.indexOf(memo.size) + 1) % MEMO_SIZES.length];
-                saveMemos(); renderMemos();
+            // 오른쪽 아래 모서리 손잡이: 끌어서 가로·세로 크기 조절 (마우스·터치 공통)
+            const handle = document.createElement('div');
+            handle.className = 'memo-resize';
+            handle.setAttribute('aria-label', '크기 조절');
+            handle.onpointerdown = (e) => {
+                e.preventDefault();
+                const listW = memoList.clientWidth;
+                const startX = e.clientX, startY = e.clientY;
+                const startW = card.offsetWidth, startH = text.offsetHeight;
+                const minW = Math.min(MEMO_MIN_W, listW);
+                try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+                card.classList.add('resizing');
+                const onMove = (ev) => {
+                    const wPx = Math.min(listW, Math.max(minW, startW + ev.clientX - startX));
+                    const hPx = Math.min(MEMO_MAX_H, Math.max(MEMO_MIN_H, startH + ev.clientY - startY));
+                    // 목록 너비에 거의 닿으면 한 줄 전체로 맞춘다
+                    memo.w = (wPx >= listW - 4) ? 1 : (wPx + MEMO_GAP) / (listW + MEMO_GAP);
+                    memo.h = Math.round(hPx);
+                    card.style.width = memoWidthCss(memo.w);
+                    text.style.height = memo.h + 'px';
+                };
+                const onUp = () => {
+                    handle.removeEventListener('pointermove', onMove);
+                    handle.removeEventListener('pointerup', onUp);
+                    handle.removeEventListener('pointercancel', onUp);
+                    card.classList.remove('resizing');
+                    memo.w = Math.round(memo.w * 1000) / 1000;
+                    saveMemos();
+                };
+                handle.addEventListener('pointermove', onMove);
+                handle.addEventListener('pointerup', onUp);
+                handle.addEventListener('pointercancel', onUp);
             };
+
+            colorBtn.onclick = () => palette.classList.toggle('show');
             delBtn.onclick = () => {
-                if (memo.text.trim() && !confirm('이 메모를 삭제할까요?')) return;
+                if ((memo.text.trim() || memo.title.trim()) && !confirm('이 메모를 삭제할까요?')) return;
                 memos = memos.filter(m => m !== memo);
                 saveMemos(); renderMemos();
             };
 
-            card.append(tools, palette, text);
+            card.append(tools, palette, text, handle);
             memoList.appendChild(card);
         });
     };

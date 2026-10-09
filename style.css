@@ -448,28 +448,26 @@ input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
 .memo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; }
 .memo-header h2 { font-size: calc(17px * var(--text-scale)); font-weight: 800; color: #111; }
 .memo-add-btn { background: #111; color: #fff; border: none; border-radius: 20px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; }
-.memo-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
-.memo-card { border-radius: 20px; padding: 10px 12px 12px 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; transition: background-color 0.2s; }
-.memo-tools { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-bottom: 6px; }
-.memo-tool { display: flex; align-items: center; justify-content: center; gap: 5px; height: 28px; min-width: 28px; padding: 0 10px; border: none; border-radius: 14px; background: rgba(0,0,0,0.06); color: #444; font-size: 12px; font-weight: 700; cursor: pointer; }
+/* 메모마다 너비가 달라 좁은 메모끼리는 한 줄에 나란히 놓인다(간격 12px은 script.js의 MEMO_GAP과 같음) */
+.memo-list { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+.memo-card { position: relative; max-width: 100%; min-width: 0; border-radius: 20px; padding: 10px 12px 12px 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; transition: background-color 0.2s; }
+.memo-card.resizing { box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+.memo-tools { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.memo-title { flex: 1; min-width: 0; height: 28px; border: none; outline: none; background: transparent; color: #111; font-size: calc(15px * var(--text-scale)); font-weight: 800; padding: 0; }
+.memo-title::placeholder { color: rgba(0,0,0,0.3); font-weight: 700; }
+.memo-tool { flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 5px; height: 28px; min-width: 28px; padding: 0 10px; border: none; border-radius: 14px; background: rgba(0,0,0,0.06); color: #444; font-size: 12px; font-weight: 700; cursor: pointer; }
 .memo-tool:hover { background: rgba(0,0,0,0.12); }
 .memo-color-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.3); }
-.memo-palette { display: none; justify-content: flex-end; gap: 8px; margin-bottom: 8px; }
+.memo-palette { display: none; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-bottom: 8px; }
 .memo-palette.show { display: flex; }
 .memo-swatch { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.15); cursor: pointer; }
 .memo-swatch.active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111; }
-.memo-text { width: 100%; border: none; outline: none; resize: none; background: transparent; color: #222; font-size: calc(15px * var(--text-scale)); line-height: 1.5; }
+.memo-text { width: 100%; height: 150px; border: none; outline: none; resize: none; background: transparent; color: #222; font-size: calc(15px * var(--text-scale)); line-height: 1.5; }
 .memo-text::placeholder { color: rgba(0,0,0,0.35); }
-.memo-s .memo-text { height: 80px; }
-.memo-m .memo-text { height: 150px; }
-.memo-l .memo-text { height: 260px; }
-.memo-empty { text-align: center; color: #8898AA; font-size: 13px; padding: 16px 0; }
-
-@media (min-width: 768px) {
-    .memo-list { grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    .memo-l { grid-column: 1 / -1; } /* 크게: 가로 한 줄 전체 */
-}
-@media (min-width: 1200px) { .memo-list { grid-template-columns: repeat(3, 1fr); } }
+/* 오른쪽 아래 크기 조절 손잡이(빗금 모양) */
+.memo-resize { position: absolute; right: 4px; bottom: 4px; width: 24px; height: 24px; cursor: nwse-resize; touch-action: none; border-radius: 0 0 16px 0;
+    background: linear-gradient(135deg, transparent 0 55%, rgba(0,0,0,0.28) 55% 62%, transparent 62% 72%, rgba(0,0,0,0.28) 72% 79%, transparent 79%); }
+.memo-empty { width: 100%; text-align: center; color: #8898AA; font-size: 13px; padding: 16px 0; }
 
 @media (min-width: 768px) {
     body { background-color: #E9ECEF; padding: 40px 0; align-items: flex-start; }
