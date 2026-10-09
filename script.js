@@ -1,4 +1,4 @@
-// script.js - v178 (메모 순서 끌어서 바꾸기, 크기 단계 고정)
+// script.js - v179 (메모 영역 숨기기, 새 메모 절반 크기, 선택 시 버튼 표시)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -886,7 +886,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const applyHiddenStatus = () => {
         const hiddenList = readHiddenCards().filter(id => !UNHIDEABLE_CARDS.includes(id));
-        const cards = document.querySelectorAll('.list-card');
+        // 메모 영역(#memo-section)도 카드와 같은 숨김 목록으로 관리한다.
+        const cards = document.querySelectorAll('.list-card, #memo-section');
         cards.forEach(card => {
             if (hiddenList.includes(card.id)) card.classList.add('user-hidden');
             else card.classList.remove('user-hidden');
@@ -1012,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const MEMO_MAX = 20;
     const memoList = document.getElementById('memo-list');
     const memoAddBtn = document.getElementById('memo-add-btn');
-    const newMemo = () => ({ id: 'm' + Date.now() + Math.floor(Math.random() * 1000), title: '', text: '', color: MEMO_COLORS[0], w: 1, h: 150 });
+    const newMemo = () => ({ id: 'm' + Date.now() + Math.floor(Math.random() * 1000), title: '', text: '', color: MEMO_COLORS[0], w: 1 / 2, h: 150 }); // 새 메모는 절반 너비
     const clampNum = (v, min, max, fallback) => { const n = Number(v); return isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback; };
 
     // 처음 방문하면 빈 메모 1장을 보여주고, 저장값이 손상돼도 안전한 값만 사용한다.
@@ -1033,6 +1034,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return sanitizeMemos(raw);
     };
     let memos = readMemos();
+    let selectedMemoId = null; // 선택된(색·삭제 버튼이 보이는) 메모
     // 사용자가 메모를 바꾼 시각을 함께 기록해, 기기 간 동기화 때 더 최근 쪽을 기준으로 삼는다.
     const saveMemos = () => {
         try {
@@ -1059,6 +1061,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'memo-card';
             card.dataset.id = memo.id;
+            if (memo.id === selectedMemoId) card.classList.add('selected');
             card.style.background = memo.color;
             card.style.width = memoWidthCss(memo.w);
 
@@ -1145,6 +1148,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
     renderMemos();
+
+    // 메모를 누르면 '선택' 상태가 되어 색·삭제 버튼이 보이고, 메모 밖을 누르면 다시 숨긴다.
+    document.addEventListener('pointerdown', (e) => {
+        const card = e.target.closest ? e.target.closest('.memo-card') : null;
+        const id = card ? card.dataset.id : null;
+        if (id === selectedMemoId) return;
+        selectedMemoId = id;
+        if (!memoList) return;
+        memoList.querySelectorAll('.memo-card').forEach(c => {
+            const on = c.dataset.id === id;
+            c.classList.toggle('selected', on);
+            if (!on) { const pal = c.querySelector('.memo-palette'); if (pal) pal.classList.remove('show'); }
+        });
+    }, true);
+
+    // 숨기기 모드: 메모 영역을 누르면 카드처럼 숨김/보이기를 전환한다(메모 편집은 막음).
+    const memoSection = document.getElementById('memo-section');
+    if (memoSection) {
+        memoSection.addEventListener('click', (e) => {
+            if (!isHideMode) return;
+            e.preventDefault(); e.stopPropagation();
+            let hiddenList = readHiddenCards();
+            if (hiddenList.includes('memo-section')) hiddenList = hiddenList.filter(id => id !== 'memo-section');
+            else hiddenList.push('memo-section');
+            localStorage.setItem('hiddenCards', JSON.stringify(hiddenList));
+            applyHiddenStatus();
+            if (window.scheduleSettingsSync) window.scheduleSettingsSync();
+        }, true);
+    }
 
     // 메모 순서 바꾸기: 길게 눌러(마우스는 잠깐 누른 채) 끌어서 옮긴다.
     // 버튼·색상·크기 손잡이, 그리고 지금 입력 중인 칸에서는 끌기가 시작되지 않는다.
