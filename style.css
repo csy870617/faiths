@@ -463,9 +463,11 @@ input[type=range] { flex-grow: 1; accent-color: var(--brand-color); }
 .memo-color-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.3); }
 .memo-palette { display: none; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-bottom: 8px; }
 .memo-palette.show { display: flex; }
-/* 색·삭제 버튼과 색 고르기는 선택한(누른) 메모에서만 보인다 */
+/* 색·삭제 버튼, 색 고르기, 이동 손잡이, 크기 조절은 선택한(누른) 메모에서만 보인다 */
 .memo-card:not(.selected) .memo-tool,
-.memo-card:not(.selected) .memo-palette { display: none; }
+.memo-card:not(.selected) .memo-palette,
+.memo-card:not(.selected) .memo-grip,
+.memo-card:not(.selected) .memo-resize { display: none; }
 .memo-swatch { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.15); cursor: pointer; }
 .memo-swatch.active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111; }
 .memo-text { width: 100%; height: 150px; border: none; outline: none; resize: none; background: transparent; color: #222; font-size: calc(15px * var(--text-scale)); line-height: 1.5; }
