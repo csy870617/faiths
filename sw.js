@@ -36,7 +36,10 @@ self.addEventListener('activate', (event) => {
         caches.keys().then((keyList) => {
             return Promise.all(
                 keyList.map((key) => {
-                    if (key !== CACHE_NAME) {
+                    // 같은 주소(csy870617.github.io)의 다른 앱(신앙일지·영어 등)과 저장소를 함께 쓰므로
+                    // 이 앱이 만든 옛 캐시(faiths-…)만 지운다. 남의 캐시를 지우면 그 앱이 받아 둔
+                    // 음성·자료(수백 MB)가 사라져 다시 받아야 한다.
+                    if (key !== CACHE_NAME && key.startsWith('faiths-')) {
                         console.log('구버전 캐시 삭제:', key);
                         return caches.delete(key);
                     }
