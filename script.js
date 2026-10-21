@@ -1,4 +1,4 @@
-// script.js - v182 (메모 + 버튼을 오른쪽으로)
+// script.js - v183 (메모 영역 기본 숨김, 숨기기 모드에서 켜기)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -884,14 +884,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const raw = safeParseJSON(localStorage.getItem('hiddenCards'), []);
         return Array.isArray(raw) ? raw : [];
     };
+    // 메모 영역은 기본으로 숨겨 두고, 사용자가 숨기기 모드에서 켰을 때만 보인다(localStorage 'memoEnabled').
+    // 값이 없으면: 이전 버전에서 이미 메모를 써 온 사용자(숨기지 않은 경우)는 계속 보이게 한다.
+    const isMemoEnabled = () => {
+        const v = localStorage.getItem('memoEnabled');
+        if (v === 'true') return true;
+        if (v === 'false') return false;
+        return (Number(localStorage.getItem('memosUpdatedAt')) || 0) > 0 && !readHiddenCards().includes('memo-section');
+    };
     const applyHiddenStatus = () => {
         const hiddenList = readHiddenCards().filter(id => !UNHIDEABLE_CARDS.includes(id));
-        // 메모 영역(#memo-section)도 카드와 같은 숨김 목록으로 관리한다.
-        const cards = document.querySelectorAll('.list-card, #memo-section');
+        const cards = document.querySelectorAll('.list-card');
         cards.forEach(card => {
             if (hiddenList.includes(card.id)) card.classList.add('user-hidden');
             else card.classList.remove('user-hidden');
         });
+        const memoSec = document.getElementById('memo-section');
+        if (memoSec) memoSec.classList.toggle('user-hidden', !isMemoEnabled());
     };
     applyHiddenStatus();
     if (hideModeBtn) {
@@ -1169,16 +1178,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, true);
 
-    // 숨기기 모드: 메모 영역을 누르면 카드처럼 숨김/보이기를 전환한다(메모 편집은 막음).
+    // 숨기기 모드: 메모 영역을 누르면 보이기/숨기기를 전환한다(메모 편집은 막음).
+    // 메모 영역은 처음엔 숨겨져 있어, 숨기기 모드에서 흐리게 보이는 영역을 눌러 켠다.
     const memoSection = document.getElementById('memo-section');
     if (memoSection) {
         memoSection.addEventListener('click', (e) => {
             if (!isHideMode) return;
             e.preventDefault(); e.stopPropagation();
-            let hiddenList = readHiddenCards();
-            if (hiddenList.includes('memo-section')) hiddenList = hiddenList.filter(id => id !== 'memo-section');
-            else hiddenList.push('memo-section');
-            localStorage.setItem('hiddenCards', JSON.stringify(hiddenList));
+            localStorage.setItem('memoEnabled', isMemoEnabled() ? 'false' : 'true');
+            // 이전 방식(숨김 목록의 'memo-section')은 정리한다
+            const hiddenList = readHiddenCards();
+            if (hiddenList.includes('memo-section')) localStorage.setItem('hiddenCards', JSON.stringify(hiddenList.filter(id => id !== 'memo-section')));
             applyHiddenStatus();
             if (window.scheduleSettingsSync) window.scheduleSettingsSync();
         }, true);
@@ -1358,10 +1368,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('menuOrder', JSON.stringify(data.menuOrder));
                 applyMenuOrder(data.menuOrder);
             }
+            if (typeof data.memoEnabled === 'boolean') {
+                localStorage.setItem('memoEnabled', String(data.memoEnabled));
+            }
             if (Array.isArray(data.hiddenCards)) {
                 localStorage.setItem('hiddenCards', JSON.stringify(data.hiddenCards));
-                applyHiddenStatus();
             }
+            applyHiddenStatus();
             if (data.viewMode === 'grid' || data.viewMode === 'list') {
                 setViewMode(data.viewMode);
             }
@@ -1398,6 +1411,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const order = safeParseJSON(localStorage.getItem('menuOrder'), null);
         if (Array.isArray(order)) s.menuOrder = order;
+        // 메모 영역 표시 여부는 사용자가 직접 정한 경우에만 올린다(기본값으로 클라우드를 덮지 않도록)
+        const memoEnabled = localStorage.getItem('memoEnabled');
+        if (memoEnabled === 'true' || memoEnabled === 'false') s.memoEnabled = memoEnabled === 'true';
         // 메모는 사용자가 한 번이라도 수정한 경우에만 올린다(처음 보이는 빈 메모로 클라우드를 덮지 않도록).
         const memosAt = Number(localStorage.getItem('memosUpdatedAt')) || 0;
         if (memosAt > 0) { s.memos = memos; s.memosUpdatedAt = memosAt; }
