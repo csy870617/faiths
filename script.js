@@ -1,4 +1,4 @@
-// script.js - v183 (메모 영역 기본 숨김, 숨기기 모드에서 켜기)
+// script.js - v184 (메모 영역: 기존 사용자도 기본 숨김)
 
 // 1. 전역 변수 및 함수 선언 (ReferenceError 방지)
 let player;
@@ -884,14 +884,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const raw = safeParseJSON(localStorage.getItem('hiddenCards'), []);
         return Array.isArray(raw) ? raw : [];
     };
-    // 메모 영역은 기본으로 숨겨 두고, 사용자가 숨기기 모드에서 켰을 때만 보인다(localStorage 'memoEnabled').
-    // 값이 없으면: 이전 버전에서 이미 메모를 써 온 사용자(숨기지 않은 경우)는 계속 보이게 한다.
-    const isMemoEnabled = () => {
-        const v = localStorage.getItem('memoEnabled');
-        if (v === 'true') return true;
-        if (v === 'false') return false;
-        return (Number(localStorage.getItem('memosUpdatedAt')) || 0) > 0 && !readHiddenCards().includes('memo-section');
-    };
+    // 메모 영역은 기본으로 숨겨 두고(기존 사용자 포함), 사용자가 숨기기 모드에서 켰을 때만 보인다
+    // (localStorage 'memoEnabled'). 숨겨도 써 둔 메모 내용은 그대로 남아 있다.
+    const isMemoEnabled = () => localStorage.getItem('memoEnabled') === 'true';
     const applyHiddenStatus = () => {
         const hiddenList = readHiddenCards().filter(id => !UNHIDEABLE_CARDS.includes(id));
         const cards = document.querySelectorAll('.list-card');
